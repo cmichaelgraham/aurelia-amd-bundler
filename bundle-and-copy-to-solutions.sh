@@ -8,28 +8,28 @@ mkdir aurelia-latest
 
 cd aurelia-latest
 
-../clone-and-build.sh templating-resources
-../clone-and-build.sh loader
-../clone-and-build.sh loader-default
-../clone-and-build.sh path
-../clone-and-build.sh task-queue
-../clone-and-build.sh logging
-../clone-and-build.sh logging-console
-../clone-and-build.sh history
-../clone-and-build.sh history-browser
-../clone-and-build.sh event-aggregator
-../clone-and-build.sh framework
-../clone-and-build.sh metadata
-../clone-and-build.sh binding
-../clone-and-build.sh templating
-../clone-and-build.sh dependency-injection
-../clone-and-build.sh router
-../clone-and-build.sh templating-binding
-../clone-and-build.sh templating-router
-../clone-and-build.sh route-recognizer
-../clone-and-build.sh http-client
-../clone-and-build.sh bootstrapper
-../clone-and-build.sh html-template-element
+../clone-and-build.sh aurelia templating-resources
+../clone-and-build.sh aurelia loader
+../clone-and-build.sh aurelia loader-default
+../clone-and-build.sh aurelia path
+../clone-and-build.sh aurelia task-queue
+../clone-and-build.sh aurelia logging
+../clone-and-build.sh aurelia logging-console
+../clone-and-build.sh aurelia history
+../clone-and-build.sh aurelia history-browser
+../clone-and-build.sh aurelia event-aggregator
+../clone-and-build.sh aurelia framework
+../clone-and-build.sh aurelia metadata
+../clone-and-build.sh aurelia binding
+../clone-and-build.sh aurelia dependency-injection
+../clone-and-build.sh aurelia router
+../clone-and-build.sh aurelia templating-binding
+../clone-and-build.sh aurelia templating-router
+../clone-and-build.sh aurelia route-recognizer
+../clone-and-build.sh aurelia http-client
+../clone-and-build.sh aurelia bootstrapper
+../clone-and-build.sh aurelia html-template-element
+../clone-and-build.sh cmichaelgraham templating
 
 cd ..
 
