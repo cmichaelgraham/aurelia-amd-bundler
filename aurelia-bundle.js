@@ -8970,7 +8970,7 @@ define('aurelia-templating/view-strategy',['exports', 'aurelia-metadata', 'aurel
       key: 'normalize',
       value: function normalize(value) {
         if (typeof value === 'string') {
-          value = new UseView(value);
+          value = new UseViewStrategy(value);
         }
 
         if (value && !(value instanceof ViewStrategy)) {

@@ -43,6 +43,6 @@
     "bootstrap": "latest",
     "fontawesome": "latest",
     "webcomponentsjs": "latest",
-    "core-js": "latest"
+    "core-js": "zloirock/core-js#latest"
   }
 }
