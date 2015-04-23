@@ -1,3 +1,12 @@
+# aurelia-amd-bundler
+
+## steps to bundle
+
+1. open `git bash shell`
+2. install [node](https://nodejs.org/)
+3. install bower (run `npm install -g bower`)
+
+
 ## bundling
 
 * [link to un-minimized bundle](https://github.com/cmichaelgraham/aurelia-typescript/blob/master/aurelia-require-bundle/aurelia-bundle.js) - 435K
