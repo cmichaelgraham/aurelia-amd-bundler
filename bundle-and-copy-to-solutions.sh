@@ -29,7 +29,7 @@ cd aurelia-latest
 ../clone-and-build.sh aurelia http-client
 ../clone-and-build.sh aurelia bootstrapper
 ../clone-and-build.sh aurelia html-template-element
-../clone-and-build.sh cmichaelgraham templating
+../clone-and-build.sh aurelia templating
 
 cd ..
 

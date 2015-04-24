@@ -1,0 +1,31 @@
+Evolution of the Web
+  * Plugins (Flash, Silverlight), Applications
+  * SVG Graphics
+  * WebGL 3D
+  * Video
+  * Programmability ECMA Script (JavaScript)
+  * Modules, Code Loading
+  * Testability and Test Driven Development
+  * Open Source, GitHub
+
+Overview of IDE Choices
+  * Notepad++ & Gulp
+  * Atom
+  * Sublime Text
+  * Visual Studio
+  * WebStorm
+
+TypeScript Overview
+  * Optional Typing
+  * Intellisense
+  * Static Type Checking
+  * Refactoring
+  * Type Definition (.d.ts) Files
+
+Aurelia Overview
+  * Navigation-Style Application
+  * What is a SPA (Single Page Application)
+  * Views, ViewModels, and Data Binding
+  * Routers and Routes
+  * Custom Elements and Attributes
+  * Dependency Injection & "Decoupling"
