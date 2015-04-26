@@ -46,5 +46,5 @@ define("aurelia-bundle-manifest", [
   _html_template_element,
   _core_js
 ){
-    alert(_dependency_injection.inject)
+    // alert(_dependency_injection.inject)
   });
