@@ -26,3 +26,4 @@ git clone git://github.com/aurelia/route-recognizer
 git clone git://github.com/aurelia/http-client
 git clone git://github.com/aurelia/bootstrapper
 git clone git://github.com/aurelia/html-template-element
+git clone git://github.com/aurelia/validation

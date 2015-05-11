@@ -21,6 +21,7 @@ define("aurelia-bundle-manifest", [
   'aurelia-http-client',
   'aurelia-bootstrapper',
   'aurelia-html-template-element',
+  'aurelia-validation'
   'core-js'
   ], function(_path,
   _loader,
@@ -44,6 +45,7 @@ define("aurelia-bundle-manifest", [
   _http_client,
   _bootstrapper,
   _html_template_element,
+  _validation,
   _core_js
 ){
     // alert(_dependency_injection.inject)

@@ -40,6 +40,7 @@
     "aurelia-templating-resources": "aurelia/templating-resources#latest",
     "aurelia-bootstrapper": "aurelia/bootstrapper#latest",
     "aurelia-html-template-element": "aurelia/html-template-element#latest",
+    "aurelia-validation": "aurelia/validation#latest",
     "bootstrap": "latest",
     "fontawesome": "latest",
     "webcomponentsjs": "latest",
