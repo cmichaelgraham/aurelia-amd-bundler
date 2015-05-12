@@ -75,5 +75,10 @@ require.config({
      location: 'aurelia-latest/http-client/dist/amd',
      main : 'index'
    },
+   {
+     name: 'aurelia-validation',
+     location: 'aurelia-latest/validation/dist/amd',
+     main : 'index'
+   },
    { name: "core-js", location: "bower_components/core-js/client", main: "core" }  ]
 });

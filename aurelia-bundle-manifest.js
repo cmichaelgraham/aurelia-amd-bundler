@@ -21,7 +21,7 @@ define("aurelia-bundle-manifest", [
   'aurelia-http-client',
   'aurelia-bootstrapper',
   'aurelia-html-template-element',
-  'aurelia-validation'
+  'aurelia-validation',
   'core-js'
   ], function(_path,
   _loader,
