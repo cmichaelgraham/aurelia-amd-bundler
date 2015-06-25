@@ -30,6 +30,7 @@ cd aurelia-latest
 ../clone-and-build.sh aurelia bootstrapper
 ../clone-and-build.sh aurelia html-template-element
 ../clone-and-build.sh aurelia templating
+../clone-and-build.sh aurelia validation
 
 cd ..
 
