@@ -30,7 +30,7 @@ cd aurelia-latest
 ../clone-and-build.sh aurelia bootstrapper
 ../clone-and-build.sh aurelia html-template-element
 ../clone-and-build.sh aurelia templating
-../clone-and-build.sh aurelia validation
+#../clone-and-build.sh aurelia validation
 
 cd ..
 
@@ -41,4 +41,4 @@ echo build aurelia-bundle-latest
 node r.js -o name=aurelia-bundle-manifest baseUrl=. mainConfigFile=main-config-latest.js out=aurelia-bundle-latest.js optimize=none
 
 cp -f aurelia-bundle.js aurelia-bundle-latest.js aurelia-bundle.min.js scripts/aurelia
-cp -f /aurelia-latest/*/dist/amd/*.d.ts typings/aurelia
+cp -f aurelia-latest/*/dist/amd/*.d.ts typings/aurelia
