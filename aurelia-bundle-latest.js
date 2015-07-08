@@ -5267,6 +5267,7 @@ define('aurelia-history-browser',['exports', 'core-js', 'aurelia-history'], func
       }
 
       if (this._hasPushState) {
+        url = url.replace('//', '/');
         this.history[options.replace ? 'replaceState' : 'pushState']({}, document.title, url);
       } else if (this._wantsHashChange) {
         updateHash(this.location, fragment, options.replace);
@@ -6881,11 +6882,11 @@ define('aurelia-binding/index',['exports', 'core-js', 'aurelia-task-queue', 'aur
       this.isAssignable = false;
     }
 
-    Expression.prototype.evaluate = function evaluate() {
+    Expression.prototype.evaluate = function evaluate(scope, valueConverters, args) {
       throw new Error('Cannot evaluate ' + this);
     };
 
-    Expression.prototype.assign = function assign() {
+    Expression.prototype.assign = function assign(scope, value, valueConverters) {
       throw new Error('Cannot assign to ' + this);
     };
 
@@ -11292,7 +11293,8 @@ define('aurelia-templating/index',['exports', 'core-js', 'aurelia-logging', 'aur
     };
 
     ConventionalViewStrategy.convertModuleIdToViewUrl = function convertModuleIdToViewUrl(moduleId) {
-      return moduleId + '.html';
+      var id = moduleId.endsWith('.js') || moduleId.endsWith('.ts') ? moduleId.substring(0, moduleId.length - 3) : moduleId;
+      return id + '.html';
     };
 
     return ConventionalViewStrategy;
@@ -14216,7 +14218,7 @@ define('aurelia-framework/index',['exports', 'core-js', 'aurelia-logging', 'aure
 
   function loadPlugin(aurelia, loader, info) {
     logger.debug('Loading plugin ' + info.moduleId + '.');
-    aurelia.currentPluginId = info.moduleId;
+    aurelia.currentPluginId = info.moduleId.endsWith('.js') || info.moduleId.endsWith('.ts') ? info.moduleId.substring(0, info.moduleId.length - 3) : info.moduleId;
 
     return loader.loadModule(info.moduleId).then(function (m) {
       if ('configure' in m) {
@@ -16004,12 +16006,19 @@ define('aurelia-router/index',['exports', 'core-js', 'aurelia-logging', 'aurelia
     function Router(container, history) {
       _classCallCheck(this, Router);
 
-      this.container = container;
-      this.history = history;
       this.viewPorts = {};
-      this.reset();
       this.baseUrl = '';
       this.isConfigured = false;
+      this.fallbackOrder = 100;
+      this.recognizer = new _aureliaRouteRecognizer.RouteRecognizer();
+      this.childRecognizer = new _aureliaRouteRecognizer.RouteRecognizer();
+      this.routes = [];
+      this.isNavigating = false;
+      this.navigation = [];
+
+      this.container = container;
+      this.history = history;
+      this.reset();
     }
 
     Router.prototype.registerViewPort = function registerViewPort(viewPort, name) {
@@ -16122,8 +16131,13 @@ define('aurelia-router/index',['exports', 'core-js', 'aurelia-logging', 'aurelia
     };
 
     Router.prototype.generate = function generate(name, params) {
-      if ((!this.isConfigured || !this.recognizer.hasRoute(name)) && this.parent) {
+      var hasRoute = this.recognizer.hasRoute(name);
+      if ((!this.isConfigured || !hasRoute) && this.parent) {
         return this.parent.generate(name, params);
+      }
+
+      if (!hasRoute) {
+        throw new Error('A route with name \'' + name + '\' could not be found. Check that `name: \'' + name + '\'` was specified in the route\'s config.');
       }
 
       var path = this.recognizer.generate(name, params);
@@ -16731,6 +16745,10 @@ define('aurelia-router/index',['exports', 'core-js', 'aurelia-logging', 'aurelia
       finalResult = result;
 
       if (!result.completed) {
+        if (result.output instanceof Error) {
+          logger.error(result.output);
+        }
+
         restorePreviousLocation(router);
       }
     }
@@ -16753,8 +16771,8 @@ define('aurelia-router/index',['exports', 'core-js', 'aurelia-logging', 'aurelia
       } else if (!result.completed) {
         eventName = 'canceled';
       } else {
-        var queryString = instruction.queryString ? '?' + instruction.queryString : '';
-        router.history.previousLocation = instruction.fragment + queryString;
+        var _queryString = instruction.queryString ? '?' + instruction.queryString : '';
+        router.history.previousLocation = instruction.fragment + _queryString;
         eventName = 'success';
       }
 
