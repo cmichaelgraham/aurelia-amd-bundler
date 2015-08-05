@@ -36,7 +36,13 @@ cp scripts/aurelia/* ../aurelia-typescript/aurelia-vs-ts-tests/aurelia-vs-ts-tes
 cp typings/aurelia/* ../aurelia-typescript/aurelia-vs-ts-tests/aurelia-vs-ts-tests/typings/aurelia
 
 # skel-nav-require-webstorm-ts
+cp scripts/aurelia/* ../aurelia-typescript/skel-nav-require-webstorm-ts/scripts/aurelia
+cp typings/aurelia/* ../aurelia-typescript/skel-nav-require-webstorm-ts/typings/aurelia
+
 # skel-nav-esri-vs-ts-telerik
+cp scripts/aurelia/* ../aurelia-typescript/skel-nav-esri-vs-ts-telerik/skel-nav-esri-vs-ts-telerik/scripts/aurelia
+cp typings/aurelia/* ../aurelia-typescript/skel-nav-esri-vs-ts-telerik/skel-nav-esri-vs-ts-telerik/typings/aurelia
+
 # + skel-nav-esri-vscode-ts
 # + skel-nav-jspm-gulp-ts
 # + kendo-vs-ts
