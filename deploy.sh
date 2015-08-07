@@ -1,3 +1,5 @@
+# ------------ aurelia-typescript ------------------------------------------------------------
+
 # skel-nav-esri-vs-ts
 cp scripts/aurelia/* ../aurelia-typescript/skel-nav-esri-vs-ts/skel-nav-esri-vs-ts/scripts/aurelia
 cp typings/aurelia/* ../aurelia-typescript/skel-nav-esri-vs-ts/skel-nav-esri-vs-ts/typings/aurelia
@@ -42,6 +44,15 @@ cp typings/aurelia/* ../aurelia-typescript/skel-nav-require-webstorm-ts/typings/
 # skel-nav-esri-vs-ts-telerik
 cp scripts/aurelia/* ../aurelia-typescript/skel-nav-esri-vs-ts-telerik/skel-nav-esri-vs-ts-telerik/scripts/aurelia
 cp typings/aurelia/* ../aurelia-typescript/skel-nav-esri-vs-ts-telerik/skel-nav-esri-vs-ts-telerik/typings/aurelia
+
+
+
+# ------------ aurelia-typescript-atom ------------------------------------------------------------
+
+# skel-nav-ts
+cp scripts/aurelia/* ../aurelia-typescript-atom/skel-nav-ts/scripts/aurelia
+cp typings/aurelia/* ../aurelia-typescript-atom/skel-nav-ts/typings/aurelia
+
 
 # + skel-nav-esri-vscode-ts
 # + skel-nav-jspm-gulp-ts
