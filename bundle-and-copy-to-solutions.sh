@@ -27,6 +27,7 @@ cd aurelia-latest
 ../clone-and-build.sh aurelia templating-router
 ../clone-and-build.sh aurelia route-recognizer
 ../clone-and-build.sh aurelia http-client
+../clone-and-build.sh aurelia fetch-client
 ../clone-and-build.sh aurelia bootstrapper
 ../clone-and-build.sh aurelia html-template-element
 ../clone-and-build.sh aurelia templating

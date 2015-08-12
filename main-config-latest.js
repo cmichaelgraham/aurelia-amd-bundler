@@ -23,6 +23,7 @@ require.config({
     'aurelia-templating-router': 'aurelia-latest/templating-router/dist/amd/aurelia-templating-router',
     'aurelia-route-recognizer': 'aurelia-latest/route-recognizer/dist/amd/aurelia-route-recognizer',
     'aurelia-http-client': 'aurelia-latest/http-client/dist/amd/aurelia-http-client',
+    'aurelia-fetch-client': 'aurelia-latest/fetch-client/dist/amd/aurelia-fetch-client',
     'aurelia-validation': 'aurelia-latest/validation/dist/amd/aurelia-validation',
     'aurelia-animator-css': 'aurelia-latest/animator-css/dist/amd/aurelia-animator-css'  
   },

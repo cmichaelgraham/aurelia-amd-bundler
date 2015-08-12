@@ -22,6 +22,7 @@ require.config({
     'aurelia-templating-binding': 'bower_components/aurelia-templating-binding/dist/amd/aurelia-templating-binding',
     'aurelia-route-recognizer': 'bower_components/aurelia-route-recognizer/dist/amd/aurelia-route-recognizer',
     'aurelia-http-client': 'bower_components/aurelia-http-client/dist/amd/aurelia-http-client',
+    'aurelia-fetch-client': 'bower_components/aurelia-fetch-client/dist/amd/aurelia-fetch-client',
     'aurelia-validation': 'bower_components/aurelia-validation/dist/amd/aurelia-validation',
     'aurelia-animator-css': 'bower_components/aurelia-animator-css/dist/amd/aurelia-animator-css'
   },
