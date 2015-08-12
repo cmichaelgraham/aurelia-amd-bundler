@@ -41,6 +41,7 @@
     "aurelia-bootstrapper": "aurelia/bootstrapper#latest",
     "aurelia-html-template-element": "aurelia/html-template-element#latest",
     "aurelia-validation": "aurelia/validation#latest",
+    "aurelia-animator-css": "aurelia/animator-css",
     "bootstrap": "latest",
     "fontawesome": "latest",
     "webcomponentsjs": "latest",

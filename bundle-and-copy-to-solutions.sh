@@ -31,6 +31,7 @@ cd aurelia-latest
 ../clone-and-build.sh aurelia html-template-element
 ../clone-and-build.sh aurelia templating
 ../clone-and-build.sh aurelia validation
+../clone-and-build.sh aurelia animator-css
 
 cd ..
 

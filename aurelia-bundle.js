@@ -4536,7 +4536,7 @@ define('core-js', ['core-js/core'], function (main) { return main; });
 
 define("core-js/core", function(){});
 
-define('aurelia-metadata/aurelia-metadata',['exports', 'core-js'], function (exports, _coreJs) {
+define('aurelia-metadata',['exports', 'core-js'], function (exports, _coreJs) {
   
 
   exports.__esModule = true;
@@ -4784,9 +4784,7 @@ define('aurelia-metadata/aurelia-metadata',['exports', 'core-js'], function (exp
   };
   exports.Decorators = Decorators;
 });
-define('aurelia-metadata', ['aurelia-metadata/aurelia-metadata'], function (main) { return main; });
-
-define('aurelia-loader/aurelia-loader',['exports', 'core-js', 'aurelia-path', 'aurelia-metadata'], function (exports, _coreJs, _aureliaPath, _aureliaMetadata) {
+define('aurelia-loader',['exports', 'core-js', 'aurelia-path', 'aurelia-metadata'], function (exports, _coreJs, _aureliaPath, _aureliaMetadata) {
   
 
   exports.__esModule = true;
@@ -5034,8 +5032,6 @@ define('aurelia-loader/aurelia-loader',['exports', 'core-js', 'aurelia-path', 'a
 
   exports.Loader = Loader;
 });
-define('aurelia-loader', ['aurelia-loader/aurelia-loader'], function (main) { return main; });
-
 define('aurelia-loader-default',['exports', 'aurelia-metadata', 'aurelia-loader'], function (exports, _aureliaMetadata, _aureliaLoader) {
   
 
@@ -6035,7 +6031,7 @@ define('aurelia-event-aggregator',['exports', 'aurelia-logging'], function (expo
     aurelia.withInstance(EventAggregator, includeEventsIn(aurelia));
   }
 });
-define('aurelia-dependency-injection/aurelia-dependency-injection',['exports', 'core-js', 'aurelia-metadata', 'aurelia-logging'], function (exports, _coreJs, _aureliaMetadata, _aureliaLogging) {
+define('aurelia-dependency-injection',['exports', 'core-js', 'aurelia-metadata', 'aurelia-logging'], function (exports, _coreJs, _aureliaMetadata, _aureliaLogging) {
   
 
   exports.__esModule = true;
@@ -6552,9 +6548,7 @@ define('aurelia-dependency-injection/aurelia-dependency-injection',['exports', '
   _aureliaMetadata.Decorators.configure.parameterizedDecorator('instanceActivator', instanceActivator);
   _aureliaMetadata.Decorators.configure.parameterizedDecorator('factory', factory);
 });
-define('aurelia-dependency-injection', ['aurelia-dependency-injection/aurelia-dependency-injection'], function (main) { return main; });
-
-define('aurelia-binding/aurelia-binding',['exports', 'core-js', 'aurelia-task-queue', 'aurelia-dependency-injection', 'aurelia-metadata'], function (exports, _coreJs, _aureliaTaskQueue, _aureliaDependencyInjection, _aureliaMetadata) {
+define('aurelia-binding',['exports', 'core-js', 'aurelia-task-queue', 'aurelia-dependency-injection', 'aurelia-metadata'], function (exports, _coreJs, _aureliaTaskQueue, _aureliaDependencyInjection, _aureliaMetadata) {
   
 
   exports.__esModule = true;
@@ -11674,9 +11668,7 @@ define('aurelia-binding/aurelia-binding',['exports', 'core-js', 'aurelia-task-qu
     return NameBinder;
   })();
 });
-define('aurelia-binding', ['aurelia-binding/aurelia-binding'], function (main) { return main; });
-
-define('aurelia-templating/aurelia-templating',['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader', 'aurelia-dependency-injection', 'aurelia-binding', 'aurelia-task-queue', 'aurelia-logging'], function (exports, _coreJs, _aureliaMetadata, _aureliaPath, _aureliaLoader, _aureliaDependencyInjection, _aureliaBinding, _aureliaTaskQueue, _aureliaLogging) {
+define('aurelia-templating',['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader', 'aurelia-dependency-injection', 'aurelia-binding', 'aurelia-task-queue', 'aurelia-logging'], function (exports, _coreJs, _aureliaMetadata, _aureliaPath, _aureliaLoader, _aureliaDependencyInjection, _aureliaBinding, _aureliaTaskQueue, _aureliaLogging) {
   
 
   exports.__esModule = true;
@@ -15196,9 +15188,7 @@ define('aurelia-templating/aurelia-templating',['exports', 'core-js', 'aurelia-m
 
   _aureliaMetadata.Decorators.configure.simpleDecorator('elementConfig', elementConfig);
 });
-define('aurelia-templating', ['aurelia-templating/aurelia-templating'], function (main) { return main; });
-
-define('aurelia-framework/aurelia-framework',['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-dependency-injection', 'aurelia-loader', 'aurelia-path', 'aurelia-templating', 'aurelia-binding', 'aurelia-task-queue'], function (exports, _coreJs, _aureliaLogging, _aureliaMetadata, _aureliaDependencyInjection, _aureliaLoader, _aureliaPath, _aureliaTemplating, _aureliaBinding, _aureliaTaskQueue) {
+define('aurelia-framework',['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-dependency-injection', 'aurelia-loader', 'aurelia-path', 'aurelia-templating', 'aurelia-binding', 'aurelia-task-queue'], function (exports, _coreJs, _aureliaLogging, _aureliaMetadata, _aureliaDependencyInjection, _aureliaLoader, _aureliaPath, _aureliaTemplating, _aureliaBinding, _aureliaTaskQueue) {
   
 
   exports.__esModule = true;
@@ -15269,66 +15259,44 @@ define('aurelia-framework/aurelia-framework',['exports', 'core-js', 'aurelia-log
       return this;
     };
 
-    Plugins.prototype.defaultBindingLanguage = function defaultBindingLanguage() {
+    Plugins.prototype._addNormalizedPlugin = function _addNormalizedPlugin(name, config) {
       var _this2 = this;
 
+      var plugin = { moduleId: name, resourcesRelativeTo: name, config: config || {} };
+
+      this.plugin(plugin);
+
       this.aurelia.addPreStartTask(function () {
-        return System.normalize('aurelia-templating-binding', _this2.bootstrapperName).then(function (name) {
-          _this2.aurelia.use.plugin(name);
+        return System.normalize(name, _this2.bootstrapperName).then(function (normalizedName) {
+          normalizedName = normalizedName.endsWith('.js') || normalizedName.endsWith('.ts') ? normalizedName.substring(0, normalizedName.length - 3) : normalizedName;
+
+          plugin.moduleId = normalizedName;
+          plugin.resourcesRelativeTo = normalizedName;
+          System.map[name] = normalizedName;
         });
       });
 
       return this;
+    };
+
+    Plugins.prototype.defaultBindingLanguage = function defaultBindingLanguage() {
+      return this._addNormalizedPlugin('aurelia-templating-binding');
     };
 
     Plugins.prototype.router = function router() {
-      var _this3 = this;
-
-      this.aurelia.addPreStartTask(function () {
-        return System.normalize('aurelia-templating-router', _this3.bootstrapperName).then(function (name) {
-          _this3.aurelia.use.plugin(name);
-        });
-      });
-
-      return this;
+      return this._addNormalizedPlugin('aurelia-templating-router');
     };
 
     Plugins.prototype.history = function history() {
-      var _this4 = this;
-
-      this.aurelia.addPreStartTask(function () {
-        return System.normalize('aurelia-history-browser', _this4.bootstrapperName).then(function (name) {
-          _this4.aurelia.use.plugin(name);
-        });
-      });
-
-      return this;
+      return this._addNormalizedPlugin('aurelia-history-browser');
     };
 
     Plugins.prototype.defaultResources = function defaultResources() {
-      var _this5 = this;
-
-      this.aurelia.addPreStartTask(function () {
-        return System.normalize('aurelia-templating-resources', _this5.bootstrapperName).then(function (name) {
-          System.map['aurelia-templating-resources'] = name;
-          _this5.aurelia.use.plugin(name);
-        });
-      });
-
-      return this;
+      return this._addNormalizedPlugin('aurelia-templating-resources');
     };
 
     Plugins.prototype.eventAggregator = function eventAggregator() {
-      var _this6 = this;
-
-      this.aurelia.addPreStartTask(function () {
-        return System.normalize('aurelia-event-aggregator', _this6.bootstrapperName).then(function (name) {
-          System.map['aurelia-event-aggregator'] = name;
-          _this6.aurelia.use.plugin(name);
-        });
-      });
-
-      return this;
+      return this._addNormalizedPlugin('aurelia-event-aggregator');
     };
 
     Plugins.prototype.standardConfiguration = function standardConfiguration() {
@@ -15336,11 +15304,11 @@ define('aurelia-framework/aurelia-framework',['exports', 'core-js', 'aurelia-log
     };
 
     Plugins.prototype.developmentLogging = function developmentLogging() {
-      var _this7 = this;
+      var _this3 = this;
 
       this.aurelia.addPreStartTask(function () {
-        return System.normalize('aurelia-logging-console', _this7.bootstrapperName).then(function (name) {
-          return _this7.aurelia.loader.loadModule(name).then(function (m) {
+        return System.normalize('aurelia-logging-console', _this3.bootstrapperName).then(function (name) {
+          return _this3.aurelia.loader.loadModule(name).then(function (m) {
             _aureliaLogging.addAppender(new m.ConsoleAppender());
             _aureliaLogging.setLevel(_aureliaLogging.logLevel.debug);
           });
@@ -15351,7 +15319,7 @@ define('aurelia-framework/aurelia-framework',['exports', 'core-js', 'aurelia-log
     };
 
     Plugins.prototype._process = function _process() {
-      var _this8 = this;
+      var _this4 = this;
 
       var aurelia = this.aurelia,
           loader = aurelia.loader,
@@ -15367,7 +15335,7 @@ define('aurelia-framework/aurelia-framework',['exports', 'core-js', 'aurelia-log
           return loadPlugin(aurelia, loader, current).then(next);
         }
 
-        _this8.processed = true;
+        _this4.processed = true;
         return Promise.resolve();
       };
 
@@ -15508,7 +15476,7 @@ define('aurelia-framework/aurelia-framework',['exports', 'core-js', 'aurelia-log
     };
 
     Aurelia.prototype.start = function start() {
-      var _this9 = this;
+      var _this5 = this;
 
       if (this.started) {
         return Promise.resolve(this);
@@ -15520,31 +15488,31 @@ define('aurelia-framework/aurelia-framework',['exports', 'core-js', 'aurelia-log
       preventActionlessFormSubmit();
 
       return runTasks(this, this.preStartTasks).then(function () {
-        return _this9.use._process().then(function () {
-          if (!_this9.container.hasHandler(_aureliaTemplating.BindingLanguage)) {
+        return _this5.use._process().then(function () {
+          if (!_this5.container.hasHandler(_aureliaTemplating.BindingLanguage)) {
             var message = 'You must configure Aurelia with a BindingLanguage implementation.';
             logger.error(message);
             throw new Error(message);
           }
 
-          if (!_this9.container.hasHandler(_aureliaTemplating.Animator)) {
-            _aureliaTemplating.Animator.configureDefault(_this9.container);
+          if (!_this5.container.hasHandler(_aureliaTemplating.Animator)) {
+            _aureliaTemplating.Animator.configureDefault(_this5.container);
           }
 
-          return loadResources(_this9.container, _this9.resourcesToLoad, _this9.resources);
+          return loadResources(_this5.container, _this5.resourcesToLoad, _this5.resources);
         }).then(function () {
-          return runTasks(_this9, _this9.postStartTasks).then(function () {
+          return runTasks(_this5, _this5.postStartTasks).then(function () {
             logger.info('Aurelia Started');
             var evt = new window.CustomEvent('aurelia-started', { bubbles: true, cancelable: true });
             document.dispatchEvent(evt);
-            return _this9;
+            return _this5;
           });
         });
       });
     };
 
     Aurelia.prototype.enhance = function enhance() {
-      var _this10 = this;
+      var _this6 = this;
 
       var bindingContext = arguments[0] === undefined ? {} : arguments[0];
       var applicationHost = arguments[1] === undefined ? null : arguments[1];
@@ -15552,16 +15520,16 @@ define('aurelia-framework/aurelia-framework',['exports', 'core-js', 'aurelia-log
       this._configureHost(applicationHost);
 
       return new Promise(function (resolve) {
-        var viewEngine = _this10.container.get(_aureliaTemplating.ViewEngine);
-        _this10.root = viewEngine.enhance(_this10.container, _this10.host, _this10.resources, bindingContext);
-        _this10.root.attached();
-        _this10._onAureliaComposed();
-        return _this10;
+        var viewEngine = _this6.container.get(_aureliaTemplating.ViewEngine);
+        _this6.root = viewEngine.enhance(_this6.container, _this6.host, _this6.resources, bindingContext);
+        _this6.root.attached();
+        _this6._onAureliaComposed();
+        return _this6;
       });
     };
 
     Aurelia.prototype.setRoot = function setRoot() {
-      var _this11 = this;
+      var _this7 = this;
 
       var root = arguments[0] === undefined ? 'app' : arguments[0];
       var applicationHost = arguments[1] === undefined ? null : arguments[1];
@@ -15579,10 +15547,10 @@ define('aurelia-framework/aurelia-framework',['exports', 'core-js', 'aurelia-log
       instruction.host = this.host;
 
       return compositionEngine.compose(instruction).then(function (root) {
-        _this11.root = root;
+        _this7.root = root;
         instruction.viewSlot.attached();
-        _this11._onAureliaComposed();
-        return _this11;
+        _this7._onAureliaComposed();
+        return _this7;
       });
     };
 
@@ -15628,9 +15596,7 @@ define('aurelia-framework/aurelia-framework',['exports', 'core-js', 'aurelia-log
   var LogManager = _aureliaLogging;
   exports.LogManager = LogManager;
 });
-define('aurelia-framework', ['aurelia-framework/aurelia-framework'], function (main) { return main; });
-
-define('aurelia-route-recognizer/aurelia-route-recognizer',['exports', 'core-js'], function (exports, _coreJs) {
+define('aurelia-route-recognizer',['exports', 'core-js'], function (exports, _coreJs) {
   
 
   exports.__esModule = true;
@@ -16241,9 +16207,7 @@ define('aurelia-route-recognizer/aurelia-route-recognizer',['exports', 'core-js'
     return currentState;
   }
 });
-define('aurelia-route-recognizer', ['aurelia-route-recognizer/aurelia-route-recognizer'], function (main) { return main; });
-
-define('aurelia-router/aurelia-router',['exports', 'core-js', 'aurelia-dependency-injection', 'aurelia-route-recognizer', 'aurelia-path', 'aurelia-history', 'aurelia-event-aggregator', 'aurelia-logging'], function (exports, _coreJs, _aureliaDependencyInjection, _aureliaRouteRecognizer, _aureliaPath, _aureliaHistory, _aureliaEventAggregator, _aureliaLogging) {
+define('aurelia-router',['exports', 'core-js', 'aurelia-dependency-injection', 'aurelia-route-recognizer', 'aurelia-path', 'aurelia-history', 'aurelia-event-aggregator', 'aurelia-logging'], function (exports, _coreJs, _aureliaDependencyInjection, _aureliaRouteRecognizer, _aureliaPath, _aureliaHistory, _aureliaEventAggregator, _aureliaLogging) {
   
 
   exports.__esModule = true;
@@ -17966,9 +17930,7 @@ define('aurelia-router/aurelia-router',['exports', 'core-js', 'aurelia-dependenc
     }
   }
 });
-define('aurelia-router', ['aurelia-router/aurelia-router'], function (main) { return main; });
-
-define('aurelia-templating-binding/aurelia-templating-binding',['exports', 'aurelia-binding', 'aurelia-templating', 'aurelia-logging'], function (exports, _aureliaBinding, _aureliaTemplating, _aureliaLogging) {
+define('aurelia-templating-binding',['exports', 'aurelia-binding', 'aurelia-templating', 'aurelia-logging'], function (exports, _aureliaBinding, _aureliaTemplating, _aureliaLogging) {
   
 
   exports.__esModule = true;
@@ -18509,8 +18471,6 @@ define('aurelia-templating-binding/aurelia-templating-binding',['exports', 'aure
     aurelia.container.registerHandler(_aureliaTemplating.BindingLanguage, getInstance);
   }
 });
-define('aurelia-templating-binding', ['aurelia-templating-binding/aurelia-templating-binding'], function (main) { return main; });
-
 define('aurelia-templating-resources/compose',['exports', 'aurelia-dependency-injection', 'aurelia-task-queue', 'aurelia-templating'], function (exports, _aureliaDependencyInjection, _aureliaTaskQueue, _aureliaTemplating) {
   
 
@@ -19677,7 +19637,7 @@ define('aurelia-templating-router/aurelia-templating-router',['exports', 'aureli
 });
 define('aurelia-templating-router', ['aurelia-templating-router/aurelia-templating-router'], function (main) { return main; });
 
-define('aurelia-http-client/aurelia-http-client',['exports', 'core-js', 'aurelia-path'], function (exports, _coreJs, _aureliaPath) {
+define('aurelia-http-client',['exports', 'core-js', 'aurelia-path'], function (exports, _coreJs, _aureliaPath) {
   
 
   exports.__esModule = true;
@@ -20434,8 +20394,6 @@ define('aurelia-http-client/aurelia-http-client',['exports', 'core-js', 'aurelia
 
   exports.HttpClient = HttpClient;
 });
-define('aurelia-http-client', ['aurelia-http-client/aurelia-http-client'], function (main) { return main; });
-
 define('aurelia-bootstrapper',['exports', 'core-js', 'aurelia-framework', 'aurelia-logging-console'], function (exports, _coreJs, _aureliaFramework, _aureliaLoggingConsole) {
   
 
@@ -20786,6 +20744,2879 @@ define('aurelia-bootstrapper',['exports', 'core-js', 'aurelia-framework', 'aurel
 
 define("aurelia-html-template-element", function(){});
 
+define('aurelia-validation/validation/validation-locale',['exports'], function (exports) {
+  
+
+  exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var ValidationLocale = (function () {
+    function ValidationLocale(defaults, data) {
+      _classCallCheck(this, ValidationLocale);
+
+      this.defaults = defaults;
+      this.currentLocale = data;
+    }
+
+    ValidationLocale.prototype.getValueFor = function getValueFor(identifier, category) {
+      if (this.currentLocale && this.currentLocale[category]) {
+        var currentLocaleSetting = this.currentLocale[category][identifier];
+        if (currentLocaleSetting !== undefined && currentLocaleSetting !== null) return currentLocaleSetting;
+      }
+      if (this.defaults[category]) {
+        var defaultSetting = this.defaults[category][identifier];
+        if (defaultSetting !== undefined && defaultSetting !== null) return defaultSetting;
+      }
+      throw 'validation: I18N: Could not find: ' + identifier + ' in category: ' + category;
+    };
+
+    ValidationLocale.prototype.setting = function setting(settingIdentifier) {
+      return this.getValueFor(settingIdentifier, 'settings');
+    };
+
+    ValidationLocale.prototype.translate = function translate(translationIdentifier, newValue, threshold) {
+      var translation = this.getValueFor(translationIdentifier, 'messages');
+      if (typeof translation === 'function') {
+        return translation(newValue, threshold);
+      }
+      if (typeof translation === 'string') {
+        return translation;
+      }
+      throw 'Validation message for ' + translationIdentifier + 'was in an unsupported format';
+    };
+
+    return ValidationLocale;
+  })();
+
+  exports.ValidationLocale = ValidationLocale;
+
+  var ValidationLocaleRepository = (function () {
+    function ValidationLocaleRepository() {
+      _classCallCheck(this, ValidationLocaleRepository);
+
+      this['default'] = null;
+      this.instances = new Map();
+      this.defaults = {
+        settings: {
+          'numericRegex': /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/
+        },
+        messages: {}
+      };
+    }
+
+    ValidationLocaleRepository.prototype.load = function load(localeIdentifier, basePath) {
+      var _this = this;
+
+      if (!basePath) basePath = 'aurelia-validation/resources/';
+      return new Promise(function (resolve, reject) {
+        if (_this.instances.has(localeIdentifier)) {
+          var locale = _this.instances.get(localeIdentifier);
+          resolve(locale);
+        } else {
+          System['import'](basePath + localeIdentifier).then(function (resource) {
+            var locale = _this.addLocale(localeIdentifier, resource.data);
+            resolve(locale);
+          });
+        }
+      });
+    };
+
+    ValidationLocaleRepository.prototype.addLocale = function addLocale(localeIdentifier, data) {
+      var instance = new ValidationLocale(this.defaults, data);
+      this.instances.set(localeIdentifier, instance);
+      if (this['default'] === null) this['default'] = instance;
+      return instance;
+    };
+
+    return ValidationLocaleRepository;
+  })();
+
+  ValidationLocale.Repository = new ValidationLocaleRepository();
+});
+define('aurelia-validation/validation/validate-custom-attribute-view-strategy',['exports'], function (exports) {
+  
+
+  exports.__esModule = true;
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var ValidateCustomAttributeViewStrategyBase = (function () {
+    function ValidateCustomAttributeViewStrategyBase() {
+      _classCallCheck(this, ValidateCustomAttributeViewStrategyBase);
+
+      this.bindingPathAttributes = ['validate', 'value.bind', 'value.two-way'];
+    }
+
+    ValidateCustomAttributeViewStrategyBase.prototype.getValidationProperty = function getValidationProperty(validation, element) {
+      var atts = element.attributes;
+      for (var i = 0; i < this.bindingPathAttributes.length; i++) {
+        var attributeName = this.bindingPathAttributes[i];
+        if (atts[attributeName]) {
+          var bindingPath = atts[attributeName].value.trim();
+          if (bindingPath.indexOf('|') != -1) bindingPath = bindingPath.split('|')[0].trim();
+          var validationProperty = validation.result.properties[bindingPath];
+
+          if (attributeName == 'validate' && (validationProperty === null || validationProperty === undefined)) {
+            validation.ensure(bindingPath);
+            validationProperty = validation.result.properties[bindingPath];
+          }
+          return validationProperty;
+        }
+      }
+      return null;
+    };
+
+    ValidateCustomAttributeViewStrategyBase.prototype.prepareElement = function prepareElement(validationProperty, element) {
+      throw Error('View strategy must implement prepareElement(validationProperty, element)');
+    };
+
+    ValidateCustomAttributeViewStrategyBase.prototype.updateElement = function updateElement(validationProperty, element) {
+      throw Error('View strategy must implement updateElement(validationProperty, element)');
+    };
+
+    return ValidateCustomAttributeViewStrategyBase;
+  })();
+
+  exports.ValidateCustomAttributeViewStrategyBase = ValidateCustomAttributeViewStrategyBase;
+
+  var TWBootstrapViewStrategy = (function (_ValidateCustomAttributeViewStrategyBase) {
+    function TWBootstrapViewStrategy(appendMessageToInput, appendMessageToLabel, helpBlockClass) {
+      _classCallCheck(this, TWBootstrapViewStrategy);
+
+      _ValidateCustomAttributeViewStrategyBase.call(this);
+      this.appendMessageToInput = appendMessageToInput;
+      this.appendMessageToLabel = appendMessageToLabel;
+      this.helpBlockClass = helpBlockClass;
+    }
+
+    _inherits(TWBootstrapViewStrategy, _ValidateCustomAttributeViewStrategyBase);
+
+    TWBootstrapViewStrategy.prototype.searchFormGroup = function searchFormGroup(currentElement, currentDepth) {
+      if (currentDepth === 5) {
+        return null;
+      }
+      if (currentElement.classList && currentElement.classList.contains('form-group')) {
+        return currentElement;
+      }
+      return this.searchFormGroup(currentElement.parentNode, 1 + currentDepth);
+    };
+
+    TWBootstrapViewStrategy.prototype.findLabels = function findLabels(formGroup, inputId) {
+      var labels = [];
+      this.findLabelsRecursively(formGroup, inputId, labels, 0);
+      return labels;
+    };
+
+    TWBootstrapViewStrategy.prototype.findLabelsRecursively = function findLabelsRecursively(currentElement, inputId, currentLabels, currentDepth) {
+      if (currentDepth === 5) {
+        return;
+      }
+      if (currentElement.nodeName === 'LABEL' && (currentElement.attributes['for'] && currentElement.attributes['for'].value === inputId || !currentElement.attributes['for'])) {
+        currentLabels.push(currentElement);
+      }
+
+      for (var i = 0; i < currentElement.children.length; i++) {
+        this.findLabelsRecursively(currentElement.children[i], inputId, currentLabels, 1 + currentDepth);
+      }
+    };
+
+    TWBootstrapViewStrategy.prototype.appendMessageToElement = function appendMessageToElement(element, validationProperty) {
+      var helpBlock = element.nextSibling;
+      if (helpBlock) {
+        if (!helpBlock.classList) {
+          helpBlock = null;
+        } else if (!helpBlock.classList.contains(this.helpBlockClass)) {
+          helpBlock = null;
+        }
+      }
+
+      if (!helpBlock) {
+        helpBlock = document.createElement('p');
+        helpBlock.classList.add('help-block');
+        helpBlock.classList.add(this.helpBlockClass);
+
+        if (element.nextSibling) {
+          element.parentNode.insertBefore(helpBlock, element.nextSibling);
+        } else {
+          element.parentNode.appendChild(helpBlock);
+        }
+      }
+      if (validationProperty) helpBlock.textContent = validationProperty.message;else helpBlock.textContent = '';
+    };
+
+    TWBootstrapViewStrategy.prototype.appendUIVisuals = function appendUIVisuals(validationProperty, currentElement) {
+      var formGroup = this.searchFormGroup(currentElement, 0);
+      if (formGroup) {
+        if (validationProperty && validationProperty.isDirty) {
+          if (validationProperty.isValid) {
+            formGroup.classList.remove('has-warning');
+            formGroup.classList.add('has-success');
+          } else {
+            formGroup.classList.remove('has-success');
+            formGroup.classList.add('has-warning');
+          }
+        } else {
+          formGroup.classList.remove('has-warning');
+          formGroup.classList.remove('has-success');
+        }
+        if (this.appendMessageToInput) {
+          this.appendMessageToElement(currentElement, validationProperty);
+        }
+        if (this.appendMessageToLabel) {
+          var labels = this.findLabels(formGroup, currentElement.id);
+          for (var ii = 0; ii < labels.length; ii++) {
+            var label = labels[ii];
+            this.appendMessageToElement(label, validationProperty);
+          }
+        }
+      }
+    };
+
+    TWBootstrapViewStrategy.prototype.prepareElement = function prepareElement(validationProperty, element) {
+      this.appendUIVisuals(null, element);
+    };
+
+    TWBootstrapViewStrategy.prototype.updateElement = function updateElement(validationProperty, element) {
+      this.appendUIVisuals(validationProperty, element);
+    };
+
+    return TWBootstrapViewStrategy;
+  })(ValidateCustomAttributeViewStrategyBase);
+
+  exports.TWBootstrapViewStrategy = TWBootstrapViewStrategy;
+
+  var ValidateCustomAttributeViewStrategy = function ValidateCustomAttributeViewStrategy() {
+    _classCallCheck(this, ValidateCustomAttributeViewStrategy);
+  };
+
+  exports.ValidateCustomAttributeViewStrategy = ValidateCustomAttributeViewStrategy;
+
+  ValidateCustomAttributeViewStrategy.TWBootstrapAppendToInput = new TWBootstrapViewStrategy(true, false, 'aurelia-validation-message');
+  ValidateCustomAttributeViewStrategy.TWBootstrapAppendToMessage = new TWBootstrapViewStrategy(false, true, 'aurelia-validation-message');
+});
+define('aurelia-validation/validation/validation-config',['exports', '../validation/validation-locale', '../validation/validate-custom-attribute-view-strategy'], function (exports, _validationValidationLocale, _validationValidateCustomAttributeViewStrategy) {
+  
+
+  exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var ValidationConfigDefaults = function ValidationConfigDefaults() {
+    _classCallCheck(this, ValidationConfigDefaults);
+  };
+
+  exports.ValidationConfigDefaults = ValidationConfigDefaults;
+
+  ValidationConfigDefaults._defaults = {
+    debounceTimeout: 0,
+    dependencies: [],
+    locale: 'en-US',
+    localeResources: 'aurelia-validation/resources/',
+    viewStrategy: _validationValidateCustomAttributeViewStrategy.ValidateCustomAttributeViewStrategy.TWBootstrapAppendToMessage,
+    allPropertiesAreMandatory: false
+  };
+  ValidationConfigDefaults.defaults = function () {
+    var defaults = {};
+    Object.assign(defaults, ValidationConfigDefaults._defaults);
+    return defaults;
+  };
+
+  var ValidationConfig = (function () {
+    function ValidationConfig(innerConfig) {
+      _classCallCheck(this, ValidationConfig);
+
+      this.innerConfig = innerConfig;
+      this.values = this.innerConfig ? {} : ValidationConfigDefaults.defaults();
+      this.changedHandlers = new Map();
+    }
+
+    ValidationConfig.prototype.getValue = function getValue(identifier) {
+      if (this.values.hasOwnProperty(identifier) !== null && this.values[identifier] !== undefined) {
+        return this.values[identifier];
+      }
+      if (this.innerConfig !== null) {
+        return this.innerConfig.getValue(identifier);
+      }
+      throw Error('Config not found: ' + identifier);
+    };
+
+    ValidationConfig.prototype.setValue = function setValue(identifier, value) {
+      this.values[identifier] = value;
+      return this;
+    };
+
+    ValidationConfig.prototype.onLocaleChanged = function onLocaleChanged(callback) {
+      var _this = this;
+
+      if (this.innerConfig !== undefined) {
+        return this.innerConfig.onLocaleChanged(callback);
+      } else {
+        var _ret = (function () {
+          var id = ++ValidationConfig.uniqueListenerId;
+          _this.changedHandlers.set(id, callback);
+          return {
+            v: function () {
+              _this.changedHandlers['delete'](id);
+            }
+          };
+        })();
+
+        if (typeof _ret === 'object') return _ret.v;
+      }
+    };
+
+    ValidationConfig.prototype.getDebounceTimeout = function getDebounceTimeout() {
+      return this.getValue('debounceTimeout');
+    };
+
+    ValidationConfig.prototype.useDebounceTimeout = function useDebounceTimeout(value) {
+      return this.setValue('debounceTimeout', value);
+    };
+
+    ValidationConfig.prototype.getDependencies = function getDependencies() {
+      return this.getValue('dependencies');
+    };
+
+    ValidationConfig.prototype.computedFrom = function computedFrom(dependencies) {
+      var deps = dependencies;
+      if (typeof dependencies === 'string') {
+        deps = [];
+        deps.push(dependencies);
+      }
+      return this.setValue('dependencies', deps);
+    };
+
+    ValidationConfig.prototype.useLocale = function useLocale(localeIdentifier) {
+      this.setValue('locale', localeIdentifier);
+      var callbacks = Array.from(this.changedHandlers.values());
+      for (var i = 0; i < callbacks.length; i++) {
+        callbacks[i]();
+      }
+      return this;
+    };
+
+    ValidationConfig.prototype.locale = function locale() {
+      return _validationValidationLocale.ValidationLocale.Repository.load(this.getValue('locale'), this.getValue('localeResources'));
+    };
+
+    ValidationConfig.prototype.useViewStrategy = function useViewStrategy(viewStrategy) {
+      return this.setValue('viewStrategy', viewStrategy);
+    };
+
+    ValidationConfig.prototype.getViewStrategy = function getViewStrategy() {
+      return this.getValue('viewStrategy');
+    };
+
+    ValidationConfig.prototype.treatAllPropertiesAsMandatory = function treatAllPropertiesAsMandatory() {
+      this.setValue('allPropertiesAreMandatory', true);
+      return this;
+    };
+
+    ValidationConfig.prototype.treatAllPropertiesAsOptional = function treatAllPropertiesAsOptional() {
+      this.setValue('allPropertiesAreMandatory', false);
+      return this;
+    };
+
+    return ValidationConfig;
+  })();
+
+  exports.ValidationConfig = ValidationConfig;
+
+  ValidationConfig.uniqueListenerId = 0;
+});
+define('aurelia-validation/validation/utilities',['exports'], function (exports) {
+  
+
+  exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var Utilities = (function () {
+    function Utilities() {
+      _classCallCheck(this, Utilities);
+    }
+
+    Utilities.getValue = function getValue(val) {
+      if (val !== undefined && typeof val === 'function') {
+        return val();
+      }
+      return val;
+    };
+
+    Utilities.isEmptyValue = function isEmptyValue(val) {
+      if (val === undefined) {
+        return true;
+      }
+      if (val === null) {
+        return true;
+      }
+      if (val === '') {
+        return true;
+      }
+      if (typeof val === 'string') {
+        if (String.prototype.trim) {
+          val = val.trim();
+        } else {
+          val = val.replace(/^\s+|\s+$/g, '');
+        }
+      }
+
+      if (val.length !== undefined) {
+        return 0 === val.length;
+      }
+      return false;
+    };
+
+    return Utilities;
+  })();
+
+  exports.Utilities = Utilities;
+  ;
+});
+define('aurelia-validation/validation/validation-rules',['exports', '../validation/utilities', '../validation/validation-locale'], function (exports, _validationUtilities, _validationValidationLocale) {
+  
+
+  exports.__esModule = true;
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var ValidationRule = (function () {
+    function ValidationRule(threshold, onValidate, message) {
+      _classCallCheck(this, ValidationRule);
+
+      this.onValidate = onValidate;
+      this.threshold = threshold;
+      this.message = message;
+      this.errorMessage = null;
+      this.ruleName = this.constructor.name;
+    }
+
+    ValidationRule.prototype.withMessage = function withMessage(message) {
+      this.message = message;
+    };
+
+    ValidationRule.prototype.explain = function explain() {
+      return this.errorMessage;
+    };
+
+    ValidationRule.prototype.setResult = function setResult(result, currentValue, locale) {
+      if (result === true || result === undefined || result === null || result === '') {
+        this.errorMessage = null;
+        return true;
+      } else {
+        if (typeof result === 'string') {
+          this.errorMessage = result;
+        } else {
+          if (this.message) {
+            if (typeof this.message === 'function') {
+              this.errorMessage = this.message(currentValue, this.threshold);
+            } else if (typeof this.message === 'string') {
+              this.errorMessage = this.message;
+            } else throw 'Unable to handle the error message:' + this.message;
+          } else {
+            this.errorMessage = locale.translate(this.ruleName, currentValue, this.threshold);
+          }
+        }
+        return false;
+      }
+    };
+
+    ValidationRule.prototype.validate = function validate(currentValue, locale) {
+      var _this = this;
+
+      if (locale === undefined) {
+        locale = _validationValidationLocale.ValidationLocale.Repository['default'];
+      }
+
+      currentValue = _validationUtilities.Utilities.getValue(currentValue);
+      var result = this.onValidate(currentValue, this.threshold, locale);
+      var promise = Promise.resolve(result);
+
+      var nextPromise = promise.then(function (promiseResult) {
+        return _this.setResult(promiseResult, currentValue, locale);
+      }, function (promiseFailure) {
+        if (typeof promiseFailure === 'string' && promiseFailure !== '') return _this.setResult(promiseFailure, currentValue, locale);else return _this.setResult(false, currentValue, locale);
+      });
+      return nextPromise;
+    };
+
+    return ValidationRule;
+  })();
+
+  exports.ValidationRule = ValidationRule;
+
+  var URLValidationRule = (function (_ValidationRule) {
+    function URLValidationRule(threshold) {
+      _classCallCheck(this, URLValidationRule);
+
+      var default_url_options = {
+        protocols: ['http', 'https', 'ftp'],
+        require_tld: true,
+        require_protocol: false,
+        allow_underscores: true,
+        allow_trailing_dot: false,
+        allow_protocol_relative_urls: true
+      };
+      if (threshold === undefined) {
+        threshold = default_url_options;
+      }
+
+      _ValidationRule.call(this, threshold, function (newValue, threshold) {
+        var url = newValue;
+        if (!url || url.length >= 2083 || /\s/.test(url)) {
+          return false;
+        }
+        if (url.indexOf('mailto:') === 0) {
+          return false;
+        }
+        var protocol, auth, host, hostname, port, port_str, split;
+        split = url.split('://');
+        if (split.length > 1) {
+          protocol = split.shift();
+          if (threshold.protocols.indexOf(protocol) === -1) {
+            return false;
+          }
+        } else if (threshold.require_protocol) {
+          return false;
+        } else if (threshold.allow_protocol_relative_urls && url.substr(0, 2) === '//') {
+          split[0] = url.substr(2);
+        }
+        url = split.join('://');
+        split = url.split('#');
+        url = split.shift();
+
+        split = url.split('?');
+        url = split.shift();
+
+        split = url.split('/');
+        url = split.shift();
+        split = url.split('@');
+        if (split.length > 1) {
+          auth = split.shift();
+          if (auth.indexOf(':') >= 0 && auth.split(':').length > 2) {
+            return false;
+          }
+        }
+        hostname = split.join('@');
+        split = hostname.split(':');
+        host = split.shift();
+        if (split.length) {
+          port_str = split.join(':');
+          port = parseInt(port_str, 10);
+          if (!/^[0-9]+$/.test(port_str) || port <= 0 || port > 65535) {
+            return false;
+          }
+        }
+        if (!URLValidationRule.isIP(host) && !URLValidationRule.isFQDN(host, threshold) && host !== 'localhost') {
+          return false;
+        }
+        if (threshold.host_whitelist && threshold.host_whitelist.indexOf(host) === -1) {
+          return false;
+        }
+        if (threshold.host_blacklist && threshold.host_blacklist.indexOf(host) !== -1) {
+          return false;
+        }
+        return true;
+      });
+    }
+
+    _inherits(URLValidationRule, _ValidationRule);
+
+    URLValidationRule.isIP = function isIP(str, version) {
+      var ipv4Maybe = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/,
+          ipv6Block = /^[0-9A-F]{1,4}$/i;
+
+      if (!version) {
+        return this.isIP(str, 4) || this.isIP(str, 6);
+      } else if (version === 4) {
+        if (!ipv4Maybe.test(str)) {
+          return false;
+        }
+        var parts = str.split('.').sort(function (a, b) {
+          return a - b;
+        });
+        return parts[3] <= 255;
+      } else if (version === 6) {
+        var blocks = str.split(':');
+        var foundOmissionBlock = false;
+
+        if (blocks.length > 8) return false;
+
+        if (str === '::') {
+          return true;
+        } else if (str.substr(0, 2) === '::') {
+          blocks.shift();
+          blocks.shift();
+          foundOmissionBlock = true;
+        } else if (str.substr(str.length - 2) === '::') {
+          blocks.pop();
+          blocks.pop();
+          foundOmissionBlock = true;
+        }
+
+        for (var i = 0; i < blocks.length; ++i) {
+          if (blocks[i] === '' && i > 0 && i < blocks.length - 1) {
+            if (foundOmissionBlock) return false;
+            foundOmissionBlock = true;
+          } else if (!ipv6Block.test(blocks[i])) {
+            return false;
+          }
+        }
+
+        if (foundOmissionBlock) {
+          return blocks.length >= 1;
+        } else {
+          return blocks.length === 8;
+        }
+      }
+      return false;
+    };
+
+    URLValidationRule.isFQDN = function isFQDN(str, options) {
+      if (options.allow_trailing_dot && str[str.length - 1] === '.') {
+        str = str.substring(0, str.length - 1);
+      }
+      var parts = str.split('.');
+      if (options.require_tld) {
+        var tld = parts.pop();
+        if (!parts.length || !/^([a-z\u00a1-\uffff]{2,}|xn[a-z0-9-]{2,})$/i.test(tld)) {
+          return false;
+        }
+      }
+      for (var part, i = 0; i < parts.length; i++) {
+        part = parts[i];
+        if (options.allow_underscores) {
+          if (part.indexOf('__') >= 0) {
+            return false;
+          }
+          part = part.replace(/_/g, '');
+        }
+        if (!/^[a-z\u00a1-\uffff0-9-]+$/i.test(part)) {
+          return false;
+        }
+        if (part[0] === '-' || part[part.length - 1] === '-' || part.indexOf('---') >= 0) {
+          return false;
+        }
+      }
+      return true;
+    };
+
+    return URLValidationRule;
+  })(ValidationRule);
+
+  exports.URLValidationRule = URLValidationRule;
+
+  var EmailValidationRule = (function (_ValidationRule2) {
+    function EmailValidationRule() {
+      _classCallCheck(this, EmailValidationRule);
+
+      _ValidationRule2.call(this, null, function (newValue, threshold) {
+        if (/\s/.test(newValue)) {
+          return false;
+        }
+        var parts = newValue.split('@');
+        var domain = parts.pop();
+        var user = parts.join('@');
+
+        if (!EmailValidationRule.isFQDN(domain)) {
+          return false;
+        }
+        return EmailValidationRule.testEmailUserUtf8Regex(user);
+      });
+    }
+
+    _inherits(EmailValidationRule, _ValidationRule2);
+
+    EmailValidationRule.testEmailUserUtf8Regex = function testEmailUserUtf8Regex(user) {
+      var emailUserUtf8Regex = /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))$/i;
+      return emailUserUtf8Regex.test(user);
+    };
+
+    EmailValidationRule.isFQDN = function isFQDN(str) {
+      var parts = str.split('.');
+      for (var part, i = 0; i < parts.length; i++) {
+        part = parts[i];
+        if (part.indexOf('__') >= 0) {
+          return false;
+        }
+        part = part.replace(/_/g, '');
+        if (!/^[a-z\u00a1-\uffff0-9-]+$/i.test(part)) {
+          return false;
+        }
+        if (part[0] === '-' || part[part.length - 1] === '-' || part.indexOf('---') >= 0) {
+          return false;
+        }
+      }
+      return true;
+    };
+
+    return EmailValidationRule;
+  })(ValidationRule);
+
+  exports.EmailValidationRule = EmailValidationRule;
+
+  var MinimumLengthValidationRule = (function (_ValidationRule3) {
+    function MinimumLengthValidationRule(minimumLength) {
+      _classCallCheck(this, MinimumLengthValidationRule);
+
+      _ValidationRule3.call(this, minimumLength, function (newValue, minimumLength) {
+        return newValue.length !== undefined && newValue.length >= minimumLength;
+      });
+    }
+
+    _inherits(MinimumLengthValidationRule, _ValidationRule3);
+
+    return MinimumLengthValidationRule;
+  })(ValidationRule);
+
+  exports.MinimumLengthValidationRule = MinimumLengthValidationRule;
+
+  var MaximumLengthValidationRule = (function (_ValidationRule4) {
+    function MaximumLengthValidationRule(maximumLength) {
+      _classCallCheck(this, MaximumLengthValidationRule);
+
+      _ValidationRule4.call(this, maximumLength, function (newValue, maximumLength) {
+        return newValue.length !== undefined && newValue.length <= maximumLength;
+      });
+    }
+
+    _inherits(MaximumLengthValidationRule, _ValidationRule4);
+
+    return MaximumLengthValidationRule;
+  })(ValidationRule);
+
+  exports.MaximumLengthValidationRule = MaximumLengthValidationRule;
+
+  var BetweenLengthValidationRule = (function (_ValidationRule5) {
+    function BetweenLengthValidationRule(minimumLength, maximumLength) {
+      _classCallCheck(this, BetweenLengthValidationRule);
+
+      _ValidationRule5.call(this, { minimumLength: minimumLength, maximumLength: maximumLength }, function (newValue, threshold) {
+        return newValue.length !== undefined && newValue.length >= threshold.minimumLength && newValue.length <= threshold.maximumLength;
+      });
+    }
+
+    _inherits(BetweenLengthValidationRule, _ValidationRule5);
+
+    return BetweenLengthValidationRule;
+  })(ValidationRule);
+
+  exports.BetweenLengthValidationRule = BetweenLengthValidationRule;
+
+  var CustomFunctionValidationRule = (function (_ValidationRule6) {
+    function CustomFunctionValidationRule(customFunction, threshold) {
+      _classCallCheck(this, CustomFunctionValidationRule);
+
+      _ValidationRule6.call(this, threshold, customFunction);
+    }
+
+    _inherits(CustomFunctionValidationRule, _ValidationRule6);
+
+    return CustomFunctionValidationRule;
+  })(ValidationRule);
+
+  exports.CustomFunctionValidationRule = CustomFunctionValidationRule;
+
+  var NumericValidationRule = (function (_ValidationRule7) {
+    function NumericValidationRule() {
+      _classCallCheck(this, NumericValidationRule);
+
+      _ValidationRule7.call(this, null, function (newValue, threshold, locale) {
+        var numericRegex = locale.setting('numericRegex');
+        var floatValue = parseFloat(newValue);
+        return !Number.isNaN(parseFloat(newValue)) && Number.isFinite(floatValue) && numericRegex.test(newValue);
+      });
+    }
+
+    _inherits(NumericValidationRule, _ValidationRule7);
+
+    return NumericValidationRule;
+  })(ValidationRule);
+
+  exports.NumericValidationRule = NumericValidationRule;
+
+  var RegexValidationRule = (function (_ValidationRule8) {
+    function RegexValidationRule(regex) {
+      _classCallCheck(this, RegexValidationRule);
+
+      _ValidationRule8.call(this, regex, function (newValue, regex) {
+        return regex.test(newValue);
+      });
+    }
+
+    _inherits(RegexValidationRule, _ValidationRule8);
+
+    return RegexValidationRule;
+  })(ValidationRule);
+
+  exports.RegexValidationRule = RegexValidationRule;
+
+  var ContainsOnlyValidationRule = (function (_RegexValidationRule) {
+    function ContainsOnlyValidationRule(regex) {
+      _classCallCheck(this, ContainsOnlyValidationRule);
+
+      _RegexValidationRule.call(this, regex);
+    }
+
+    _inherits(ContainsOnlyValidationRule, _RegexValidationRule);
+
+    return ContainsOnlyValidationRule;
+  })(RegexValidationRule);
+
+  exports.ContainsOnlyValidationRule = ContainsOnlyValidationRule;
+
+  var MinimumValueValidationRule = (function (_ValidationRule9) {
+    function MinimumValueValidationRule(minimumValue) {
+      _classCallCheck(this, MinimumValueValidationRule);
+
+      _ValidationRule9.call(this, minimumValue, function (newValue, minimumValue) {
+        return _validationUtilities.Utilities.getValue(minimumValue) < newValue;
+      });
+    }
+
+    _inherits(MinimumValueValidationRule, _ValidationRule9);
+
+    return MinimumValueValidationRule;
+  })(ValidationRule);
+
+  exports.MinimumValueValidationRule = MinimumValueValidationRule;
+
+  var MinimumInclusiveValueValidationRule = (function (_ValidationRule10) {
+    function MinimumInclusiveValueValidationRule(minimumValue) {
+      _classCallCheck(this, MinimumInclusiveValueValidationRule);
+
+      _ValidationRule10.call(this, minimumValue, function (newValue, minimumValue) {
+        return _validationUtilities.Utilities.getValue(minimumValue) <= newValue;
+      });
+    }
+
+    _inherits(MinimumInclusiveValueValidationRule, _ValidationRule10);
+
+    return MinimumInclusiveValueValidationRule;
+  })(ValidationRule);
+
+  exports.MinimumInclusiveValueValidationRule = MinimumInclusiveValueValidationRule;
+
+  var MaximumValueValidationRule = (function (_ValidationRule11) {
+    function MaximumValueValidationRule(maximumValue) {
+      _classCallCheck(this, MaximumValueValidationRule);
+
+      _ValidationRule11.call(this, maximumValue, function (newValue, maximumValue) {
+        return newValue < _validationUtilities.Utilities.getValue(maximumValue);
+      });
+    }
+
+    _inherits(MaximumValueValidationRule, _ValidationRule11);
+
+    return MaximumValueValidationRule;
+  })(ValidationRule);
+
+  exports.MaximumValueValidationRule = MaximumValueValidationRule;
+
+  var MaximumInclusiveValueValidationRule = (function (_ValidationRule12) {
+    function MaximumInclusiveValueValidationRule(maximumValue) {
+      _classCallCheck(this, MaximumInclusiveValueValidationRule);
+
+      _ValidationRule12.call(this, maximumValue, function (newValue, maximumValue) {
+        return newValue <= _validationUtilities.Utilities.getValue(maximumValue);
+      });
+    }
+
+    _inherits(MaximumInclusiveValueValidationRule, _ValidationRule12);
+
+    return MaximumInclusiveValueValidationRule;
+  })(ValidationRule);
+
+  exports.MaximumInclusiveValueValidationRule = MaximumInclusiveValueValidationRule;
+
+  var BetweenValueValidationRule = (function (_ValidationRule13) {
+    function BetweenValueValidationRule(minimumValue, maximumValue) {
+      _classCallCheck(this, BetweenValueValidationRule);
+
+      _ValidationRule13.call(this, { minimumValue: minimumValue, maximumValue: maximumValue }, function (newValue, threshold) {
+        return _validationUtilities.Utilities.getValue(threshold.minimumValue) <= newValue && newValue <= _validationUtilities.Utilities.getValue(threshold.maximumValue);
+      });
+    }
+
+    _inherits(BetweenValueValidationRule, _ValidationRule13);
+
+    return BetweenValueValidationRule;
+  })(ValidationRule);
+
+  exports.BetweenValueValidationRule = BetweenValueValidationRule;
+
+  var DigitValidationRule = (function (_ValidationRule14) {
+    function DigitValidationRule() {
+      _classCallCheck(this, DigitValidationRule);
+
+      _ValidationRule14.call(this, null, function (newValue, threshold) {
+        return /^\d+$/.test(newValue);
+      });
+    }
+
+    _inherits(DigitValidationRule, _ValidationRule14);
+
+    return DigitValidationRule;
+  })(ValidationRule);
+
+  exports.DigitValidationRule = DigitValidationRule;
+
+  var NoSpacesValidationRule = (function (_ValidationRule15) {
+    function NoSpacesValidationRule() {
+      _classCallCheck(this, NoSpacesValidationRule);
+
+      _ValidationRule15.call(this, null, function (newValue, threshold) {
+        return /^\S*$/.test(newValue);
+      });
+    }
+
+    _inherits(NoSpacesValidationRule, _ValidationRule15);
+
+    return NoSpacesValidationRule;
+  })(ValidationRule);
+
+  exports.NoSpacesValidationRule = NoSpacesValidationRule;
+
+  var AlphaNumericValidationRule = (function (_ValidationRule16) {
+    function AlphaNumericValidationRule() {
+      _classCallCheck(this, AlphaNumericValidationRule);
+
+      _ValidationRule16.call(this, null, function (newValue, threshold) {
+        return /^[a-z0-9]+$/i.test(newValue);
+      });
+    }
+
+    _inherits(AlphaNumericValidationRule, _ValidationRule16);
+
+    return AlphaNumericValidationRule;
+  })(ValidationRule);
+
+  exports.AlphaNumericValidationRule = AlphaNumericValidationRule;
+
+  var AlphaValidationRule = (function (_ValidationRule17) {
+    function AlphaValidationRule() {
+      _classCallCheck(this, AlphaValidationRule);
+
+      _ValidationRule17.call(this, null, function (newValue, threshold) {
+        return /^[a-z]+$/i.test(newValue);
+      });
+    }
+
+    _inherits(AlphaValidationRule, _ValidationRule17);
+
+    return AlphaValidationRule;
+  })(ValidationRule);
+
+  exports.AlphaValidationRule = AlphaValidationRule;
+
+  var AlphaOrWhitespaceValidationRule = (function (_ValidationRule18) {
+    function AlphaOrWhitespaceValidationRule() {
+      _classCallCheck(this, AlphaOrWhitespaceValidationRule);
+
+      _ValidationRule18.call(this, null, function (newValue, threshold) {
+        return /^[a-z\s]+$/i.test(newValue);
+      });
+    }
+
+    _inherits(AlphaOrWhitespaceValidationRule, _ValidationRule18);
+
+    return AlphaOrWhitespaceValidationRule;
+  })(ValidationRule);
+
+  exports.AlphaOrWhitespaceValidationRule = AlphaOrWhitespaceValidationRule;
+
+  var AlphaNumericOrWhitespaceValidationRule = (function (_ValidationRule19) {
+    function AlphaNumericOrWhitespaceValidationRule() {
+      _classCallCheck(this, AlphaNumericOrWhitespaceValidationRule);
+
+      _ValidationRule19.call(this, null, function (newValue, threshold) {
+        return /^[a-z0-9\s]+$/i.test(newValue);
+      });
+    }
+
+    _inherits(AlphaNumericOrWhitespaceValidationRule, _ValidationRule19);
+
+    return AlphaNumericOrWhitespaceValidationRule;
+  })(ValidationRule);
+
+  exports.AlphaNumericOrWhitespaceValidationRule = AlphaNumericOrWhitespaceValidationRule;
+
+  var MediumPasswordValidationRule = (function (_ValidationRule20) {
+    function MediumPasswordValidationRule(minimumComplexityLevel) {
+      _classCallCheck(this, MediumPasswordValidationRule);
+
+      _ValidationRule20.call(this, minimumComplexityLevel ? minimumComplexityLevel : 3, function (newValue, threshold) {
+        if (typeof newValue !== 'string') return false;
+        var strength = 0;
+
+        strength += /[A-Z]+/.test(newValue) ? 1 : 0;
+        strength += /[a-z]+/.test(newValue) ? 1 : 0;
+        strength += /[0-9]+/.test(newValue) ? 1 : 0;
+        strength += /[\W]+/.test(newValue) ? 1 : 0;
+        return strength >= threshold;
+      });
+    }
+
+    _inherits(MediumPasswordValidationRule, _ValidationRule20);
+
+    return MediumPasswordValidationRule;
+  })(ValidationRule);
+
+  exports.MediumPasswordValidationRule = MediumPasswordValidationRule;
+
+  var StrongPasswordValidationRule = (function (_MediumPasswordValidationRule) {
+    function StrongPasswordValidationRule() {
+      _classCallCheck(this, StrongPasswordValidationRule);
+
+      _MediumPasswordValidationRule.call(this, 4);
+    }
+
+    _inherits(StrongPasswordValidationRule, _MediumPasswordValidationRule);
+
+    return StrongPasswordValidationRule;
+  })(MediumPasswordValidationRule);
+
+  exports.StrongPasswordValidationRule = StrongPasswordValidationRule;
+
+  var EqualityValidationRuleBase = (function (_ValidationRule21) {
+    function EqualityValidationRuleBase(otherValue, equality, otherValueLabel) {
+      _classCallCheck(this, EqualityValidationRuleBase);
+
+      _ValidationRule21.call(this, {
+        otherValue: otherValue,
+        equality: equality,
+        otherValueLabel: otherValueLabel
+      }, function (newValue, threshold) {
+        var otherValue = _validationUtilities.Utilities.getValue(threshold.otherValue);
+        if (newValue instanceof Date && otherValue instanceof Date) return threshold.equality === (newValue.getTime() === otherValue.getTime());
+        return threshold.equality === (newValue === otherValue);
+      });
+    }
+
+    _inherits(EqualityValidationRuleBase, _ValidationRule21);
+
+    return EqualityValidationRuleBase;
+  })(ValidationRule);
+
+  exports.EqualityValidationRuleBase = EqualityValidationRuleBase;
+
+  var EqualityValidationRule = (function (_EqualityValidationRuleBase) {
+    function EqualityValidationRule(otherValue) {
+      _classCallCheck(this, EqualityValidationRule);
+
+      _EqualityValidationRuleBase.call(this, otherValue, true);
+    }
+
+    _inherits(EqualityValidationRule, _EqualityValidationRuleBase);
+
+    return EqualityValidationRule;
+  })(EqualityValidationRuleBase);
+
+  exports.EqualityValidationRule = EqualityValidationRule;
+
+  var EqualityWithOtherLabelValidationRule = (function (_EqualityValidationRuleBase2) {
+    function EqualityWithOtherLabelValidationRule(otherValue, otherLabel) {
+      _classCallCheck(this, EqualityWithOtherLabelValidationRule);
+
+      _EqualityValidationRuleBase2.call(this, otherValue, true, otherLabel);
+    }
+
+    _inherits(EqualityWithOtherLabelValidationRule, _EqualityValidationRuleBase2);
+
+    return EqualityWithOtherLabelValidationRule;
+  })(EqualityValidationRuleBase);
+
+  exports.EqualityWithOtherLabelValidationRule = EqualityWithOtherLabelValidationRule;
+
+  var InEqualityValidationRule = (function (_EqualityValidationRuleBase3) {
+    function InEqualityValidationRule(otherValue) {
+      _classCallCheck(this, InEqualityValidationRule);
+
+      _EqualityValidationRuleBase3.call(this, otherValue, false);
+    }
+
+    _inherits(InEqualityValidationRule, _EqualityValidationRuleBase3);
+
+    return InEqualityValidationRule;
+  })(EqualityValidationRuleBase);
+
+  exports.InEqualityValidationRule = InEqualityValidationRule;
+
+  var InEqualityWithOtherLabelValidationRule = (function (_EqualityValidationRuleBase4) {
+    function InEqualityWithOtherLabelValidationRule(otherValue, otherLabel) {
+      _classCallCheck(this, InEqualityWithOtherLabelValidationRule);
+
+      _EqualityValidationRuleBase4.call(this, otherValue, false, otherLabel);
+    }
+
+    _inherits(InEqualityWithOtherLabelValidationRule, _EqualityValidationRuleBase4);
+
+    return InEqualityWithOtherLabelValidationRule;
+  })(EqualityValidationRuleBase);
+
+  exports.InEqualityWithOtherLabelValidationRule = InEqualityWithOtherLabelValidationRule;
+
+  var InCollectionValidationRule = (function (_ValidationRule22) {
+    function InCollectionValidationRule(collection) {
+      _classCallCheck(this, InCollectionValidationRule);
+
+      _ValidationRule22.call(this, collection, function (newValue, threshold) {
+        var collection = _validationUtilities.Utilities.getValue(threshold);
+        for (var i = 0; i < collection.length; i++) {
+          if (newValue === collection[i]) return true;
+        }
+        return false;
+      });
+    }
+
+    _inherits(InCollectionValidationRule, _ValidationRule22);
+
+    return InCollectionValidationRule;
+  })(ValidationRule);
+
+  exports.InCollectionValidationRule = InCollectionValidationRule;
+});
+define('aurelia-validation/validation/validation-rules-collection',['exports', '../validation/utilities', '../validation/validation-locale'], function (exports, _validationUtilities, _validationValidationLocale) {
+  
+
+  exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var ValidationRulesCollection = (function () {
+    function ValidationRulesCollection(config) {
+      _classCallCheck(this, ValidationRulesCollection);
+
+      this.isRequired = config ? config.getValue('allPropertiesAreMandatory') : false;
+      this.validationRules = [];
+      this.validationCollections = [];
+      this.isRequiredMessage = null;
+    }
+
+    ValidationRulesCollection.prototype.validate = function validate(newValue, locale) {
+      var _this = this;
+
+      if (locale === undefined) {
+        locale = _validationValidationLocale.ValidationLocale.Repository['default'];
+      }
+      newValue = _validationUtilities.Utilities.getValue(newValue);
+      var executeRules = true;
+
+      if (_validationUtilities.Utilities.isEmptyValue(newValue)) {
+        if (this.isRequired) {
+          return Promise.resolve({
+            isValid: false,
+            message: this.isRequiredMessage ? typeof this.isRequiredMessage === 'function' ? this.isRequiredMessage(newValue) : this.isRequiredMessage : locale.translate('isRequired'),
+            failingRule: 'isRequired',
+            latestValue: newValue
+          });
+        } else {
+          executeRules = false;
+        }
+      }
+
+      var checks = Promise.resolve({
+        isValid: true,
+        message: '',
+        failingRule: null,
+        latestValue: newValue
+      });
+
+      if (executeRules) {
+        var _loop = function (i) {
+          var rule = _this.validationRules[i];
+          checks = checks.then(function (previousRuleResult) {
+            if (previousRuleResult.isValid === false) {
+              return previousRuleResult;
+            } else {
+              return rule.validate(newValue, locale).then(function (thisRuleResult) {
+                if (thisRuleResult === false) {
+                  return {
+                    isValid: false,
+                    message: rule.explain(),
+                    failingRule: rule.ruleName,
+                    latestValue: newValue
+                  };
+                } else {
+                  if (!previousRuleResult.isValid) {
+                    throw Error('ValidationRulesCollection.validate caught an unexpected result while validating it\'s chain of rules.');
+                  }
+                  return previousRuleResult;
+                }
+              });
+            }
+          });
+        };
+
+        for (var i = 0; i < this.validationRules.length; i++) {
+          _loop(i);
+        }
+      }
+
+      var _loop2 = function (i) {
+        var validationCollection = _this.validationCollections[i];
+        checks = checks.then(function (previousValidationResult) {
+          if (previousValidationResult.isValid) return validationCollection.validate(newValue, locale);else return previousValidationResult;
+        });
+      };
+
+      for (var i = 0; i < this.validationCollections.length; i++) {
+        _loop2(i);
+      }
+
+      return checks;
+    };
+
+    ValidationRulesCollection.prototype.addValidationRule = function addValidationRule(validationRule) {
+      if (validationRule.validate === undefined) throw new Error('That\'s not a valid validationRule');
+      this.validationRules.push(validationRule);
+    };
+
+    ValidationRulesCollection.prototype.addValidationRuleCollection = function addValidationRuleCollection(validationRulesCollection) {
+      this.validationCollections.push(validationRulesCollection);
+    };
+
+    ValidationRulesCollection.prototype.isNotEmpty = function isNotEmpty() {
+      this.isRequired = true;
+    };
+
+    ValidationRulesCollection.prototype.canBeEmpty = function canBeEmpty() {
+      this.isRequired = false;
+    };
+
+    ValidationRulesCollection.prototype.withMessage = function withMessage(message) {
+      if (this.validationRules.length === 0) this.isRequiredMessage = message;else this.validationRules[this.validationRules.length - 1].withMessage(message);
+    };
+
+    return ValidationRulesCollection;
+  })();
+
+  exports.ValidationRulesCollection = ValidationRulesCollection;
+
+  var SwitchCaseValidationRulesCollection = (function () {
+    function SwitchCaseValidationRulesCollection(conditionExpression, config) {
+      _classCallCheck(this, SwitchCaseValidationRulesCollection);
+
+      this.conditionExpression = conditionExpression;
+      this.config = config;
+      this.innerCollections = [];
+      this.defaultCollection = new ValidationRulesCollection(this.config);
+      this.caseLabel = '';
+      this.defaultCaseLabel = { description: 'this is the case label for \'default\'' };
+    }
+
+    SwitchCaseValidationRulesCollection.prototype['case'] = function _case(caseLabel) {
+      this.caseLabel = caseLabel;
+      this.getCurrentCollection(caseLabel, true);
+    };
+
+    SwitchCaseValidationRulesCollection.prototype['default'] = function _default() {
+      this.caseLabel = this.defaultCaseLabel;
+    };
+
+    SwitchCaseValidationRulesCollection.prototype.getCurrentCollection = function getCurrentCollection(caseLabel) {
+      var createIfNotExists = arguments[1] === undefined ? false : arguments[1];
+
+      if (caseLabel === this.defaultCaseLabel) return this.defaultCollection;
+      var currentCollection = null;
+      for (var i = 0; i < this.innerCollections.length; i++) {
+        currentCollection = this.innerCollections[i];
+        if (currentCollection.caseLabel === caseLabel) return currentCollection.collection;
+      }
+      if (createIfNotExists) {
+        currentCollection = {
+          caseLabel: caseLabel,
+          collection: new ValidationRulesCollection(this.config)
+        };
+        this.innerCollections.push(currentCollection);
+        return currentCollection.collection;
+      }
+      return null;
+    };
+
+    SwitchCaseValidationRulesCollection.prototype.validate = function validate(newValue, locale) {
+      var collection = this.getCurrentCollection(this.conditionExpression(newValue));
+      if (collection !== null) return collection.validate(newValue, locale);else return this.defaultCollection.validate(newValue, locale);
+    };
+
+    SwitchCaseValidationRulesCollection.prototype.addValidationRule = function addValidationRule(validationRule) {
+      var currentCollection = this.getCurrentCollection(this.caseLabel, true);
+      currentCollection.addValidationRule(validationRule);
+    };
+
+    SwitchCaseValidationRulesCollection.prototype.addValidationRuleCollection = function addValidationRuleCollection(validationRulesCollection) {
+      var currentCollection = this.getCurrentCollection(this.caseLabel, true);
+      currentCollection.addValidationRuleCollection(validationRulesCollection);
+    };
+
+    SwitchCaseValidationRulesCollection.prototype.isNotEmpty = function isNotEmpty() {
+      var collection = this.getCurrentCollection(this.caseLabel);
+      if (collection !== null) collection.isNotEmpty();else this.defaultCollection.isNotEmpty();
+    };
+
+    SwitchCaseValidationRulesCollection.prototype.canBeEmpty = function canBeEmpty() {
+      var collection = this.getCurrentCollection(this.caseLabel);
+      if (collection !== null) collection.canBeEmpty();else this.defaultCollection.canBeEmpty();
+    };
+
+    SwitchCaseValidationRulesCollection.prototype.withMessage = function withMessage(message) {
+      var collection = this.getCurrentCollection(this.caseLabel);
+      if (collection !== null) collection.withMessage(message);else this.defaultCollection.withMessage(message);
+    };
+
+    return SwitchCaseValidationRulesCollection;
+  })();
+
+  exports.SwitchCaseValidationRulesCollection = SwitchCaseValidationRulesCollection;
+});
+define('aurelia-validation/validation/path-observer',['exports', 'aurelia-binding'], function (exports, _aureliaBinding) {
+  
+
+  exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var PathObserver = (function () {
+    function PathObserver(observerLocator, subject, path) {
+      _classCallCheck(this, PathObserver);
+
+      this.observerLocator = observerLocator;
+      this.path = path.split('.');
+      this.subject = subject;
+      this.observers = [];
+      this.callbacks = [];
+      if (this.path.length > 1) this.observeParts();
+    }
+
+    PathObserver.prototype.observeParts = function observeParts(propertyName) {
+      var _this = this;
+
+      if (propertyName !== undefined && propertyName !== null) {
+        for (var i = this.observers.length - 1; i >= 0; i--) {
+          var currentObserver = this.observers[i];
+          if (currentObserver.propertyName === propertyName) {
+            break;
+          }
+          var observer = this.observers.pop();
+          if (observer && observer.subscription) {
+            observer.subscription();
+          }
+        }
+      }
+
+      var currentSubject = this.subject;
+
+      var observersAreComplete = this.observers.length === this.path.length;
+
+      var _loop = function (i) {
+        var observer = _this.observers[i];
+        if (!observer) {
+
+          var currentPath = _this.path[i];
+          observer = _this.observerLocator.getObserver(currentSubject, currentPath);
+          _this.observers.push(observer);
+          var subscription = observer.subscribe(function (newValue, oldValue) {
+            _this.observeParts(observer.propertyName);
+          });
+          observer.subscription = subscription;
+        }
+
+        var currentValue = observer.getValue();
+        if (currentValue === undefined || currentValue === null) {
+          return 'break';
+        } else {
+          currentSubject = currentValue;
+        }
+      };
+
+      for (var i = 0; i < this.path.length; i++) {
+        var _ret = _loop(i);
+
+        if (_ret === 'break') break;
+      }
+
+      if (!observersAreComplete && this.observers.length === this.path.length) {
+        var actualObserver = this.observers[this.observers.length - 1];
+        for (var i = 0; i < this.callbacks.length; i++) {
+          actualObserver.subscribe(this.callbacks[i]);
+        }
+      }
+    };
+
+    PathObserver.prototype.observePart = function observePart(part) {
+      if (part !== this.path[this.path.length - 1]) {
+        this.observeParts();
+      }
+    };
+
+    PathObserver.prototype.getObserver = function getObserver() {
+      if (this.path.length == 1) {
+        var resolve = this.subject[this.path[0]];
+        return this.observerLocator.getObserver(this.subject, this.path[0]);
+      }
+      return this;
+    };
+
+    PathObserver.prototype.getValue = function getValue() {
+      var expectedSubject = this.subject;
+      for (var i = 0; this.path.length; i++) {
+        var currentObserver = this.observers[i];
+        if (currentObserver === null || currentObserver === undefined) {
+          this.observeParts(this.path[i]);
+          currentObserver = this.observers[i];
+
+          if (currentObserver === null || currentObserver === undefined) {
+            break;
+          }
+        }
+        if (currentObserver.obj !== expectedSubject) {
+            this.observeParts(this.path[i - 1]);
+            break;
+          }
+        expectedSubject = currentObserver.getValue();
+      }
+
+      if (this.observers.length !== this.path.length) return undefined;
+      var value = this.observers[this.observers.length - 1].getValue();
+      return value;
+    };
+
+    PathObserver.prototype.subscribe = function subscribe(callback) {
+      var _this2 = this;
+
+      this.callbacks.unshift(callback);
+      if (this.observers.length === this.path.length) {
+        this.subscription = this.observers[this.observers.length - 1].subscribe(callback);
+        return function () {
+          return _this2.unsubscribe();
+        };
+      }
+    };
+
+    PathObserver.prototype.unsubscribe = function unsubscribe() {
+      if (this.subscription) this.subscription();
+      for (var i = this.observers.length - 1; i >= 0; i--) {
+        var observer = this.observers.pop();
+        if (observer && observer.subscription) {
+          observer.subscription();
+        }
+      }
+    };
+
+    return PathObserver;
+  })();
+
+  exports.PathObserver = PathObserver;
+});
+define('aurelia-validation/validation/debouncer',['exports', '../validation/validation'], function (exports, _validationValidation) {
+  
+
+  exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var Debouncer = (function () {
+    function Debouncer(debounceTimeout) {
+      _classCallCheck(this, Debouncer);
+
+      this.currentFunction = null;
+      this.debounceTimeout = debounceTimeout;
+    }
+
+    Debouncer.prototype.debounce = function debounce(func) {
+      var _this = this;
+
+      this.currentFunction = func;
+      setTimeout(function () {
+        if (func !== null && func !== undefined) {
+          if (func === _this.currentFunction) {
+            _this.currentFunction = null;
+            func();
+          }
+        }
+      }, this.debounceTimeout);
+    };
+
+    return Debouncer;
+  })();
+
+  exports.Debouncer = Debouncer;
+});
+define('aurelia-validation/validation/validation-property',['exports', '../validation/validation-rules-collection', '../validation/path-observer', '../validation/debouncer'], function (exports, _validationValidationRulesCollection, _validationPathObserver, _validationDebouncer) {
+  
+
+  exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var ValidationProperty = (function () {
+    function ValidationProperty(observerLocator, propertyName, validationGroup, propertyResult, config) {
+      var _this = this;
+
+      _classCallCheck(this, ValidationProperty);
+
+      this.propertyResult = propertyResult;
+      this.propertyName = propertyName;
+      this.validationGroup = validationGroup;
+      this.collectionOfValidationRules = new _validationValidationRulesCollection.ValidationRulesCollection(config);
+      this.config = config;
+      this.latestValue = undefined;
+
+      this.observer = new _validationPathObserver.PathObserver(observerLocator, validationGroup.subject, propertyName).getObserver();
+
+      this.debouncer = new _validationDebouncer.Debouncer(config.getDebounceTimeout());
+
+      this.subscription = this.observer.subscribe(function () {
+        _this.debouncer.debounce(function () {
+          var newValue = _this.observer.getValue();
+          if (newValue !== _this.latestValue) {
+            _this.validate(newValue, true);
+          }
+        });
+      });
+
+      this.dependencyObservers = [];
+      var dependencies = this.config.getDependencies();
+      for (var i = 0; i < dependencies.length; i++) {
+        var dependencyObserver = new _validationPathObserver.PathObserver(observerLocator, validationGroup.subject, dependencies[i]).getObserver();
+        dependencyObserver.subscribe(function () {
+          _this.debouncer.debounce(function () {
+            _this.validateCurrentValue(true);
+          });
+        });
+        this.dependencyObservers.push(dependencyObserver);
+      }
+    }
+
+    ValidationProperty.prototype.addValidationRule = function addValidationRule(validationRule) {
+      if (validationRule.validate === undefined) throw new Error('That\'s not a valid validationRule');
+      this.collectionOfValidationRules.addValidationRule(validationRule);
+      this.validateCurrentValue(false);
+    };
+
+    ValidationProperty.prototype.validateCurrentValue = function validateCurrentValue(forceDirty, forceExecution) {
+      return this.validate(this.observer.getValue(), forceDirty, forceExecution);
+    };
+
+    ValidationProperty.prototype.clear = function clear() {
+      this.latestValue = this.observer.getValue();
+      this.propertyResult.clear();
+    };
+
+    ValidationProperty.prototype.destroy = function destroy() {
+      if (this.subscription) this.subscription();
+    };
+
+    ValidationProperty.prototype.validate = function validate(newValue, shouldBeDirty, forceExecution) {
+      var _this2 = this;
+
+      if (!this.propertyResult.isDirty && shouldBeDirty || this.latestValue !== newValue || forceExecution) {
+        this.latestValue = newValue;
+        return this.config.locale().then(function (locale) {
+          return _this2.collectionOfValidationRules.validate(newValue, locale).then(function (validationResponse) {
+            if (_this2.latestValue === validationResponse.latestValue) _this2.propertyResult.setValidity(validationResponse, shouldBeDirty);
+            return validationResponse.isValid;
+          })['catch'](function (err) {
+            console.log('Unexpected behavior: a validation-rules-collection should always fulfil', err);
+            throw Error('Unexpected behavior: a validation-rules-collection should always fulfil');
+          });
+        }, function () {
+          throw Error('An exception occurred while trying to load the locale');
+        });
+      }
+    };
+
+    return ValidationProperty;
+  })();
+
+  exports.ValidationProperty = ValidationProperty;
+});
+define('aurelia-validation/validation/validation-group-builder',['exports', '../validation/validation-rules', '../validation/validation-rules-collection', '../validation/validation-property', '../validation/validation-config'], function (exports, _validationValidationRules, _validationValidationRulesCollection, _validationValidationProperty, _validationValidationConfig) {
+  
+
+  exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var ValidationGroupBuilder = (function () {
+    function ValidationGroupBuilder(observerLocator, validationGroup) {
+      _classCallCheck(this, ValidationGroupBuilder);
+
+      this.observerLocator = observerLocator;
+      this.validationRuleCollections = [];
+      this.validationGroup = validationGroup;
+    }
+
+    ValidationGroupBuilder.prototype.ensure = function ensure(propertyName, configurationCallback) {
+      var newValidationProperty = null;
+      this.validationRuleCollections = [];
+
+      for (var i = 0; i < this.validationGroup.validationProperties.length; i++) {
+        if (this.validationGroup.validationProperties[i].propertyName === propertyName) {
+          newValidationProperty = this.validationGroup.validationProperties[i];
+          if (configurationCallback !== undefined && typeof configurationCallback === 'function') {
+            throw Error('When creating validation rules on binding path ' + propertyName + ' a configuration callback function was provided, but validation rules have previously already been instantiated for this binding path');
+          }
+          break;
+        }
+      }
+      if (newValidationProperty === null) {
+        var propertyResult = this.validationGroup.result.addProperty(propertyName);
+        var config = new _validationValidationConfig.ValidationConfig(this.validationGroup.config);
+        if (configurationCallback !== undefined && typeof configurationCallback === 'function') {
+          configurationCallback(config);
+        }
+        newValidationProperty = new _validationValidationProperty.ValidationProperty(this.observerLocator, propertyName, this.validationGroup, propertyResult, config);
+        this.validationGroup.validationProperties.push(newValidationProperty);
+      }
+      this.validationRuleCollections.unshift(newValidationProperty.collectionOfValidationRules);
+      return this.validationGroup;
+    };
+
+    ValidationGroupBuilder.prototype.isNotEmpty = function isNotEmpty() {
+      this.validationRuleCollections[0].isNotEmpty();
+      this.checkLast();
+      return this.validationGroup;
+    };
+
+    ValidationGroupBuilder.prototype.canBeEmpty = function canBeEmpty() {
+      this.validationRuleCollections[0].canBeEmpty();
+      this.checkLast();
+      return this.validationGroup;
+    };
+
+    ValidationGroupBuilder.prototype.isGreaterThan = function isGreaterThan(minimumValue) {
+      return this.passesRule(new _validationValidationRules.MinimumValueValidationRule(minimumValue));
+    };
+
+    ValidationGroupBuilder.prototype.isGreaterThanOrEqualTo = function isGreaterThanOrEqualTo(minimumValue) {
+      return this.passesRule(new _validationValidationRules.MinimumInclusiveValueValidationRule(minimumValue));
+    };
+
+    ValidationGroupBuilder.prototype.isBetween = function isBetween(minimumValue, maximumValue) {
+      return this.passesRule(new _validationValidationRules.BetweenValueValidationRule(minimumValue, maximumValue));
+    };
+
+    ValidationGroupBuilder.prototype.isIn = function isIn(collection) {
+      return this.passesRule(new _validationValidationRules.InCollectionValidationRule(collection));
+    };
+
+    ValidationGroupBuilder.prototype.isLessThan = function isLessThan(maximumValue) {
+      return this.passesRule(new _validationValidationRules.MaximumValueValidationRule(maximumValue));
+    };
+
+    ValidationGroupBuilder.prototype.isLessThanOrEqualTo = function isLessThanOrEqualTo(maximumValue) {
+      return this.passesRule(new _validationValidationRules.MaximumInclusiveValueValidationRule(maximumValue));
+    };
+
+    ValidationGroupBuilder.prototype.isEqualTo = function isEqualTo(otherValue, otherValueLabel) {
+      if (!otherValueLabel) return this.passesRule(new _validationValidationRules.EqualityValidationRule(otherValue));else return this.passesRule(new _validationValidationRules.EqualityWithOtherLabelValidationRule(otherValue, otherValueLabel));
+    };
+
+    ValidationGroupBuilder.prototype.isNotEqualTo = function isNotEqualTo(otherValue, otherValueLabel) {
+      if (!otherValueLabel) return this.passesRule(new _validationValidationRules.InEqualityValidationRule(otherValue));else return this.passesRule(new _validationValidationRules.InEqualityWithOtherLabelValidationRule(otherValue, otherValueLabel));
+    };
+
+    ValidationGroupBuilder.prototype.isEmail = function isEmail() {
+      return this.passesRule(new _validationValidationRules.EmailValidationRule());
+    };
+
+    ValidationGroupBuilder.prototype.isURL = function isURL() {
+      return this.passesRule(new _validationValidationRules.URLValidationRule());
+    };
+
+    ValidationGroupBuilder.prototype.hasMinLength = function hasMinLength(minimumValue) {
+      return this.passesRule(new _validationValidationRules.MinimumLengthValidationRule(minimumValue));
+    };
+
+    ValidationGroupBuilder.prototype.hasMaxLength = function hasMaxLength(maximumValue) {
+      return this.passesRule(new _validationValidationRules.MaximumLengthValidationRule(maximumValue));
+    };
+
+    ValidationGroupBuilder.prototype.hasLengthBetween = function hasLengthBetween(minimumValue, maximumValue) {
+      return this.passesRule(new _validationValidationRules.BetweenLengthValidationRule(minimumValue, maximumValue));
+    };
+
+    ValidationGroupBuilder.prototype.isNumber = function isNumber() {
+      return this.passesRule(new _validationValidationRules.NumericValidationRule());
+    };
+
+    ValidationGroupBuilder.prototype.containsNoSpaces = function containsNoSpaces() {
+      return this.passesRule(new _validationValidationRules.NoSpacesValidationRule());
+    };
+
+    ValidationGroupBuilder.prototype.containsOnlyDigits = function containsOnlyDigits() {
+      return this.passesRule(new _validationValidationRules.DigitValidationRule());
+    };
+
+    ValidationGroupBuilder.prototype.containsOnlyAlpha = function containsOnlyAlpha() {
+      return this.passesRule(new _validationValidationRules.AlphaValidationRule());
+    };
+
+    ValidationGroupBuilder.prototype.containsOnlyAlphaOrWhitespace = function containsOnlyAlphaOrWhitespace() {
+      return this.passesRule(new _validationValidationRules.AlphaOrWhitespaceValidationRule());
+    };
+
+    ValidationGroupBuilder.prototype.containsOnlyAlphanumerics = function containsOnlyAlphanumerics() {
+      return this.passesRule(new _validationValidationRules.AlphaNumericValidationRule());
+    };
+
+    ValidationGroupBuilder.prototype.containsOnlyAlphanumericsOrWhitespace = function containsOnlyAlphanumericsOrWhitespace() {
+      return this.passesRule(new _validationValidationRules.AlphaNumericOrWhitespaceValidationRule());
+    };
+
+    ValidationGroupBuilder.prototype.isStrongPassword = function isStrongPassword(minimumComplexityLevel) {
+      if (minimumComplexityLevel === 4) return this.passesRule(new _validationValidationRules.StrongPasswordValidationRule());else return this.passesRule(new _validationValidationRules.MediumPasswordValidationRule(minimumComplexityLevel));
+    };
+
+    ValidationGroupBuilder.prototype.containsOnly = function containsOnly(regex) {
+      return this.passesRule(new _validationValidationRules.ContainsOnlyValidationRule(regex));
+    };
+
+    ValidationGroupBuilder.prototype.matches = function matches(regex) {
+      return this.passesRule(new _validationValidationRules.RegexValidationRule(regex));
+    };
+
+    ValidationGroupBuilder.prototype.passes = function passes(customFunction, threshold) {
+      return this.passesRule(new _validationValidationRules.CustomFunctionValidationRule(customFunction, threshold));
+    };
+
+    ValidationGroupBuilder.prototype.passesRule = function passesRule(validationRule) {
+
+      this.validationRuleCollections[0].addValidationRule(validationRule);
+      this.checkLast();
+      return this.validationGroup;
+    };
+
+    ValidationGroupBuilder.prototype.checkLast = function checkLast() {
+      var validationProperty = this.validationGroup.validationProperties[this.validationGroup.validationProperties.length - 1];
+      validationProperty.validateCurrentValue(false);
+    };
+
+    ValidationGroupBuilder.prototype.withMessage = function withMessage(message) {
+      this.validationRuleCollections[0].withMessage(message);
+      this.checkLast();
+      return this.validationGroup;
+    };
+
+    ValidationGroupBuilder.prototype['if'] = function _if(conditionExpression) {
+      var conditionalCollection = new _validationValidationRulesCollection.SwitchCaseValidationRulesCollection(conditionExpression);
+      conditionalCollection['case'](true);
+      this.validationRuleCollections[0].addValidationRuleCollection(conditionalCollection);
+      this.validationRuleCollections.unshift(conditionalCollection);
+      return this.validationGroup;
+    };
+
+    ValidationGroupBuilder.prototype['else'] = function _else() {
+      if (!this.validationRuleCollections[0]['default']) throw 'Invalid statement: \'else\'';
+
+      this.validationRuleCollections[0]['default']();
+      return this.validationGroup;
+    };
+
+    ValidationGroupBuilder.prototype.endIf = function endIf() {
+      if (!this.validationRuleCollections[0]['default']) throw 'Invalid statement: \'endIf\'';
+      this.validationRuleCollections.shift();
+      this.checkLast();
+      return this.validationGroup;
+    };
+
+    ValidationGroupBuilder.prototype['switch'] = function _switch(conditionExpression) {
+      var _this = this;
+
+      var condition = conditionExpression;
+      if (condition === undefined) {
+        (function () {
+          var observer = _this.validationGroup.validationProperties[_this.validationGroup.validationProperties.length - 1].observer;
+          condition = function () {
+            return observer.getValue();
+          };
+        })();
+      }
+      var conditionalCollection = new _validationValidationRulesCollection.SwitchCaseValidationRulesCollection(condition);
+      this.validationRuleCollections[0].addValidationRuleCollection(conditionalCollection);
+      this.validationRuleCollections.unshift(conditionalCollection);
+      return this.validationGroup;
+    };
+
+    ValidationGroupBuilder.prototype['case'] = function _case(caseLabel) {
+      if (!this.validationRuleCollections[0]['default']) throw 'Invalid statement: \'case\'';
+      this.validationRuleCollections[0]['case'](caseLabel);
+      return this.validationGroup;
+    };
+
+    ValidationGroupBuilder.prototype['default'] = function _default() {
+      if (!this.validationRuleCollections[0]['default']) throw 'Invalid statement: \'case\'';
+      this.validationRuleCollections[0]['default']();
+      return this.validationGroup;
+    };
+
+    ValidationGroupBuilder.prototype.endSwitch = function endSwitch() {
+      if (!this.validationRuleCollections[0]['default']) throw 'Invalid statement: \'endIf\'';
+      this.validationRuleCollections.shift();
+      this.checkLast();
+      return this.validationGroup;
+    };
+
+    return ValidationGroupBuilder;
+  })();
+
+  exports.ValidationGroupBuilder = ValidationGroupBuilder;
+});
+define('aurelia-validation/validation/validation-result',['exports'], function (exports) {
+  
+
+  exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var ValidationResult = (function () {
+    function ValidationResult() {
+      _classCallCheck(this, ValidationResult);
+
+      this.isValid = true;
+      this.properties = {};
+    }
+
+    ValidationResult.prototype.addProperty = function addProperty(name) {
+      if (!this.properties[name]) {
+        this.properties[name] = new ValidationResultProperty(this);
+      }
+      return this.properties[name];
+    };
+
+    ValidationResult.prototype.checkValidity = function checkValidity() {
+      for (var propertyName in this.properties) {
+        if (!this.properties[propertyName].isValid) {
+          this.isValid = false;
+          return;
+        }
+      }
+      this.isValid = true;
+    };
+
+    ValidationResult.prototype.clear = function clear() {
+      this.isValid = true;
+    };
+
+    return ValidationResult;
+  })();
+
+  exports.ValidationResult = ValidationResult;
+
+  var ValidationResultProperty = (function () {
+    function ValidationResultProperty(group) {
+      _classCallCheck(this, ValidationResultProperty);
+
+      this.group = group;
+      this.onValidateCallbacks = [];
+      this.clear();
+    }
+
+    ValidationResultProperty.prototype.clear = function clear() {
+      this.isValid = true;
+      this.isDirty = false;
+      this.message = '';
+      this.failingRule = null;
+      this.latestValue = null;
+      this.notifyObserversOfChange();
+    };
+
+    ValidationResultProperty.prototype.onValidate = function onValidate(onValidateCallback) {
+      this.onValidateCallbacks.push(onValidateCallback);
+    };
+
+    ValidationResultProperty.prototype.notifyObserversOfChange = function notifyObserversOfChange() {
+      for (var i = 0; i < this.onValidateCallbacks.length; i++) {
+        var callback = this.onValidateCallbacks[i];
+        callback(this);
+      }
+    };
+
+    ValidationResultProperty.prototype.setValidity = function setValidity(validationResponse, shouldBeDirty) {
+      var notifyObservers = !this.isDirty && shouldBeDirty || this.isValid !== validationResponse.isValid || this.message !== validationResponse.message;
+
+      if (shouldBeDirty) this.isDirty = true;
+      this.message = validationResponse.message;
+      this.failingRule = validationResponse.failingRule;
+      this.isValid = validationResponse.isValid;
+      this.latestValue = validationResponse.latestValue;
+      if (this.isValid !== this.group.isValid) this.group.checkValidity();
+
+      if (notifyObservers) {
+        this.notifyObserversOfChange();
+      }
+    };
+
+    return ValidationResultProperty;
+  })();
+
+  exports.ValidationResultProperty = ValidationResultProperty;
+});
+define('aurelia-validation/validation/validation-group',['exports', '../validation/validation-group-builder', '../validation/validation-result', '../validation/validation-locale'], function (exports, _validationValidationGroupBuilder, _validationValidationResult, _validationValidationLocale) {
+  
+
+  exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var ValidationGroup = (function () {
+    function ValidationGroup(subject, observerLocator, config) {
+      var _this = this;
+
+      _classCallCheck(this, ValidationGroup);
+
+      this.result = new _validationValidationResult.ValidationResult();
+      this.subject = subject;
+      this.validationProperties = [];
+      this.config = config;
+      this.builder = new _validationValidationGroupBuilder.ValidationGroupBuilder(observerLocator, this);
+      this.onValidateCallbacks = [];
+      this.onPropertyValidationCallbacks = [];
+      this.isValidating = false;
+      this.onDestroy = config.onLocaleChanged(function () {
+        _this.validate(false, true);
+      });
+
+      if (this.subject.__proto__._validationMetadata) {
+        this.subject.__proto__._validationMetadata.setup(this);
+      }
+    }
+
+    ValidationGroup.prototype.destroy = function destroy() {
+      for (var i = this.validationProperties.length - 1; i >= 0; i--) {
+        this.validationProperties[i].destroy();
+      }
+      this.onDestroy();
+    };
+
+    ValidationGroup.prototype.clear = function clear() {
+      this.validationProperties.forEach(function (prop) {
+        prop.clear();
+      });
+      this.result.clear();
+    };
+
+    ValidationGroup.prototype.onBreezeEntity = function onBreezeEntity() {
+      var _this2 = this;
+
+      var breezeEntity = this.subject;
+      var me = this;
+      this.onPropertyValidate(function (propertyBindingPath) {
+        _this2.passes(function () {
+          breezeEntity.entityAspect.validateProperty(propertyBindingPath);
+          var errors = breezeEntity.entityAspect.getValidationErrors(propertyBindingPath);
+          if (errors.length === 0) return true;else return errors[0].errorMessage;
+        });
+      });
+      this.onValidate(function () {
+        breezeEntity.entityAspect.validateEntity();
+        return {};
+      });
+
+      breezeEntity.entityAspect.validationErrorsChanged.subscribe(function () {
+        breezeEntity.entityAspect.getValidationErrors().forEach(function (validationError) {
+          var propertyName = validationError.propertyName;
+          if (!me.result.properties[propertyName]) {
+            me.ensure(propertyName);
+          }
+
+          var currentResultProp = me.result.addProperty(propertyName);
+          if (currentResultProp.isValid) {
+
+            currentResultProp.setValidity({
+              isValid: false,
+              message: validationError.errorMessage,
+              failingRule: 'breeze',
+              latestValue: currentResultProp.latestValue
+            }, true);
+          }
+        });
+      });
+    };
+
+    ValidationGroup.prototype.validate = function validate() {
+      var _this3 = this;
+
+      var forceDirty = arguments[0] === undefined ? true : arguments[0];
+      var forceExecution = arguments[1] === undefined ? true : arguments[1];
+
+      this.isValidating = true;
+      var promise = Promise.resolve(true);
+
+      var _loop = function (i) {
+        var validatorProperty = _this3.validationProperties[i];
+        promise = promise.then(function () {
+          return validatorProperty.validateCurrentValue(forceDirty, forceExecution);
+        });
+      };
+
+      for (var i = this.validationProperties.length - 1; i >= 0; i--) {
+        _loop(i);
+      }
+      promise = promise['catch'](function () {
+        console.log('Should never get here: a validation property should always resolve to true/false!');
+        throw Error('Should never get here: a validation property should always resolve to true/false!');
+      });
+
+      this.onValidateCallbacks.forEach(function (onValidateCallback) {
+        promise = promise.then(function () {
+          return _this3.config.locale();
+        }).then(function (locale) {
+          return Promise.resolve(onValidateCallback.validationFunction()).then(function (callbackResult) {
+            for (var prop in callbackResult) {
+              if (!_this3.result.properties[prop]) {
+                _this3.ensure(prop);
+              }
+              var resultProp = _this3.result.addProperty(prop);
+              var result = callbackResult[prop];
+              var newPropResult = {
+                latestValue: resultProp.latestValue
+              };
+              if (result === true || result === null || result === '') {
+                if (!resultProp.isValid && resultProp.failingRule === 'onValidateCallback') {
+                  newPropResult.failingRule = null;
+                  newPropResult.message = '';
+                  newPropResult.isValid = true;
+                  resultProp.setValidity(newPropResult, true);
+                }
+              } else {
+                if (resultProp.isValid) {
+                  newPropResult.failingRule = 'onValidateCallback';
+                  newPropResult.isValid = false;
+                  if (typeof result === 'string') {
+                    newPropResult.message = result;
+                  } else {
+                    newPropResult.message = locale.translate(newPropResult.failingRule);
+                  }
+                  resultProp.setValidity(newPropResult, true);
+                }
+              }
+            }
+            _this3.result.checkValidity();
+          }, function (a, b, c, d, e) {
+            _this3.result.isValid = false;
+            if (onValidateCallback.validationFunctionFailedCallback) {
+              onValidateCallback.validationFunctionFailedCallback(a, b, c, d, e);
+            }
+          });
+        });
+      });
+      promise = promise.then(function () {
+        _this3.isValidating = false;
+        if (_this3.result.isValid) {
+          return Promise.resolve(_this3.result);
+        } else {
+          return Promise.reject(_this3.result);
+        }
+      });
+      return promise;
+    };
+
+    ValidationGroup.prototype.onValidate = function onValidate(validationFunction, validationFunctionFailedCallback) {
+      this.onValidateCallbacks.push({ validationFunction: validationFunction, validationFunctionFailedCallback: validationFunctionFailedCallback });
+      return this;
+    };
+
+    ValidationGroup.prototype.onPropertyValidate = function onPropertyValidate(validationFunction) {
+      this.onPropertyValidationCallbacks.push(validationFunction);
+      return this;
+    };
+
+    ValidationGroup.prototype.ensure = function ensure(bindingPath, configCallback) {
+      this.builder.ensure(bindingPath, configCallback);
+      this.onPropertyValidationCallbacks.forEach(function (callback) {
+        callback(bindingPath);
+      });
+      return this;
+    };
+
+    ValidationGroup.prototype.isNotEmpty = function isNotEmpty() {
+      return this.builder.isNotEmpty();
+    };
+
+    ValidationGroup.prototype.canBeEmpty = function canBeEmpty() {
+      return this.builder.canBeEmpty();
+    };
+
+    ValidationGroup.prototype.isGreaterThanOrEqualTo = function isGreaterThanOrEqualTo(minimumValue) {
+      return this.builder.isGreaterThanOrEqualTo(minimumValue);
+    };
+
+    ValidationGroup.prototype.isGreaterThan = function isGreaterThan(minimumValue) {
+      return this.builder.isGreaterThan(minimumValue);
+    };
+
+    ValidationGroup.prototype.isBetween = function isBetween(minimumValue, maximumValue) {
+      return this.builder.isBetween(minimumValue, maximumValue);
+    };
+
+    ValidationGroup.prototype.isLessThanOrEqualTo = function isLessThanOrEqualTo(maximumValue) {
+      return this.builder.isLessThanOrEqualTo(maximumValue);
+    };
+
+    ValidationGroup.prototype.isLessThan = function isLessThan(maximumValue) {
+      return this.builder.isLessThan(maximumValue);
+    };
+
+    ValidationGroup.prototype.isEqualTo = function isEqualTo(otherValue, otherValueLabel) {
+      return this.builder.isEqualTo(otherValue, otherValueLabel);
+    };
+
+    ValidationGroup.prototype.isNotEqualTo = function isNotEqualTo(otherValue, otherValueLabel) {
+      return this.builder.isNotEqualTo(otherValue, otherValueLabel);
+    };
+
+    ValidationGroup.prototype.isEmail = function isEmail() {
+      return this.builder.isEmail();
+    };
+
+    ValidationGroup.prototype.isURL = function isURL() {
+      return this.builder.isURL();
+    };
+
+    ValidationGroup.prototype.isIn = function isIn(collection) {
+      return this.builder.isIn(collection);
+    };
+
+    ValidationGroup.prototype.hasMinLength = function hasMinLength(minimumValue) {
+      return this.builder.hasMinLength(minimumValue);
+    };
+
+    ValidationGroup.prototype.hasMaxLength = function hasMaxLength(maximumValue) {
+      return this.builder.hasMaxLength(maximumValue);
+    };
+
+    ValidationGroup.prototype.hasLengthBetween = function hasLengthBetween(minimumValue, maximumValue) {
+      return this.builder.hasLengthBetween(minimumValue, maximumValue);
+    };
+
+    ValidationGroup.prototype.isNumber = function isNumber() {
+      return this.builder.isNumber();
+    };
+
+    ValidationGroup.prototype.containsNoSpaces = function containsNoSpaces() {
+      return this.builder.containsNoSpaces();
+    };
+
+    ValidationGroup.prototype.containsOnlyDigits = function containsOnlyDigits() {
+      return this.builder.containsOnlyDigits();
+    };
+
+    ValidationGroup.prototype.containsOnly = function containsOnly(regex) {
+      return this.builder.containsOnly(regex);
+    };
+
+    ValidationGroup.prototype.containsOnlyAlpha = function containsOnlyAlpha() {
+      return this.builder.containsOnlyAlpha();
+    };
+
+    ValidationGroup.prototype.containsOnlyAlphaOrWhitespace = function containsOnlyAlphaOrWhitespace() {
+      return this.builder.containsOnlyAlphaOrWhitespace();
+    };
+
+    ValidationGroup.prototype.containsOnlyLetters = function containsOnlyLetters() {
+      return this.builder.containsOnlyAlpha();
+    };
+
+    ValidationGroup.prototype.containsOnlyLettersOrWhitespace = function containsOnlyLettersOrWhitespace() {
+      return this.builder.containsOnlyAlphaOrWhitespace();
+    };
+
+    ValidationGroup.prototype.containsOnlyAlphanumerics = function containsOnlyAlphanumerics() {
+      return this.builder.containsOnlyAlphanumerics();
+    };
+
+    ValidationGroup.prototype.containsOnlyAlphanumericsOrWhitespace = function containsOnlyAlphanumericsOrWhitespace() {
+      return this.builder.containsOnlyAlphanumericsOrWhitespace();
+    };
+
+    ValidationGroup.prototype.isStrongPassword = function isStrongPassword(minimumComplexityLevel) {
+      return this.builder.isStrongPassword(minimumComplexityLevel);
+    };
+
+    ValidationGroup.prototype.matches = function matches(regex) {
+      return this.builder.matches(regex);
+    };
+
+    ValidationGroup.prototype.passes = function passes(customFunction, threshold) {
+      return this.builder.passes(customFunction, threshold);
+    };
+
+    ValidationGroup.prototype.passesRule = function passesRule(validationRule) {
+      return this.builder.passesRule(validationRule);
+    };
+
+    ValidationGroup.prototype['if'] = function _if(conditionExpression, threshold) {
+      return this.builder['if'](conditionExpression, threshold);
+    };
+
+    ValidationGroup.prototype['else'] = function _else() {
+      return this.builder['else']();
+    };
+
+    ValidationGroup.prototype.endIf = function endIf() {
+      return this.builder.endIf();
+    };
+
+    ValidationGroup.prototype['switch'] = function _switch(conditionExpression) {
+      return this.builder['switch'](conditionExpression);
+    };
+
+    ValidationGroup.prototype['case'] = function _case(caseLabel) {
+      return this.builder['case'](caseLabel);
+    };
+
+    ValidationGroup.prototype['default'] = function _default() {
+      return this.builder['default']();
+    };
+
+    ValidationGroup.prototype.endSwitch = function endSwitch() {
+      return this.builder.endSwitch();
+    };
+
+    ValidationGroup.prototype.withMessage = function withMessage(message) {
+      return this.builder.withMessage(message);
+    };
+
+    return ValidationGroup;
+  })();
+
+  exports.ValidationGroup = ValidationGroup;
+});
+define('aurelia-validation/validation/validation',['exports', 'aurelia-binding', '../validation/validation-rules', '../validation/validation-rules-collection', '../validation/validation-group', 'aurelia-dependency-injection', '../validation/validation-config'], function (exports, _aureliaBinding, _validationValidationRules, _validationValidationRulesCollection, _validationValidationGroup, _aureliaDependencyInjection, _validationValidationConfig) {
+  
+
+  exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var Validation = (function () {
+    function Validation(observerLocator, validationConfig) {
+      _classCallCheck(this, _Validation);
+
+      this.observerLocator = observerLocator;
+      this.config = validationConfig ? validationConfig : Validation.defaults;
+    }
+
+    var _Validation = Validation;
+
+    _Validation.prototype.on = function on(subject, configCallback) {
+      var conf = new _validationValidationConfig.ValidationConfig(this.config);
+      if (configCallback !== null && configCallback !== undefined && typeof configCallback === 'function') {
+        configCallback(conf);
+      }
+      return new _validationValidationGroup.ValidationGroup(subject, this.observerLocator, conf);
+    };
+
+    _Validation.prototype.onBreezeEntity = function onBreezeEntity(breezeEntity, configCallback) {
+      var validation = this.on(breezeEntity, configCallback);
+      validation.onBreezeEntity();
+      return validation;
+    };
+
+    Validation = _aureliaDependencyInjection.inject(_aureliaBinding.ObserverLocator)(Validation) || Validation;
+    return Validation;
+  })();
+
+  exports.Validation = Validation;
+
+  Validation.defaults = new _validationValidationConfig.ValidationConfig();
+});
+define('aurelia-validation/validation/validate-custom-attribute',['exports', 'aurelia-dependency-injection', 'aurelia-templating'], function (exports, _aureliaDependencyInjection, _aureliaTemplating) {
+  
+
+  exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var ValidateCustomAttribute = (function () {
+    function ValidateCustomAttribute(element) {
+      _classCallCheck(this, _ValidateCustomAttribute);
+
+      this.element = element;
+      this.processedValidation = null;
+      this.viewStrategy = null;
+    }
+
+    var _ValidateCustomAttribute = ValidateCustomAttribute;
+
+    _ValidateCustomAttribute.prototype.valueChanged = function valueChanged(newValue) {
+      if (this.value === null || this.value === undefined) return;
+      this.processedValidation = this.value;
+      if (typeof this.value === 'string') {
+        return;
+      } else {
+        this.subscribeChangedHandlers(this.element);
+      }
+    };
+
+    _ValidateCustomAttribute.prototype.subscribeChangedHandlers = function subscribeChangedHandlers(currentElement) {
+      var _this = this;
+
+      this.viewStrategy = this.value.config.getViewStrategy();
+      var validationProperty = this.viewStrategy.getValidationProperty(this.value, currentElement);
+      if (validationProperty !== null && validationProperty !== undefined) {
+        this.viewStrategy.prepareElement(validationProperty, currentElement);
+        validationProperty.onValidate(function (vp) {
+          _this.viewStrategy.updateElement(vp, currentElement);
+        });
+      }
+      var children = currentElement.children;
+      for (var i = 0; i < children.length; i++) {
+        this.subscribeChangedHandlers(children[i]);
+      }
+    };
+
+    _ValidateCustomAttribute.prototype.detached = function detached() {};
+
+    _ValidateCustomAttribute.prototype.attached = function attached() {
+      if (this.processedValidation === null || this.processedValidation === undefined) this.valueChanged(this.value);
+    };
+
+    ValidateCustomAttribute = _aureliaDependencyInjection.inject(Element)(ValidateCustomAttribute) || ValidateCustomAttribute;
+    ValidateCustomAttribute = _aureliaTemplating.customAttribute('validate')(ValidateCustomAttribute) || ValidateCustomAttribute;
+    return ValidateCustomAttribute;
+  })();
+
+  exports.ValidateCustomAttribute = ValidateCustomAttribute;
+});
+define('aurelia-validation/validation/decorators',["exports"], function (exports) {
+  
+
+  exports.__esModule = true;
+  exports.ensure = ensure;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var ValidationMetadata = (function () {
+    function ValidationMetadata() {
+      _classCallCheck(this, ValidationMetadata);
+
+      this.properties = [];
+    }
+
+    ValidationMetadata.prototype.getOrCreateProperty = function getOrCreateProperty(propertyName) {
+      var property = this.properties.find(function (x) {
+        return x.propertyName === propertyName;
+      });
+      if (property === undefined) {
+        property = new ValidationPropertyMetadata(propertyName);
+        this.properties.push(property);
+      }
+      return property;
+    };
+
+    ValidationMetadata.prototype.setup = function setup(validation) {
+      this.properties.forEach(function (property) {
+        property.setup(validation);
+      });
+    };
+
+    return ValidationMetadata;
+  })();
+
+  var ValidationPropertyMetadata = (function () {
+    function ValidationPropertyMetadata(propertyName) {
+      _classCallCheck(this, ValidationPropertyMetadata);
+
+      this.propertyName = propertyName;
+      this.setupSteps = [];
+    }
+
+    ValidationPropertyMetadata.prototype.addSetupStep = function addSetupStep(setupStep) {
+      this.setupSteps.push(setupStep);
+    };
+
+    ValidationPropertyMetadata.prototype.setup = function setup(validation) {
+      validation.ensure(this.propertyName);
+      this.setupSteps.forEach(function (setupStep) {
+        setupStep(validation);
+      });
+    };
+
+    return ValidationPropertyMetadata;
+  })();
+
+  function ensure(setupStep) {
+    return function (target, propertyName) {
+      if (target._validationMetadata === undefined) {
+        target._validationMetadata = new ValidationMetadata();
+      }
+      var property = target._validationMetadata.getOrCreateProperty(propertyName);
+      property.addSetupStep(setupStep);
+    };
+  }
+});
+define('aurelia-validation/index',['exports', './validation/validation-config', './validation/validation', './validation/utilities', './validation/validation-locale', './validation/validation-result', './validation/validation-rules', './validation/validate-custom-attribute', './validation/validate-custom-attribute-view-strategy', './validation/decorators'], function (exports, _validationValidationConfig, _validationValidation, _validationUtilities, _validationValidationLocale, _validationValidationResult, _validationValidationRules, _validationValidateCustomAttribute, _validationValidateCustomAttributeViewStrategy, _validationDecorators) {
+  
+
+  exports.__esModule = true;
+  exports.configure = configure;
+
+  function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
+
+  function _defaults(obj, defaults) { var keys = Object.getOwnPropertyNames(defaults); for (var i = 0; i < keys.length; i++) { var key = keys[i]; var value = Object.getOwnPropertyDescriptor(defaults, key); if (value && value.configurable && obj[key] === undefined) { Object.defineProperty(obj, key, value); } } return obj; }
+
+  exports.Utilities = _validationUtilities.Utilities;
+  exports.ValidationConfig = _validationValidationConfig.ValidationConfig;
+  exports.ValidationLocale = _validationValidationLocale.ValidationLocale;
+
+  _defaults(exports, _interopRequireWildcard(_validationValidationResult));
+
+  _defaults(exports, _interopRequireWildcard(_validationValidationRules));
+
+  exports.Validation = _validationValidation.Validation;
+  exports.ValidateCustomAttribute = _validationValidateCustomAttribute.ValidateCustomAttribute;
+  exports.ValidateCustomAttributeViewStrategy = _validationValidateCustomAttributeViewStrategy.ValidateCustomAttributeViewStrategy;
+  exports.ValidateCustomAttributeViewStrategyBase = _validationValidateCustomAttributeViewStrategy.ValidateCustomAttributeViewStrategyBase;
+  exports.ensure = _validationDecorators.ensure;
+
+  function configure(aurelia, configCallback) {
+
+    aurelia.globalizeResources('./validation/validate-custom-attribute');
+    if (configCallback !== undefined && typeof configCallback === 'function') {
+      configCallback(_validationValidation.Validation.defaults);
+    }
+    aurelia.withSingleton(_validationValidationConfig.ValidationConfig, _validationValidation.Validation.defaults);
+    return _validationValidation.Validation.defaults.locale();
+  }
+});
+define('aurelia-validation', ['aurelia-validation/index'], function (main) { return main; });
+
+define('aurelia-animator-css',['exports', 'aurelia-templating'], function (exports, _aureliaTemplating) {
+  
+
+  exports.__esModule = true;
+  exports.configure = configure;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var CssAnimator = (function () {
+    function CssAnimator() {
+      _classCallCheck(this, CssAnimator);
+
+      this.animationStack = [];
+
+      this.useAnimationDoneClasses = false;
+      this.animationEnteredClass = 'au-entered';
+      this.animationLeftClass = 'au-left';
+      this.isAnimating = false;
+
+      this.animationTimeout = 50;
+    }
+
+    CssAnimator.prototype._addMultipleEventListener = function _addMultipleEventListener(el, s, fn) {
+      var evts = s.split(' '),
+          i,
+          ii;
+
+      for (i = 0, ii = evts.length; i < ii; ++i) {
+        el.addEventListener(evts[i], fn, false);
+      }
+    };
+
+    CssAnimator.prototype._addAnimationToStack = function _addAnimationToStack(animId) {
+      if (this.animationStack.indexOf(animId) < 0) {
+        this.animationStack.push(animId);
+      }
+    };
+
+    CssAnimator.prototype._removeAnimationFromStack = function _removeAnimationFromStack(animId) {
+      var idx = this.animationStack.indexOf(animId);
+      if (idx > -1) {
+        this.animationStack.splice(idx, 1);
+      }
+    };
+
+    CssAnimator.prototype._getElementAnimationDelay = function _getElementAnimationDelay(element) {
+      var styl = window.getComputedStyle(element);
+      var prop, delay;
+
+      if (styl.getPropertyValue('animation-delay')) {
+        prop = 'animation-delay';
+      } else if (styl.getPropertyValue('-webkit-animation-delay')) {
+        prop = '-webkit-animation-delay';
+      } else if (styl.getPropertyValue('-moz-animation-delay')) {
+        prop = '-moz-animation-delay';
+      } else {
+        return 0;
+      }
+      delay = styl.getPropertyValue(prop);
+      delay = Number(delay.replace(/[^\d\.]/g, ''));
+
+      return delay * 1000;
+    };
+
+    CssAnimator.prototype._performSingleAnimate = function _performSingleAnimate(element, className) {
+      var _this = this;
+
+      this._triggerDOMEvent(_aureliaTemplating.animationEvent.animateBegin, element);
+
+      return this.addClass(element, className, true).then(function (result) {
+        _this._triggerDOMEvent(_aureliaTemplating.animationEvent.animateActive, element);
+
+        if (result !== false) {
+          return _this.removeClass(element, className, true).then(function () {
+            _this._triggerDOMEvent(_aureliaTemplating.animationEvent.animateDone, element);
+          });
+        } else {
+          return false;
+        }
+      })['catch'](function () {
+        _this._triggerDOMEvent(_aureliaTemplating.animationEvent.animateTimeout, element);
+      });
+    };
+
+    CssAnimator.prototype._triggerDOMEvent = function _triggerDOMEvent(eventType, element) {
+      var evt = new window.CustomEvent(eventType, { bubbles: true, cancelable: true, detail: element });
+      document.dispatchEvent(evt);
+    };
+
+    CssAnimator.prototype.animate = function animate(element, className) {
+      var _this2 = this;
+
+      if (Array.isArray(element)) {
+        return Promise.all(element.map(function (el) {
+          return _this2._performSingleAnimate(el, className);
+        }));
+      } else {
+        return this._performSingleAnimate(element, className);
+      }
+    };
+
+    CssAnimator.prototype.runSequence = function runSequence(animations) {
+      var _this3 = this;
+
+      this._triggerDOMEvent(_aureliaTemplating.animationEvent.sequenceBegin, null);
+
+      return animations.reduce(function (p, anim) {
+        return p.then(function () {
+          return _this3.animate(anim.element, anim.className);
+        });
+      }, Promise.resolve(true)).then(function () {
+        _this3._triggerDOMEvent(_aureliaTemplating.animationEvent.sequenceDone, null);
+      });
+    };
+
+    CssAnimator.prototype.move = function move() {
+      return Promise.resolve(false);
+    };
+
+    CssAnimator.prototype.enter = function enter(element) {
+      var _this4 = this;
+
+      return new Promise(function (resolve, reject) {
+        var animId = element.toString() + Math.random(),
+            classList = element.classList;
+
+        _this4._triggerDOMEvent(_aureliaTemplating.animationEvent.enterBegin, element);
+
+        if (_this4.useAnimationDoneClasses) {
+          classList.remove(_this4.animationEnteredClass);
+          classList.remove(_this4.animationLeftClass);
+        }
+
+        classList.add('au-enter');
+
+        var animStart;
+        _this4._addMultipleEventListener(element, 'webkitAnimationStart animationstart', animStart = function (evAnimStart) {
+          _this4.isAnimating = true;
+
+          _this4._triggerDOMEvent(_aureliaTemplating.animationEvent.enterActive, element);
+
+          evAnimStart.stopPropagation();
+
+          _this4._addAnimationToStack(animId);
+
+          var animEnd;
+          _this4._addMultipleEventListener(element, 'webkitAnimationEnd animationend', animEnd = function (evAnimEnd) {
+            evAnimEnd.stopPropagation();
+
+            classList.remove('au-enter-active');
+            classList.remove('au-enter');
+
+            _this4._removeAnimationFromStack(animId);
+
+            evAnimEnd.target.removeEventListener(evAnimEnd.type, animEnd);
+
+            if (_this4.useAnimationDoneClasses && _this4.animationEnteredClass !== undefined && _this4.animationEnteredClass !== null) {
+              classList.add(_this4.animationEnteredClass);
+            }
+
+            _this4.isAnimating = false;
+            _this4._triggerDOMEvent(_aureliaTemplating.animationEvent.enterDone, element);
+
+            resolve(true);
+          }, false);
+
+          evAnimStart.target.removeEventListener(evAnimStart.type, animStart);
+        }, false);
+
+        var parent = element.parentElement,
+            delay = 0;
+
+        if (parent !== null && parent !== undefined && (parent.classList.contains('au-stagger') || parent.classList.contains('au-stagger-enter'))) {
+          var elemPos = Array.prototype.indexOf.call(parent.childNodes, element);
+          delay = _this4._getElementAnimationDelay(parent) * elemPos;
+
+          _this4._triggerDOMEvent(_aureliaTemplating.animationEvent.staggerNext, element);
+
+          setTimeout(function () {
+            classList.add('au-enter-active');
+          }, delay);
+        } else {
+          classList.add('au-enter-active');
+        }
+
+        setTimeout(function () {
+          if (_this4.animationStack.indexOf(animId) < 0) {
+            classList.remove('au-enter-active');
+            classList.remove('au-enter');
+
+            _this4._triggerDOMEvent(_aureliaTemplating.animationEvent.enterTimeout, element);
+
+            resolve(false);
+          }
+        }, _this4._getElementAnimationDelay(element) + _this4.animationTimeout + delay);
+      });
+    };
+
+    CssAnimator.prototype.leave = function leave(element) {
+      var _this5 = this;
+
+      return new Promise(function (resolve, reject) {
+        var animId = element.toString() + Math.random(),
+            classList = element.classList;
+
+        _this5._triggerDOMEvent(_aureliaTemplating.animationEvent.leaveBegin, element);
+
+        if (_this5.useAnimationDoneClasses) {
+          classList.remove(_this5.animationEnteredClass);
+          classList.remove(_this5.animationLeftClass);
+        }
+
+        classList.add('au-leave');
+
+        var animStart;
+        _this5._addMultipleEventListener(element, 'webkitAnimationStart animationstart', animStart = function (evAnimStart) {
+          _this5.isAnimating = true;
+
+          _this5._triggerDOMEvent(_aureliaTemplating.animationEvent.leaveActive, element);
+
+          evAnimStart.stopPropagation();
+
+          _this5._addAnimationToStack(animId);
+
+          var animEnd;
+          _this5._addMultipleEventListener(element, 'webkitAnimationEnd animationend', animEnd = function (evAnimEnd) {
+            evAnimEnd.stopPropagation();
+
+            classList.remove('au-leave-active');
+            classList.remove('au-leave');
+
+            _this5._removeAnimationFromStack(animId);
+
+            evAnimEnd.target.removeEventListener(evAnimEnd.type, animEnd);
+
+            if (_this5.useAnimationDoneClasses && _this5.animationLeftClass !== undefined && _this5.animationLeftClass !== null) {
+              classList.add(_this5.animationLeftClass);
+            }
+
+            _this5.isAnimating = false;
+            _this5._triggerDOMEvent(_aureliaTemplating.animationEvent.leaveDone, element);
+
+            resolve(true);
+          }, false);
+
+          evAnimStart.target.removeEventListener(evAnimStart.type, animStart);
+        }, false);
+
+        var parent = element.parentElement,
+            delay = 0;
+
+        if (parent !== null && parent !== undefined && (parent.classList.contains('au-stagger') || parent.classList.contains('au-stagger-leave'))) {
+          var elemPos = Array.prototype.indexOf.call(parent.childNodes, element);
+          delay = _this5._getElementAnimationDelay(parent) * elemPos;
+
+          _this5._triggerDOMEvent(_aureliaTemplating.animationEvent.staggerNext, element);
+
+          setTimeout(function () {
+            classList.add('au-leave-active');
+          }, delay);
+        } else {
+          classList.add('au-leave-active');
+        }
+
+        setTimeout(function () {
+          if (_this5.animationStack.indexOf(animId) < 0) {
+            classList.remove('au-leave-active');
+            classList.remove('au-leave');
+
+            _this5._triggerDOMEvent(_aureliaTemplating.animationEvent.leaveTimeout, element);
+
+            resolve(false);
+          }
+        }, _this5._getElementAnimationDelay(element) + _this5.animationTimeout + delay);
+      });
+    };
+
+    CssAnimator.prototype.removeClass = function removeClass(element, className) {
+      var _this6 = this;
+
+      var suppressEvents = arguments[2] === undefined ? false : arguments[2];
+
+      return new Promise(function (resolve, reject) {
+        var classList = element.classList;
+
+        if (!classList.contains(className)) {
+          resolve(false);
+          return;
+        }
+
+        if (suppressEvents !== true) {
+          _this6._triggerDOMEvent(_aureliaTemplating.animationEvent.removeClassBegin, element);
+        }
+
+        var animId = element.toString() + className + Math.random();
+
+        classList.remove(className);
+
+        var animStart;
+        _this6._addMultipleEventListener(element, 'webkitAnimationStart animationstart', animStart = function (evAnimStart) {
+          _this6.isAnimating = true;
+
+          if (suppressEvents !== true) {
+            _this6._triggerDOMEvent(_aureliaTemplating.animationEvent.removeClassActive, element);
+          }
+
+          evAnimStart.stopPropagation();
+
+          _this6._addAnimationToStack(animId);
+
+          var animEnd;
+          _this6._addMultipleEventListener(element, 'webkitAnimationEnd animationend', animEnd = function (evAnimEnd) {
+            evAnimEnd.stopPropagation();
+
+            classList.remove(className + '-remove');
+
+            _this6._removeAnimationFromStack(animId);
+
+            evAnimEnd.target.removeEventListener(evAnimEnd.type, animEnd);
+
+            _this6.isAnimating = false;
+
+            if (suppressEvents !== true) {
+              _this6._triggerDOMEvent(_aureliaTemplating.animationEvent.removeClassDone, element);
+            }
+
+            resolve(true);
+          }, false);
+
+          evAnimStart.target.removeEventListener(evAnimStart.type, animStart);
+        }, false);
+
+        classList.add(className + '-remove');
+
+        setTimeout(function () {
+          if (_this6.animationStack.indexOf(animId) < 0) {
+            classList.remove(className + '-remove');
+            classList.remove(className);
+
+            if (suppressEvents !== true) {
+              _this6._triggerDOMEvent(_aureliaTemplating.animationEvent.removeClassTimeout, element);
+            }
+
+            resolve(false);
+          }
+        }, _this6._getElementAnimationDelay(element) + _this6.animationTimeout);
+      });
+    };
+
+    CssAnimator.prototype.addClass = function addClass(element, className) {
+      var _this7 = this;
+
+      var suppressEvents = arguments[2] === undefined ? false : arguments[2];
+
+      return new Promise(function (resolve, reject) {
+        var animId = element.toString() + className + Math.random(),
+            classList = element.classList;
+
+        if (suppressEvents !== true) {
+          _this7._triggerDOMEvent(_aureliaTemplating.animationEvent.addClassBegin, element);
+        }
+
+        var animStart;
+        _this7._addMultipleEventListener(element, 'webkitAnimationStart animationstart', animStart = function (evAnimStart) {
+          _this7.isAnimating = true;
+
+          if (suppressEvents !== true) {
+            _this7._triggerDOMEvent(_aureliaTemplating.animationEvent.addClassActive, element);
+          }
+
+          evAnimStart.stopPropagation();
+
+          _this7._addAnimationToStack(animId);
+
+          var animEnd;
+          _this7._addMultipleEventListener(element, 'webkitAnimationEnd animationend', animEnd = function (evAnimEnd) {
+            evAnimEnd.stopPropagation();
+
+            classList.add(className);
+
+            classList.remove(className + '-add');
+
+            _this7._removeAnimationFromStack(animId);
+
+            evAnimEnd.target.removeEventListener(evAnimEnd.type, animEnd);
+
+            _this7.isAnimating = false;
+
+            if (suppressEvents !== true) {
+              _this7._triggerDOMEvent(_aureliaTemplating.animationEvent.addClassDone, element);
+            }
+
+            resolve(true);
+          }, false);
+
+          evAnimStart.target.removeEventListener(evAnimStart.type, animStart);
+        }, false);
+
+        classList.add(className + '-add');
+
+        setTimeout(function () {
+          if (_this7.animationStack.indexOf(animId) < 0) {
+            classList.remove(className + '-add');
+            classList.add(className);
+
+            if (suppressEvents !== true) {
+              _this7._triggerDOMEvent(_aureliaTemplating.animationEvent.addClassTimeout, element);
+            }
+
+            resolve(false);
+          }
+        }, _this7._getElementAnimationDelay(element) + _this7.animationTimeout);
+      });
+    };
+
+    return CssAnimator;
+  })();
+
+  exports.CssAnimator = CssAnimator;
+
+  function configure(aurelia, cb) {
+    var animator = aurelia.container.get(CssAnimator);
+    _aureliaTemplating.Animator.configureDefault(aurelia.container, animator);
+    if (typeof cb === 'function') {
+      cb(animator);
+    }
+  }
+});
 define("aurelia-bundle-manifest", [
   'aurelia-path',
   'aurelia-loader',
@@ -20809,7 +23640,8 @@ define("aurelia-bundle-manifest", [
   'aurelia-http-client',
   'aurelia-bootstrapper',
   'aurelia-html-template-element',
-  //'aurelia-validation',
+  'aurelia-validation',
+  'aurelia-animator-css',
   'core-js'
   ], function(_path,
   _loader,
@@ -20833,7 +23665,7 @@ define("aurelia-bundle-manifest", [
   _http_client,
   _bootstrapper,
   _html_template_element,
-  //_validation,
+  _validation,
   _core_js
 ){
     // alert(_dependency_injection.inject)

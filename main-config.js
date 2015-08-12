@@ -11,74 +11,36 @@ require.config({
     'aurelia-history': 'bower_components/aurelia-history/dist/amd/aurelia-history',
     'aurelia-history-browser': 'bower_components/aurelia-history-browser/dist/amd/aurelia-history-browser',
     'aurelia-event-aggregator': 'bower_components/aurelia-event-aggregator/dist/amd/aurelia-event-aggregator',
-    'aurelia-html-template-element': 'bower_components/aurelia-html-template-element/dist/HTMLTemplateElement'
+    'aurelia-html-template-element': 'bower_components/aurelia-html-template-element/dist/HTMLTemplateElement',
+    'aurelia-loader': 'bower_components/aurelia-loader/dist/amd/aurelia-loader',
+    'aurelia-framework': 'bower_components/aurelia-framework/dist/amd/aurelia-framework',
+    'aurelia-metadata': 'bower_components/aurelia-metadata/dist/amd/aurelia-metadata',
+    'aurelia-binding': 'bower_components/aurelia-binding/dist/amd/aurelia-binding',
+    'aurelia-templating': 'bower_components/aurelia-templating/dist/amd/aurelia-templating',
+    'aurelia-dependency-injection': 'bower_components/aurelia-dependency-injection/dist/amd/aurelia-dependency-injection',
+    'aurelia-router': 'bower_components/aurelia-router/dist/amd/aurelia-router',
+    'aurelia-templating-binding': 'bower_components/aurelia-templating-binding/dist/amd/aurelia-templating-binding',
+    'aurelia-route-recognizer': 'bower_components/aurelia-route-recognizer/dist/amd/aurelia-route-recognizer',
+    'aurelia-http-client': 'bower_components/aurelia-http-client/dist/amd/aurelia-http-client',
+    'aurelia-validation': 'bower_components/aurelia-validation/dist/amd/aurelia-validation',
+    'aurelia-animator-css': 'bower_components/aurelia-animator-css/dist/amd/aurelia-animator-css'
   },
 
-  packages : [
+  packages: [
     {
-      name: 'aurelia-loader',
-      location: 'bower_components/aurelia-loader/dist/amd',
-      main : 'aurelia-loader'
+      name: 'aurelia-templating-router',
+      location: 'bower_components/aurelia-templating-router/dist/amd',
+      main : 'aurelia-templating-router'
     },
-   {
-     name: 'aurelia-framework',
-     location: 'bower_components/aurelia-framework/dist/amd',
-     main : 'aurelia-framework'
-   },
-   {
-     name: 'aurelia-metadata',
-     location: 'bower_components/aurelia-metadata/dist/amd',
-     main : 'aurelia-metadata'
-   },
-   {
-     name: 'aurelia-binding',
-     location: 'bower_components/aurelia-binding/dist/amd',
-     main : 'aurelia-binding'
-   },
-   {
-     name: 'aurelia-templating',
-     location: 'bower_components/aurelia-templating/dist/amd',
-     main : 'aurelia-templating'
-   },
-   {
-     name: 'aurelia-dependency-injection',
-     location: 'bower_components/aurelia-dependency-injection/dist/amd',
-     main : 'aurelia-dependency-injection'
-   },
-   {
-     name: 'aurelia-router',
-     location: 'bower_components/aurelia-router/dist/amd',
-     main : 'aurelia-router'
-   },
-   {
-     name: 'aurelia-templating-binding',
-     location: 'bower_components/aurelia-templating-binding/dist/amd',
-     main : 'aurelia-templating-binding'
-   },
-   {
-     name: 'aurelia-templating-resources',
-     location: 'bower_components/aurelia-templating-resources/dist/amd',
-     main : 'aurelia-templating-resources'
-   },
-   {
-     name: 'aurelia-templating-router',
-     location: 'bower_components/aurelia-templating-router/dist/amd',
-     main : 'aurelia-templating-router'
-   },
-   {
-     name: 'aurelia-route-recognizer',
-     location: 'bower_components/aurelia-route-recognizer/dist/amd',
-     main : 'aurelia-route-recognizer'
-   },
-   {
-     name: 'aurelia-http-client',
-     location: 'bower_components/aurelia-http-client/dist/amd',
-     main : 'aurelia-http-client'
-   },
-   {
-     name: 'aurelia-validation',
-     location: 'bower_components/aurelia-validation/dist/amd',
-     main : 'index'
-   },
-   { name: "core-js", location: "bower_components/core-js/client", main: "core" }  ]
+    {
+      name: 'aurelia-templating-resources',
+      location: 'bower_components/aurelia-templating-resources/dist/amd',
+      main : 'aurelia-templating-resources'
+    },
+    {
+      name: 'aurelia-validation',
+      location: 'bower_components/aurelia-validation/dist/amd',
+      main: 'index'
+    },
+    { name: "core-js", location: "bower_components/core-js/client", main: "core" }  ]
 });
