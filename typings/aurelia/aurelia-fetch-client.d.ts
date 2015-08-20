@@ -1,12 +1,12 @@
 declare module 'aurelia-fetch-client' {
-  import  from 'core-js';
+  import 'core-js';
   
   /* eslint-disable */
   export interface Interceptor {
-    request(request: Request): undefined;
-    requestError(error: any): undefined;
-    response(response: Response): undefined;
-    responseError(error: any): undefined;
+    request(request: Request): Request | Response | Promise<Request | Response>;
+    requestError(error: any): Request | Response | Promise<Request | Response>;
+    response(response: Response): Response | Promise<Response>;
+    responseError(error: any): Response | Promise<Response>;
   }
   export interface RequestInit {
     method?: string;
