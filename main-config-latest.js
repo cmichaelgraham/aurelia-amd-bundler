@@ -25,7 +25,8 @@ require.config({
     'aurelia-http-client': 'aurelia-latest/http-client/dist/amd/aurelia-http-client',
     'aurelia-fetch-client': 'aurelia-latest/fetch-client/dist/amd/aurelia-fetch-client',
     'aurelia-validation': 'aurelia-latest/validation/dist/amd/aurelia-validation',
-    'aurelia-animator-css': 'aurelia-latest/animator-css/dist/amd/aurelia-animator-css'
+    'aurelia-animator-css': 'aurelia-latest/animator-css/dist/amd/aurelia-animator-css',
+    'jsol': 'bower_components/jsol/jsol'
   },
 
   packages : [
@@ -44,6 +45,11 @@ require.config({
      location: 'aurelia-latest/validation/dist/amd',
      main : 'index'
    },
+    {
+      name: 'velocity',
+      location: 'bower_components/velocity',
+      main: 'velocity.min'
+    },
    {
      name: 'gooy-aurelia-animator-velocity',
      location: 'aurelia-latest/aurelia-animator-velocity/dist/amd',

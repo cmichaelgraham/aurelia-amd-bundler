@@ -1,10 +1,6 @@
 declare module 'aurelia-fetch-client' {
   import 'core-js';
-  interface Request { }
-  interface Response { }
-  interface Headers { }
-  interface BufferSource { }
-  interface URLSearchParams { }
+  
   /* eslint-disable */
   export interface Interceptor {
     request(request: Request): Request | Response | Promise<Request | Response>;

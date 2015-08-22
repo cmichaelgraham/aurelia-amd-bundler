@@ -1,6 +1,6 @@
 declare module 'aurelia-animator-css' {
   import { animationEvent, Animator }  from 'aurelia-templating';
-  interface CssAnimation { }
+  
   /**
    * Aurelia animator implementation using CSS3-Animations
    */

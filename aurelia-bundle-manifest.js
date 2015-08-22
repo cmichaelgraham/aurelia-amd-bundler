@@ -23,6 +23,9 @@ define("aurelia-bundle-manifest", [
   'aurelia-html-template-element',
   'aurelia-validation',
   'aurelia-animator-css',
+  'gooy-aurelia-animator-velocity',
+  'jsol',
+  'velocity',
   'core-js'
   ], function(_path,
   _loader,
