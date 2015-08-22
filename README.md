@@ -1,5 +1,9 @@
 # aurelia-amd-bundler
 
+## what's new
+
+1. [aurelia-animator-velocity](https://github.com/gooy/aurelia-animator-velocity/) now part of [aurelia-amd-bundler](https://github.com/cmichaelgraham/aurelia-amd-bundler) including `velocity` and `jsol` dependencies
+
 ## steps to bundle
 
 1. open `git bash shell`

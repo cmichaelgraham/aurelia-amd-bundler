@@ -25,7 +25,6 @@
     "tests"
   ],
   "dependencies": {
-    "gooy-aurelia-animator-velocity": "gooy/aurelia-animator-velocity",
     "aurelia-dependency-injection": "aurelia/dependency-injection#latest",
     "aurelia-event-aggregator": "aurelia/event-aggregator#latest",
     "aurelia-framework": "aurelia/framework#latest",
@@ -44,6 +43,9 @@
     "aurelia-html-template-element": "aurelia/html-template-element#latest",
     "aurelia-validation": "aurelia/validation#latest",
     "aurelia-animator-css": "aurelia/animator-css",
+    "gooy-aurelia-animator-velocity": "gooy/aurelia-animator-velocity",
+    "velocity": "velocity",
+    "jsol": "clarkduvall/JSOL",
     "bootstrap": "latest",
     "fontawesome": "latest",
     "webcomponentsjs": "latest",
