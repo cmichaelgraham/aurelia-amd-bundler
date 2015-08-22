@@ -129,7 +129,7 @@ define('aurelia-path',['exports'], function (exports) {
   }
 });
 /**
- * core-js 1.1.0
+ * core-js 1.1.1
  * https://github.com/zloirock/core-js
  * License: http://rock.mit-license.org
  * © 2015 Denis Pushkarev
@@ -251,10 +251,9 @@ define('aurelia-path',['exports'], function (exports) {
 	__webpack_require__(128);
 	__webpack_require__(129);
 	__webpack_require__(130);
-	__webpack_require__(135);
-	__webpack_require__(138);
+	__webpack_require__(136);
 	__webpack_require__(139);
-	__webpack_require__(141);
+	__webpack_require__(140);
 	__webpack_require__(142);
 	__webpack_require__(143);
 	__webpack_require__(144);
@@ -266,39 +265,40 @@ define('aurelia-path',['exports'], function (exports) {
 	__webpack_require__(150);
 	__webpack_require__(151);
 	__webpack_require__(152);
-	__webpack_require__(154);
+	__webpack_require__(153);
 	__webpack_require__(155);
 	__webpack_require__(156);
 	__webpack_require__(157);
 	__webpack_require__(158);
 	__webpack_require__(159);
-	__webpack_require__(161);
+	__webpack_require__(160);
 	__webpack_require__(162);
 	__webpack_require__(163);
 	__webpack_require__(164);
-	__webpack_require__(166);
+	__webpack_require__(165);
 	__webpack_require__(167);
-	__webpack_require__(169);
+	__webpack_require__(168);
 	__webpack_require__(170);
-	__webpack_require__(172);
+	__webpack_require__(171);
 	__webpack_require__(173);
 	__webpack_require__(174);
 	__webpack_require__(175);
-	__webpack_require__(178);
-	__webpack_require__(110);
-	__webpack_require__(180);
+	__webpack_require__(176);
 	__webpack_require__(179);
+	__webpack_require__(110);
 	__webpack_require__(181);
+	__webpack_require__(180);
 	__webpack_require__(182);
 	__webpack_require__(183);
 	__webpack_require__(184);
 	__webpack_require__(185);
-	__webpack_require__(187);
+	__webpack_require__(186);
 	__webpack_require__(188);
 	__webpack_require__(189);
 	__webpack_require__(190);
 	__webpack_require__(191);
 	__webpack_require__(192);
+	__webpack_require__(193);
 
 /***/ },
 /* 1 */
@@ -2884,10 +2884,10 @@ define('aurelia-path',['exports'], function (exports) {
 	  , species    = __webpack_require__(117)
 	  , SPECIES    = __webpack_require__(33)('species')
 	  , RECORD     = __webpack_require__(16)('record')
+	  , asap       = __webpack_require__(133)
 	  , PROMISE    = 'Promise'
 	  , process    = global.process
 	  , isNode     = classof(process) == 'process'
-	  , asap       = process && process.nextTick || __webpack_require__(133).set
 	  , P          = global[PROMISE]
 	  , Wrapper;
 
@@ -2945,8 +2945,7 @@ define('aurelia-path',['exports'], function (exports) {
 	  if(record.n)return;
 	  record.n = true;
 	  var chain = record.c;
-	  // strange IE + webpack dev server bug - use .call(global)
-	  asap.call(global, function(){
+	  asap(function(){
 	    var value = record.v
 	      , ok    = record.s == 1
 	      , i     = 0;
@@ -2971,8 +2970,7 @@ define('aurelia-path',['exports'], function (exports) {
 	    chain.length = 0;
 	    record.n = false;
 	    if(isReject)setTimeout(function(){
-	      // strange IE + webpack dev server bug - use .call(global)
-	      asap.call(global, function(){
+	      asap(function(){
 	        if(isUnhandled(record.p)){
 	          if(isNode){
 	            process.emit('unhandledRejection', value, record.p);
@@ -3014,8 +3012,7 @@ define('aurelia-path',['exports'], function (exports) {
 	  record = record.r || record; // unwrap
 	  try {
 	    if(then = isThenable(value)){
-	      // strange IE + webpack dev server bug - use .call(global)
-	      asap.call(global, function(){
+	      asap(function(){
 	        var wrapper = {r: record, d: false}; // wrap
 	        try {
 	          then.call(value, ctx($resolve, wrapper, 1), ctx($reject, wrapper, 1));
@@ -3055,7 +3052,7 @@ define('aurelia-path',['exports'], function (exports) {
 	      $reject.call(record, err);
 	    }
 	  };
-	  __webpack_require__(134)(P.prototype, {
+	  __webpack_require__(135)(P.prototype, {
 	    // 25.4.5.3 Promise.prototype.then(onFulfilled, onRejected)
 	    then: function then(onFulfilled, onRejected){
 	      var S = anObject(anObject(this).constructor)[SPECIES];
@@ -3168,6 +3165,58 @@ define('aurelia-path',['exports'], function (exports) {
 /* 133 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var global    = __webpack_require__(7)
+	  , macrotask = __webpack_require__(134).set
+	  , Observer  = global.MutationObserver || global.WebKitMutationObserver
+	  , process   = global.process
+	  , head, last, notify;
+
+	function flush(){
+	  while(head){
+	    head.fn.call(); // <- currently we use it only for Promise - try / catch not required
+	    head = head.next;
+	  } last = undefined;
+	}
+
+	// Node.js
+	if(__webpack_require__(11)(process) == 'process'){
+	  notify = function(){
+	    process.nextTick(flush);
+	  };
+	// browsers with MutationObserver
+	} else if(Observer){
+	  var toggle = 1
+	    , node   = document.createTextNode('');
+	  new Observer(flush).observe(node, {characterData: true}); // eslint-disable-line no-new
+	  notify = function(){
+	    node.data = toggle = -toggle;
+	  };
+	// for other environments - macrotask based on:
+	// - setImmediate
+	// - MessageChannel
+	// - window.postMessag
+	// - onreadystatechange
+	// - setTimeout
+	} else {
+	  notify = function(){
+	    // strange IE + webpack dev server bug - use .call(global)
+	    macrotask.call(global, flush);
+	  };
+	}
+
+	module.exports = function asap(fn){
+	  var task = {fn: fn, next: undefined};
+	  if(last)last.next = task;
+	  if(!head){
+	    head = task;
+	    notify();
+	  } last = task;
+	};
+
+/***/ },
+/* 134 */
+/***/ function(module, exports, __webpack_require__) {
+
 	
 	var ctx                = __webpack_require__(19)
 	  , invoke             = __webpack_require__(17)
@@ -3246,7 +3295,7 @@ define('aurelia-path',['exports'], function (exports) {
 	};
 
 /***/ },
-/* 134 */
+/* 135 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $redef = __webpack_require__(15);
@@ -3256,14 +3305,14 @@ define('aurelia-path',['exports'], function (exports) {
 	};
 
 /***/ },
-/* 135 */
+/* 136 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	var strong = __webpack_require__(136);
+	var strong = __webpack_require__(137);
 
 	// 23.1 Map Objects
-	__webpack_require__(137)('Map', function(get){
+	__webpack_require__(138)('Map', function(get){
 	  return function Map(){ return get(this, arguments[0]); };
 	}, {
 	  // 23.1.3.6 Map.prototype.get(key)
@@ -3278,7 +3327,7 @@ define('aurelia-path',['exports'], function (exports) {
 	}, strong, true);
 
 /***/ },
-/* 136 */
+/* 137 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -3332,7 +3381,7 @@ define('aurelia-path',['exports'], function (exports) {
 	      that[SIZE] = 0;           // size
 	      if(iterable != undefined)forOf(iterable, IS_MAP, that[ADDER], that);
 	    });
-	    __webpack_require__(134)(C.prototype, {
+	    __webpack_require__(135)(C.prototype, {
 	      // 23.1.3.1 Map.prototype.clear()
 	      // 23.2.3.2 Set.prototype.clear()
 	      clear: function clear(){
@@ -3441,7 +3490,7 @@ define('aurelia-path',['exports'], function (exports) {
 	};
 
 /***/ },
-/* 137 */
+/* 138 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -3470,7 +3519,7 @@ define('aurelia-path',['exports'], function (exports) {
 	  if(typeof C != 'function' || !(IS_WEAK || !BUGGY && proto.forEach && proto.entries)){
 	    // create collection constructor
 	    C = common.getConstructor(wrapper, NAME, IS_MAP, ADDER);
-	    __webpack_require__(134)(C.prototype, methods);
+	    __webpack_require__(135)(C.prototype, methods);
 	  } else {
 	    var inst  = new C
 	      , chain = inst[ADDER](IS_WEAK ? {} : -0, 1)
@@ -3512,14 +3561,14 @@ define('aurelia-path',['exports'], function (exports) {
 	};
 
 /***/ },
-/* 138 */
+/* 139 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	var strong = __webpack_require__(136);
+	var strong = __webpack_require__(137);
 
 	// 23.2 Set Objects
-	__webpack_require__(137)('Set', function(get){
+	__webpack_require__(138)('Set', function(get){
 	  return function Set(){ return get(this, arguments[0]); };
 	}, {
 	  // 23.2.3.1 Set.prototype.add(value)
@@ -3529,12 +3578,12 @@ define('aurelia-path',['exports'], function (exports) {
 	}, strong);
 
 /***/ },
-/* 139 */
+/* 140 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
 	var $            = __webpack_require__(2)
-	  , weak         = __webpack_require__(140)
+	  , weak         = __webpack_require__(141)
 	  , isObject     = __webpack_require__(9)
 	  , has          = __webpack_require__(10)
 	  , frozenStore  = weak.frozenStore
@@ -3543,7 +3592,7 @@ define('aurelia-path',['exports'], function (exports) {
 	  , tmp          = {};
 
 	// 23.3 WeakMap Objects
-	var $WeakMap = __webpack_require__(137)('WeakMap', function(get){
+	var $WeakMap = __webpack_require__(138)('WeakMap', function(get){
 	  return function WeakMap(){ return get(this, arguments[0]); };
 	}, {
 	  // 23.3.3.3 WeakMap.prototype.get(key)
@@ -3576,7 +3625,7 @@ define('aurelia-path',['exports'], function (exports) {
 	}
 
 /***/ },
-/* 140 */
+/* 141 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -3635,7 +3684,7 @@ define('aurelia-path',['exports'], function (exports) {
 	      that._l = undefined; // leak store for frozen objects
 	      if(iterable != undefined)forOf(iterable, IS_MAP, that[ADDER], that);
 	    });
-	    __webpack_require__(134)(C.prototype, {
+	    __webpack_require__(135)(C.prototype, {
 	      // 23.3.3.2 WeakMap.prototype.delete(key)
 	      // 23.4.3.3 WeakSet.prototype.delete(value)
 	      'delete': function(key){
@@ -3666,14 +3715,14 @@ define('aurelia-path',['exports'], function (exports) {
 	};
 
 /***/ },
-/* 141 */
+/* 142 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	var weak = __webpack_require__(140);
+	var weak = __webpack_require__(141);
 
 	// 23.4 WeakSet Objects
-	__webpack_require__(137)('WeakSet', function(get){
+	__webpack_require__(138)('WeakSet', function(get){
 	  return function WeakSet(){ return get(this, arguments[0]); };
 	}, {
 	  // 23.4.3.1 WeakSet.prototype.add(value)
@@ -3683,7 +3732,7 @@ define('aurelia-path',['exports'], function (exports) {
 	}, weak, false, true);
 
 /***/ },
-/* 142 */
+/* 143 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 26.1.1 Reflect.apply(target, thisArgument, argumentsList)
@@ -3697,7 +3746,7 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 143 */
+/* 144 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 26.1.2 Reflect.construct(target, argumentsList [, newTarget])
@@ -3734,7 +3783,7 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 144 */
+/* 145 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 26.1.3 Reflect.defineProperty(target, propertyKey, attributes)
@@ -3758,7 +3807,7 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 145 */
+/* 146 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 26.1.4 Reflect.deleteProperty(target, propertyKey)
@@ -3774,7 +3823,7 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 146 */
+/* 147 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -3805,7 +3854,7 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 147 */
+/* 148 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 26.1.6 Reflect.get(target, propertyKey [, receiver])
@@ -3830,7 +3879,7 @@ define('aurelia-path',['exports'], function (exports) {
 	$def($def.S, 'Reflect', {get: get});
 
 /***/ },
-/* 148 */
+/* 149 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 26.1.7 Reflect.getOwnPropertyDescriptor(target, propertyKey)
@@ -3845,7 +3894,7 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 149 */
+/* 150 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 26.1.8 Reflect.getPrototypeOf(target)
@@ -3860,7 +3909,7 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 150 */
+/* 151 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 26.1.9 Reflect.has(target, propertyKey)
@@ -3873,7 +3922,7 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 151 */
+/* 152 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 26.1.10 Reflect.isExtensible(target)
@@ -3889,16 +3938,16 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 152 */
+/* 153 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 26.1.11 Reflect.ownKeys(target)
 	var $def = __webpack_require__(12);
 
-	$def($def.S, 'Reflect', {ownKeys: __webpack_require__(153)});
+	$def($def.S, 'Reflect', {ownKeys: __webpack_require__(154)});
 
 /***/ },
-/* 153 */
+/* 154 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// all object keys, includes non-enumerable and symbols
@@ -3911,7 +3960,7 @@ define('aurelia-path',['exports'], function (exports) {
 	};
 
 /***/ },
-/* 154 */
+/* 155 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 26.1.12 Reflect.preventExtensions(target)
@@ -3932,7 +3981,7 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 155 */
+/* 156 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 26.1.13 Reflect.set(target, propertyKey, V [, receiver])
@@ -3966,7 +4015,7 @@ define('aurelia-path',['exports'], function (exports) {
 	$def($def.S, 'Reflect', {set: set});
 
 /***/ },
-/* 156 */
+/* 157 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 26.1.14 Reflect.setPrototypeOf(target, proto)
@@ -3986,7 +4035,7 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 157 */
+/* 158 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -4001,7 +4050,7 @@ define('aurelia-path',['exports'], function (exports) {
 	__webpack_require__(114)('includes');
 
 /***/ },
-/* 158 */
+/* 159 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// https://github.com/mathiasbynens/String.prototype.at
@@ -4015,12 +4064,12 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 159 */
+/* 160 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
 	var $def = __webpack_require__(12)
-	  , $pad = __webpack_require__(160);
+	  , $pad = __webpack_require__(161);
 	$def($def.P, 'String', {
 	  padLeft: function padLeft(maxLength /*, fillString = ' ' */){
 	    return $pad(this, maxLength, arguments[1], true);
@@ -4028,7 +4077,7 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 160 */
+/* 161 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// https://github.com/ljharb/proposal-string-pad-left-right
@@ -4052,12 +4101,12 @@ define('aurelia-path',['exports'], function (exports) {
 	};
 
 /***/ },
-/* 161 */
+/* 162 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
 	var $def = __webpack_require__(12)
-	  , $pad = __webpack_require__(160);
+	  , $pad = __webpack_require__(161);
 	$def($def.P, 'String', {
 	  padRight: function padRight(maxLength /*, fillString = ' ' */){
 	    return $pad(this, maxLength, arguments[1], false);
@@ -4065,7 +4114,7 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 162 */
+/* 163 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -4077,7 +4126,7 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 163 */
+/* 164 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -4089,17 +4138,17 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 164 */
+/* 165 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// https://github.com/benjamingr/RexExp.escape
 	var $def = __webpack_require__(12)
-	  , $re  = __webpack_require__(165)(/[\\^$*+?.()|[\]{}]/g, '\\$&');
+	  , $re  = __webpack_require__(166)(/[\\^$*+?.()|[\]{}]/g, '\\$&');
 	$def($def.S, 'RegExp', {escape: function escape(it){ return $re(it); }});
 
 
 /***/ },
-/* 165 */
+/* 166 */
 /***/ function(module, exports) {
 
 	module.exports = function(regExp, replace){
@@ -4112,13 +4161,13 @@ define('aurelia-path',['exports'], function (exports) {
 	};
 
 /***/ },
-/* 166 */
+/* 167 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// https://gist.github.com/WebReflection/9353781
 	var $          = __webpack_require__(2)
 	  , $def       = __webpack_require__(12)
-	  , ownKeys    = __webpack_require__(153)
+	  , ownKeys    = __webpack_require__(154)
 	  , toIObject  = __webpack_require__(27)
 	  , createDesc = __webpack_require__(5);
 
@@ -4140,12 +4189,12 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 167 */
+/* 168 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// http://goo.gl/XkBrjD
 	var $def    = __webpack_require__(12)
-	  , $values = __webpack_require__(168)(false);
+	  , $values = __webpack_require__(169)(false);
 
 	$def($def.S, 'Object', {
 	  values: function values(it){
@@ -4154,7 +4203,7 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 168 */
+/* 169 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $         = __webpack_require__(2)
@@ -4174,12 +4223,12 @@ define('aurelia-path',['exports'], function (exports) {
 	};
 
 /***/ },
-/* 169 */
+/* 170 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// http://goo.gl/XkBrjD
 	var $def     = __webpack_require__(12)
-	  , $entries = __webpack_require__(168)(true);
+	  , $entries = __webpack_require__(169)(true);
 
 	$def($def.S, 'Object', {
 	  entries: function entries(it){
@@ -4188,16 +4237,16 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 170 */
+/* 171 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// https://github.com/DavidBruant/Map-Set.prototype.toJSON
 	var $def  = __webpack_require__(12);
 
-	$def($def.P, 'Map', {toJSON: __webpack_require__(171)('Map')});
+	$def($def.P, 'Map', {toJSON: __webpack_require__(172)('Map')});
 
 /***/ },
-/* 171 */
+/* 172 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// https://github.com/DavidBruant/Map-Set.prototype.toJSON
@@ -4213,27 +4262,27 @@ define('aurelia-path',['exports'], function (exports) {
 	};
 
 /***/ },
-/* 172 */
+/* 173 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// https://github.com/DavidBruant/Map-Set.prototype.toJSON
 	var $def  = __webpack_require__(12);
 
-	$def($def.P, 'Set', {toJSON: __webpack_require__(171)('Set')});
+	$def($def.P, 'Set', {toJSON: __webpack_require__(172)('Set')});
 
 /***/ },
-/* 173 */
+/* 174 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $def  = __webpack_require__(12)
-	  , $task = __webpack_require__(133);
+	  , $task = __webpack_require__(134);
 	$def($def.G + $def.B, {
 	  setImmediate:   $task.set,
 	  clearImmediate: $task.clear
 	});
 
 /***/ },
-/* 174 */
+/* 175 */
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(113);
@@ -4250,14 +4299,14 @@ define('aurelia-path',['exports'], function (exports) {
 	if(HTC && !(ITERATOR in HTCProto))hide(HTCProto, ITERATOR, ArrayValues);
 
 /***/ },
-/* 175 */
+/* 176 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// ie9- setTimeout & setInterval additional parameters fix
 	var global     = __webpack_require__(7)
 	  , $def       = __webpack_require__(12)
 	  , invoke     = __webpack_require__(17)
-	  , partial    = __webpack_require__(176)
+	  , partial    = __webpack_require__(177)
 	  , navigator  = global.navigator
 	  , MSIE       = !!navigator && /MSIE .\./.test(navigator.userAgent); // <- dirty ie9- check
 	var wrap = function(set){
@@ -4275,11 +4324,11 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 176 */
+/* 177 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	var path      = __webpack_require__(177)
+	var path      = __webpack_require__(178)
 	  , invoke    = __webpack_require__(17)
 	  , aFunction = __webpack_require__(20);
 	module.exports = function(/* ...pargs */){
@@ -4303,13 +4352,13 @@ define('aurelia-path',['exports'], function (exports) {
 	};
 
 /***/ },
-/* 177 */
+/* 178 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = __webpack_require__(7);
 
 /***/ },
-/* 178 */
+/* 179 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -4321,7 +4370,7 @@ define('aurelia-path',['exports'], function (exports) {
 	  , keyOf        = __webpack_require__(34)
 	  , aFunction    = __webpack_require__(20)
 	  , forOf        = __webpack_require__(132)
-	  , isIterable   = __webpack_require__(179)
+	  , isIterable   = __webpack_require__(180)
 	  , step         = __webpack_require__(115)
 	  , isObject     = __webpack_require__(9)
 	  , toIObject    = __webpack_require__(27)
@@ -4466,7 +4515,7 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 179 */
+/* 180 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var classof   = __webpack_require__(45)
@@ -4478,7 +4527,7 @@ define('aurelia-path',['exports'], function (exports) {
 	};
 
 /***/ },
-/* 180 */
+/* 181 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var anObject = __webpack_require__(26)
@@ -4490,13 +4539,13 @@ define('aurelia-path',['exports'], function (exports) {
 	};
 
 /***/ },
-/* 181 */
+/* 182 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var global  = __webpack_require__(7)
 	  , core    = __webpack_require__(13)
 	  , $def    = __webpack_require__(12)
-	  , partial = __webpack_require__(176);
+	  , partial = __webpack_require__(177);
 	// https://esdiscuss.org/topic/promise-returning-delay-function
 	$def($def.G + $def.F, {
 	  delay: function delay(time){
@@ -4507,25 +4556,17 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 182 */
+/* 183 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	var path = __webpack_require__(177)
+	var path = __webpack_require__(178)
 	  , $def = __webpack_require__(12);
 
 	// Placeholder
 	__webpack_require__(13)._ = path._ = path._ || {};
 
-	$def($def.P + $def.F, 'Function', {part: __webpack_require__(176)});
-
-/***/ },
-/* 183 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var $def = __webpack_require__(12);
-
-	$def($def.S + $def.F, 'Object', {isObject: __webpack_require__(9)});
+	$def($def.P + $def.F, 'Function', {part: __webpack_require__(177)});
 
 /***/ },
 /* 184 */
@@ -4533,23 +4574,31 @@ define('aurelia-path',['exports'], function (exports) {
 
 	var $def = __webpack_require__(12);
 
-	$def($def.S + $def.F, 'Object', {classof: __webpack_require__(45)});
+	$def($def.S + $def.F, 'Object', {isObject: __webpack_require__(9)});
 
 /***/ },
 /* 185 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $def   = __webpack_require__(12)
-	  , define = __webpack_require__(186);
+	var $def = __webpack_require__(12);
 
-	$def($def.S + $def.F, 'Object', {define: define});
+	$def($def.S + $def.F, 'Object', {classof: __webpack_require__(45)});
 
 /***/ },
 /* 186 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var $def   = __webpack_require__(12)
+	  , define = __webpack_require__(187);
+
+	$def($def.S + $def.F, 'Object', {define: define});
+
+/***/ },
+/* 187 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var $         = __webpack_require__(2)
-	  , ownKeys   = __webpack_require__(153)
+	  , ownKeys   = __webpack_require__(154)
 	  , toIObject = __webpack_require__(27);
 
 	module.exports = function define(target, mixin){
@@ -4561,12 +4610,12 @@ define('aurelia-path',['exports'], function (exports) {
 	};
 
 /***/ },
-/* 187 */
+/* 188 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $def   = __webpack_require__(12)
 	  , create = __webpack_require__(2).create
-	  , define = __webpack_require__(186);
+	  , define = __webpack_require__(187);
 
 	$def($def.S + $def.F, 'Object', {
 	  make: function(proto, mixin){
@@ -4575,7 +4624,7 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 188 */
+/* 189 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -4589,12 +4638,12 @@ define('aurelia-path',['exports'], function (exports) {
 	});
 
 /***/ },
-/* 189 */
+/* 190 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
 	var $def = __webpack_require__(12)
-	  , $re  = __webpack_require__(165)(/[&<>"']/g, {
+	  , $re  = __webpack_require__(166)(/[&<>"']/g, {
 	    '&': '&amp;',
 	    '<': '&lt;',
 	    '>': '&gt;',
@@ -4605,12 +4654,12 @@ define('aurelia-path',['exports'], function (exports) {
 	$def($def.P + $def.F, 'String', {escapeHTML: function escapeHTML(){ return $re(this); }});
 
 /***/ },
-/* 190 */
+/* 191 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
 	var $def = __webpack_require__(12)
-	  , $re  = __webpack_require__(165)(/&(?:amp|lt|gt|quot|apos);/g, {
+	  , $re  = __webpack_require__(166)(/&(?:amp|lt|gt|quot|apos);/g, {
 	    '&amp;':  '&',
 	    '&lt;':   '<',
 	    '&gt;':   '>',
@@ -4621,7 +4670,7 @@ define('aurelia-path',['exports'], function (exports) {
 	$def($def.P + $def.F, 'String', {unescapeHTML:  function unescapeHTML(){ return $re(this); }});
 
 /***/ },
-/* 191 */
+/* 192 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $       = __webpack_require__(2)
@@ -4651,7 +4700,7 @@ define('aurelia-path',['exports'], function (exports) {
 	})});
 
 /***/ },
-/* 192 */
+/* 193 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// JavaScript 1.6 / Strawman array statics shim
@@ -21191,7 +21240,7 @@ define('aurelia-validation/validation/validate-custom-attribute-view-strategy',[
 
   exports.__esModule = true;
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -21235,6 +21284,8 @@ define('aurelia-validation/validation/validate-custom-attribute-view-strategy',[
   exports.ValidateCustomAttributeViewStrategyBase = ValidateCustomAttributeViewStrategyBase;
 
   var TWBootstrapViewStrategy = (function (_ValidateCustomAttributeViewStrategyBase) {
+    _inherits(TWBootstrapViewStrategy, _ValidateCustomAttributeViewStrategyBase);
+
     function TWBootstrapViewStrategy(appendMessageToInput, appendMessageToLabel, helpBlockClass) {
       _classCallCheck(this, TWBootstrapViewStrategy);
 
@@ -21243,8 +21294,6 @@ define('aurelia-validation/validation/validate-custom-attribute-view-strategy',[
       this.appendMessageToLabel = appendMessageToLabel;
       this.helpBlockClass = helpBlockClass;
     }
-
-    _inherits(TWBootstrapViewStrategy, _ValidateCustomAttributeViewStrategyBase);
 
     TWBootstrapViewStrategy.prototype.searchFormGroup = function searchFormGroup(currentElement, currentDepth) {
       if (currentDepth === 5) {
@@ -21266,7 +21315,7 @@ define('aurelia-validation/validation/validate-custom-attribute-view-strategy',[
       if (currentDepth === 5) {
         return;
       }
-      if (currentElement.nodeName === 'LABEL' && (currentElement.attributes['for'] && currentElement.attributes['for'].value === inputId || !currentElement.attributes['for'])) {
+      if (currentElement.nodeName === "LABEL" && (currentElement.attributes['for'] && currentElement.attributes['for'].value === inputId || !currentElement.attributes['for'])) {
         currentLabels.push(currentElement);
       }
 
@@ -21286,7 +21335,7 @@ define('aurelia-validation/validation/validate-custom-attribute-view-strategy',[
       }
 
       if (!helpBlock) {
-        helpBlock = document.createElement('p');
+        helpBlock = document.createElement("p");
         helpBlock.classList.add('help-block');
         helpBlock.classList.add(this.helpBlockClass);
 
@@ -21505,7 +21554,7 @@ define('aurelia-validation/validation/utilities',['exports'], function (exports)
       if (val === null) {
         return true;
       }
-      if (val === '') {
+      if (val === "") {
         return true;
       }
       if (typeof val === 'string') {
@@ -21533,19 +21582,19 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
 
   exports.__esModule = true;
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var ValidationRule = (function () {
-    function ValidationRule(threshold, onValidate, message) {
+    function ValidationRule(threshold, onValidate, message, ruleName) {
       _classCallCheck(this, ValidationRule);
 
       this.onValidate = onValidate;
       this.threshold = threshold;
       this.message = message;
       this.errorMessage = null;
-      this.ruleName = this.constructor.name;
+      this.ruleName = ruleName;
     }
 
     ValidationRule.prototype.withMessage = function withMessage(message) {
@@ -21603,80 +21652,6 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.ValidationRule = ValidationRule;
 
   var URLValidationRule = (function (_ValidationRule) {
-    function URLValidationRule(threshold) {
-      _classCallCheck(this, URLValidationRule);
-
-      var default_url_options = {
-        protocols: ['http', 'https', 'ftp'],
-        require_tld: true,
-        require_protocol: false,
-        allow_underscores: true,
-        allow_trailing_dot: false,
-        allow_protocol_relative_urls: true
-      };
-      if (threshold === undefined) {
-        threshold = default_url_options;
-      }
-
-      _ValidationRule.call(this, threshold, function (newValue, threshold) {
-        var url = newValue;
-        if (!url || url.length >= 2083 || /\s/.test(url)) {
-          return false;
-        }
-        if (url.indexOf('mailto:') === 0) {
-          return false;
-        }
-        var protocol, auth, host, hostname, port, port_str, split;
-        split = url.split('://');
-        if (split.length > 1) {
-          protocol = split.shift();
-          if (threshold.protocols.indexOf(protocol) === -1) {
-            return false;
-          }
-        } else if (threshold.require_protocol) {
-          return false;
-        } else if (threshold.allow_protocol_relative_urls && url.substr(0, 2) === '//') {
-          split[0] = url.substr(2);
-        }
-        url = split.join('://');
-        split = url.split('#');
-        url = split.shift();
-
-        split = url.split('?');
-        url = split.shift();
-
-        split = url.split('/');
-        url = split.shift();
-        split = url.split('@');
-        if (split.length > 1) {
-          auth = split.shift();
-          if (auth.indexOf(':') >= 0 && auth.split(':').length > 2) {
-            return false;
-          }
-        }
-        hostname = split.join('@');
-        split = hostname.split(':');
-        host = split.shift();
-        if (split.length) {
-          port_str = split.join(':');
-          port = parseInt(port_str, 10);
-          if (!/^[0-9]+$/.test(port_str) || port <= 0 || port > 65535) {
-            return false;
-          }
-        }
-        if (!URLValidationRule.isIP(host) && !URLValidationRule.isFQDN(host, threshold) && host !== 'localhost') {
-          return false;
-        }
-        if (threshold.host_whitelist && threshold.host_whitelist.indexOf(host) === -1) {
-          return false;
-        }
-        if (threshold.host_blacklist && threshold.host_blacklist.indexOf(host) !== -1) {
-          return false;
-        }
-        return true;
-      });
-    }
-
     _inherits(URLValidationRule, _ValidationRule);
 
     URLValidationRule.isIP = function isIP(str, version) {
@@ -21758,30 +21733,86 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
       return true;
     };
 
+    function URLValidationRule(threshold) {
+      _classCallCheck(this, URLValidationRule);
+
+      var default_url_options = {
+        protocols: ['http', 'https', 'ftp'],
+        require_tld: true,
+        require_protocol: false,
+        allow_underscores: true,
+        allow_trailing_dot: false,
+        allow_protocol_relative_urls: true
+      };
+      if (threshold === undefined) {
+        threshold = default_url_options;
+      }
+
+      _ValidationRule.call(this, threshold, function (newValue, threshold) {
+        var url = newValue;
+        if (!url || url.length >= 2083 || /\s/.test(url)) {
+          return false;
+        }
+        if (url.indexOf('mailto:') === 0) {
+          return false;
+        }
+        var protocol, auth, host, hostname, port, port_str, split;
+        split = url.split('://');
+        if (split.length > 1) {
+          protocol = split.shift();
+          if (threshold.protocols.indexOf(protocol) === -1) {
+            return false;
+          }
+        } else if (threshold.require_protocol) {
+          return false;
+        } else if (threshold.allow_protocol_relative_urls && url.substr(0, 2) === '//') {
+          split[0] = url.substr(2);
+        }
+        url = split.join('://');
+        split = url.split('#');
+        url = split.shift();
+
+        split = url.split('?');
+        url = split.shift();
+
+        split = url.split('/');
+        url = split.shift();
+        split = url.split('@');
+        if (split.length > 1) {
+          auth = split.shift();
+          if (auth.indexOf(':') >= 0 && auth.split(':').length > 2) {
+            return false;
+          }
+        }
+        hostname = split.join('@');
+        split = hostname.split(':');
+        host = split.shift();
+        if (split.length) {
+          port_str = split.join(':');
+          port = parseInt(port_str, 10);
+          if (!/^[0-9]+$/.test(port_str) || port <= 0 || port > 65535) {
+            return false;
+          }
+        }
+        if (!URLValidationRule.isIP(host) && !URLValidationRule.isFQDN(host, threshold) && host !== 'localhost') {
+          return false;
+        }
+        if (threshold.host_whitelist && threshold.host_whitelist.indexOf(host) === -1) {
+          return false;
+        }
+        if (threshold.host_blacklist && threshold.host_blacklist.indexOf(host) !== -1) {
+          return false;
+        }
+        return true;
+      }, null, 'URLValidationRule');
+    }
+
     return URLValidationRule;
   })(ValidationRule);
 
   exports.URLValidationRule = URLValidationRule;
 
   var EmailValidationRule = (function (_ValidationRule2) {
-    function EmailValidationRule() {
-      _classCallCheck(this, EmailValidationRule);
-
-      _ValidationRule2.call(this, null, function (newValue, threshold) {
-        if (/\s/.test(newValue)) {
-          return false;
-        }
-        var parts = newValue.split('@');
-        var domain = parts.pop();
-        var user = parts.join('@');
-
-        if (!EmailValidationRule.isFQDN(domain)) {
-          return false;
-        }
-        return EmailValidationRule.testEmailUserUtf8Regex(user);
-      });
-    }
-
     _inherits(EmailValidationRule, _ValidationRule2);
 
     EmailValidationRule.testEmailUserUtf8Regex = function testEmailUserUtf8Regex(user) {
@@ -21807,21 +21838,39 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
       return true;
     };
 
+    function EmailValidationRule() {
+      _classCallCheck(this, EmailValidationRule);
+
+      _ValidationRule2.call(this, null, function (newValue, threshold) {
+        if (/\s/.test(newValue)) {
+          return false;
+        }
+        var parts = newValue.split('@');
+        var domain = parts.pop();
+        var user = parts.join('@');
+
+        if (!EmailValidationRule.isFQDN(domain)) {
+          return false;
+        }
+        return EmailValidationRule.testEmailUserUtf8Regex(user);
+      }, null, 'EmailValidationRule');
+    }
+
     return EmailValidationRule;
   })(ValidationRule);
 
   exports.EmailValidationRule = EmailValidationRule;
 
   var MinimumLengthValidationRule = (function (_ValidationRule3) {
+    _inherits(MinimumLengthValidationRule, _ValidationRule3);
+
     function MinimumLengthValidationRule(minimumLength) {
       _classCallCheck(this, MinimumLengthValidationRule);
 
       _ValidationRule3.call(this, minimumLength, function (newValue, minimumLength) {
         return newValue.length !== undefined && newValue.length >= minimumLength;
-      });
+      }, null, 'MinimumLengthValidationRule');
     }
-
-    _inherits(MinimumLengthValidationRule, _ValidationRule3);
 
     return MinimumLengthValidationRule;
   })(ValidationRule);
@@ -21829,15 +21878,15 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.MinimumLengthValidationRule = MinimumLengthValidationRule;
 
   var MaximumLengthValidationRule = (function (_ValidationRule4) {
+    _inherits(MaximumLengthValidationRule, _ValidationRule4);
+
     function MaximumLengthValidationRule(maximumLength) {
       _classCallCheck(this, MaximumLengthValidationRule);
 
       _ValidationRule4.call(this, maximumLength, function (newValue, maximumLength) {
         return newValue.length !== undefined && newValue.length <= maximumLength;
-      });
+      }, null, 'MaximumLengthValidationRule');
     }
-
-    _inherits(MaximumLengthValidationRule, _ValidationRule4);
 
     return MaximumLengthValidationRule;
   })(ValidationRule);
@@ -21845,15 +21894,15 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.MaximumLengthValidationRule = MaximumLengthValidationRule;
 
   var BetweenLengthValidationRule = (function (_ValidationRule5) {
+    _inherits(BetweenLengthValidationRule, _ValidationRule5);
+
     function BetweenLengthValidationRule(minimumLength, maximumLength) {
       _classCallCheck(this, BetweenLengthValidationRule);
 
       _ValidationRule5.call(this, { minimumLength: minimumLength, maximumLength: maximumLength }, function (newValue, threshold) {
         return newValue.length !== undefined && newValue.length >= threshold.minimumLength && newValue.length <= threshold.maximumLength;
-      });
+      }, null, 'BetweenLengthValidationRule');
     }
-
-    _inherits(BetweenLengthValidationRule, _ValidationRule5);
 
     return BetweenLengthValidationRule;
   })(ValidationRule);
@@ -21861,13 +21910,13 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.BetweenLengthValidationRule = BetweenLengthValidationRule;
 
   var CustomFunctionValidationRule = (function (_ValidationRule6) {
+    _inherits(CustomFunctionValidationRule, _ValidationRule6);
+
     function CustomFunctionValidationRule(customFunction, threshold) {
       _classCallCheck(this, CustomFunctionValidationRule);
 
-      _ValidationRule6.call(this, threshold, customFunction);
+      _ValidationRule6.call(this, threshold, customFunction, null, 'CustomFunctionValidationRule');
     }
-
-    _inherits(CustomFunctionValidationRule, _ValidationRule6);
 
     return CustomFunctionValidationRule;
   })(ValidationRule);
@@ -21875,6 +21924,8 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.CustomFunctionValidationRule = CustomFunctionValidationRule;
 
   var NumericValidationRule = (function (_ValidationRule7) {
+    _inherits(NumericValidationRule, _ValidationRule7);
+
     function NumericValidationRule() {
       _classCallCheck(this, NumericValidationRule);
 
@@ -21882,10 +21933,8 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
         var numericRegex = locale.setting('numericRegex');
         var floatValue = parseFloat(newValue);
         return !Number.isNaN(parseFloat(newValue)) && Number.isFinite(floatValue) && numericRegex.test(newValue);
-      });
+      }, null, 'NumericValidationRule');
     }
-
-    _inherits(NumericValidationRule, _ValidationRule7);
 
     return NumericValidationRule;
   })(ValidationRule);
@@ -21893,15 +21942,15 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.NumericValidationRule = NumericValidationRule;
 
   var RegexValidationRule = (function (_ValidationRule8) {
-    function RegexValidationRule(regex) {
+    _inherits(RegexValidationRule, _ValidationRule8);
+
+    function RegexValidationRule(regex, ruleName) {
       _classCallCheck(this, RegexValidationRule);
 
       _ValidationRule8.call(this, regex, function (newValue, regex) {
         return regex.test(newValue);
-      });
+      }, null, ruleName || 'RegexValidationRule');
     }
-
-    _inherits(RegexValidationRule, _ValidationRule8);
 
     return RegexValidationRule;
   })(ValidationRule);
@@ -21909,13 +21958,13 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.RegexValidationRule = RegexValidationRule;
 
   var ContainsOnlyValidationRule = (function (_RegexValidationRule) {
+    _inherits(ContainsOnlyValidationRule, _RegexValidationRule);
+
     function ContainsOnlyValidationRule(regex) {
       _classCallCheck(this, ContainsOnlyValidationRule);
 
-      _RegexValidationRule.call(this, regex);
+      _RegexValidationRule.call(this, regex, 'ContainsOnlyValidationRule');
     }
-
-    _inherits(ContainsOnlyValidationRule, _RegexValidationRule);
 
     return ContainsOnlyValidationRule;
   })(RegexValidationRule);
@@ -21923,15 +21972,15 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.ContainsOnlyValidationRule = ContainsOnlyValidationRule;
 
   var MinimumValueValidationRule = (function (_ValidationRule9) {
+    _inherits(MinimumValueValidationRule, _ValidationRule9);
+
     function MinimumValueValidationRule(minimumValue) {
       _classCallCheck(this, MinimumValueValidationRule);
 
       _ValidationRule9.call(this, minimumValue, function (newValue, minimumValue) {
         return _validationUtilities.Utilities.getValue(minimumValue) < newValue;
-      });
+      }, null, 'MinimumValueValidationRule');
     }
-
-    _inherits(MinimumValueValidationRule, _ValidationRule9);
 
     return MinimumValueValidationRule;
   })(ValidationRule);
@@ -21939,15 +21988,15 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.MinimumValueValidationRule = MinimumValueValidationRule;
 
   var MinimumInclusiveValueValidationRule = (function (_ValidationRule10) {
+    _inherits(MinimumInclusiveValueValidationRule, _ValidationRule10);
+
     function MinimumInclusiveValueValidationRule(minimumValue) {
       _classCallCheck(this, MinimumInclusiveValueValidationRule);
 
       _ValidationRule10.call(this, minimumValue, function (newValue, minimumValue) {
         return _validationUtilities.Utilities.getValue(minimumValue) <= newValue;
-      });
+      }, null, 'MinimumInclusiveValueValidationRule');
     }
-
-    _inherits(MinimumInclusiveValueValidationRule, _ValidationRule10);
 
     return MinimumInclusiveValueValidationRule;
   })(ValidationRule);
@@ -21955,15 +22004,15 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.MinimumInclusiveValueValidationRule = MinimumInclusiveValueValidationRule;
 
   var MaximumValueValidationRule = (function (_ValidationRule11) {
+    _inherits(MaximumValueValidationRule, _ValidationRule11);
+
     function MaximumValueValidationRule(maximumValue) {
       _classCallCheck(this, MaximumValueValidationRule);
 
       _ValidationRule11.call(this, maximumValue, function (newValue, maximumValue) {
         return newValue < _validationUtilities.Utilities.getValue(maximumValue);
-      });
+      }, null, 'MaximumValueValidationRule');
     }
-
-    _inherits(MaximumValueValidationRule, _ValidationRule11);
 
     return MaximumValueValidationRule;
   })(ValidationRule);
@@ -21971,15 +22020,15 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.MaximumValueValidationRule = MaximumValueValidationRule;
 
   var MaximumInclusiveValueValidationRule = (function (_ValidationRule12) {
+    _inherits(MaximumInclusiveValueValidationRule, _ValidationRule12);
+
     function MaximumInclusiveValueValidationRule(maximumValue) {
       _classCallCheck(this, MaximumInclusiveValueValidationRule);
 
       _ValidationRule12.call(this, maximumValue, function (newValue, maximumValue) {
         return newValue <= _validationUtilities.Utilities.getValue(maximumValue);
-      });
+      }, null, 'MaximumInclusiveValueValidationRule');
     }
-
-    _inherits(MaximumInclusiveValueValidationRule, _ValidationRule12);
 
     return MaximumInclusiveValueValidationRule;
   })(ValidationRule);
@@ -21987,15 +22036,15 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.MaximumInclusiveValueValidationRule = MaximumInclusiveValueValidationRule;
 
   var BetweenValueValidationRule = (function (_ValidationRule13) {
+    _inherits(BetweenValueValidationRule, _ValidationRule13);
+
     function BetweenValueValidationRule(minimumValue, maximumValue) {
       _classCallCheck(this, BetweenValueValidationRule);
 
       _ValidationRule13.call(this, { minimumValue: minimumValue, maximumValue: maximumValue }, function (newValue, threshold) {
         return _validationUtilities.Utilities.getValue(threshold.minimumValue) <= newValue && newValue <= _validationUtilities.Utilities.getValue(threshold.maximumValue);
-      });
+      }, null, 'BetweenValueValidationRule');
     }
-
-    _inherits(BetweenValueValidationRule, _ValidationRule13);
 
     return BetweenValueValidationRule;
   })(ValidationRule);
@@ -22003,15 +22052,16 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.BetweenValueValidationRule = BetweenValueValidationRule;
 
   var DigitValidationRule = (function (_ValidationRule14) {
+    _inherits(DigitValidationRule, _ValidationRule14);
+
     function DigitValidationRule() {
       _classCallCheck(this, DigitValidationRule);
 
       _ValidationRule14.call(this, null, function (newValue, threshold) {
-        return /^\d+$/.test(newValue);
-      });
+        return (/^\d+$/.test(newValue)
+        );
+      }, null, 'DigitValidationRule');
     }
-
-    _inherits(DigitValidationRule, _ValidationRule14);
 
     return DigitValidationRule;
   })(ValidationRule);
@@ -22019,15 +22069,16 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.DigitValidationRule = DigitValidationRule;
 
   var NoSpacesValidationRule = (function (_ValidationRule15) {
+    _inherits(NoSpacesValidationRule, _ValidationRule15);
+
     function NoSpacesValidationRule() {
       _classCallCheck(this, NoSpacesValidationRule);
 
       _ValidationRule15.call(this, null, function (newValue, threshold) {
-        return /^\S*$/.test(newValue);
-      });
+        return (/^\S*$/.test(newValue)
+        );
+      }, null, 'NoSpacesValidationRule');
     }
-
-    _inherits(NoSpacesValidationRule, _ValidationRule15);
 
     return NoSpacesValidationRule;
   })(ValidationRule);
@@ -22035,15 +22086,16 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.NoSpacesValidationRule = NoSpacesValidationRule;
 
   var AlphaNumericValidationRule = (function (_ValidationRule16) {
+    _inherits(AlphaNumericValidationRule, _ValidationRule16);
+
     function AlphaNumericValidationRule() {
       _classCallCheck(this, AlphaNumericValidationRule);
 
       _ValidationRule16.call(this, null, function (newValue, threshold) {
-        return /^[a-z0-9]+$/i.test(newValue);
-      });
+        return (/^[a-z0-9]+$/i.test(newValue)
+        );
+      }, null, 'AlphaNumericValidationRule');
     }
-
-    _inherits(AlphaNumericValidationRule, _ValidationRule16);
 
     return AlphaNumericValidationRule;
   })(ValidationRule);
@@ -22051,15 +22103,16 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.AlphaNumericValidationRule = AlphaNumericValidationRule;
 
   var AlphaValidationRule = (function (_ValidationRule17) {
+    _inherits(AlphaValidationRule, _ValidationRule17);
+
     function AlphaValidationRule() {
       _classCallCheck(this, AlphaValidationRule);
 
       _ValidationRule17.call(this, null, function (newValue, threshold) {
-        return /^[a-z]+$/i.test(newValue);
-      });
+        return (/^[a-z]+$/i.test(newValue)
+        );
+      }, null, 'AlphaValidationRule');
     }
-
-    _inherits(AlphaValidationRule, _ValidationRule17);
 
     return AlphaValidationRule;
   })(ValidationRule);
@@ -22067,15 +22120,16 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.AlphaValidationRule = AlphaValidationRule;
 
   var AlphaOrWhitespaceValidationRule = (function (_ValidationRule18) {
+    _inherits(AlphaOrWhitespaceValidationRule, _ValidationRule18);
+
     function AlphaOrWhitespaceValidationRule() {
       _classCallCheck(this, AlphaOrWhitespaceValidationRule);
 
       _ValidationRule18.call(this, null, function (newValue, threshold) {
-        return /^[a-z\s]+$/i.test(newValue);
-      });
+        return (/^[a-z\s]+$/i.test(newValue)
+        );
+      }, null, 'AlphaOrWhitespaceValidationRule');
     }
-
-    _inherits(AlphaOrWhitespaceValidationRule, _ValidationRule18);
 
     return AlphaOrWhitespaceValidationRule;
   })(ValidationRule);
@@ -22083,15 +22137,16 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.AlphaOrWhitespaceValidationRule = AlphaOrWhitespaceValidationRule;
 
   var AlphaNumericOrWhitespaceValidationRule = (function (_ValidationRule19) {
+    _inherits(AlphaNumericOrWhitespaceValidationRule, _ValidationRule19);
+
     function AlphaNumericOrWhitespaceValidationRule() {
       _classCallCheck(this, AlphaNumericOrWhitespaceValidationRule);
 
       _ValidationRule19.call(this, null, function (newValue, threshold) {
-        return /^[a-z0-9\s]+$/i.test(newValue);
-      });
+        return (/^[a-z0-9\s]+$/i.test(newValue)
+        );
+      }, null, 'AlphaNumericOrWhitespaceValidationRule');
     }
-
-    _inherits(AlphaNumericOrWhitespaceValidationRule, _ValidationRule19);
 
     return AlphaNumericOrWhitespaceValidationRule;
   })(ValidationRule);
@@ -22099,7 +22154,9 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.AlphaNumericOrWhitespaceValidationRule = AlphaNumericOrWhitespaceValidationRule;
 
   var MediumPasswordValidationRule = (function (_ValidationRule20) {
-    function MediumPasswordValidationRule(minimumComplexityLevel) {
+    _inherits(MediumPasswordValidationRule, _ValidationRule20);
+
+    function MediumPasswordValidationRule(minimumComplexityLevel, ruleName) {
       _classCallCheck(this, MediumPasswordValidationRule);
 
       _ValidationRule20.call(this, minimumComplexityLevel ? minimumComplexityLevel : 3, function (newValue, threshold) {
@@ -22111,10 +22168,8 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
         strength += /[0-9]+/.test(newValue) ? 1 : 0;
         strength += /[\W]+/.test(newValue) ? 1 : 0;
         return strength >= threshold;
-      });
+      }, null, ruleName || 'MediumPasswordValidationRule');
     }
-
-    _inherits(MediumPasswordValidationRule, _ValidationRule20);
 
     return MediumPasswordValidationRule;
   })(ValidationRule);
@@ -22122,13 +22177,13 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.MediumPasswordValidationRule = MediumPasswordValidationRule;
 
   var StrongPasswordValidationRule = (function (_MediumPasswordValidationRule) {
+    _inherits(StrongPasswordValidationRule, _MediumPasswordValidationRule);
+
     function StrongPasswordValidationRule() {
       _classCallCheck(this, StrongPasswordValidationRule);
 
-      _MediumPasswordValidationRule.call(this, 4);
+      _MediumPasswordValidationRule.call(this, 4, 'StrongPasswordValidationRule');
     }
-
-    _inherits(StrongPasswordValidationRule, _MediumPasswordValidationRule);
 
     return StrongPasswordValidationRule;
   })(MediumPasswordValidationRule);
@@ -22136,7 +22191,9 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.StrongPasswordValidationRule = StrongPasswordValidationRule;
 
   var EqualityValidationRuleBase = (function (_ValidationRule21) {
-    function EqualityValidationRuleBase(otherValue, equality, otherValueLabel) {
+    _inherits(EqualityValidationRuleBase, _ValidationRule21);
+
+    function EqualityValidationRuleBase(otherValue, equality, otherValueLabel, ruleName) {
       _classCallCheck(this, EqualityValidationRuleBase);
 
       _ValidationRule21.call(this, {
@@ -22147,10 +22204,8 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
         var otherValue = _validationUtilities.Utilities.getValue(threshold.otherValue);
         if (newValue instanceof Date && otherValue instanceof Date) return threshold.equality === (newValue.getTime() === otherValue.getTime());
         return threshold.equality === (newValue === otherValue);
-      });
+      }, null, ruleName || 'EqualityValidationRuleBase');
     }
-
-    _inherits(EqualityValidationRuleBase, _ValidationRule21);
 
     return EqualityValidationRuleBase;
   })(ValidationRule);
@@ -22158,13 +22213,13 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.EqualityValidationRuleBase = EqualityValidationRuleBase;
 
   var EqualityValidationRule = (function (_EqualityValidationRuleBase) {
+    _inherits(EqualityValidationRule, _EqualityValidationRuleBase);
+
     function EqualityValidationRule(otherValue) {
       _classCallCheck(this, EqualityValidationRule);
 
-      _EqualityValidationRuleBase.call(this, otherValue, true);
+      _EqualityValidationRuleBase.call(this, otherValue, true, null, 'EqualityValidationRule');
     }
-
-    _inherits(EqualityValidationRule, _EqualityValidationRuleBase);
 
     return EqualityValidationRule;
   })(EqualityValidationRuleBase);
@@ -22172,13 +22227,13 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.EqualityValidationRule = EqualityValidationRule;
 
   var EqualityWithOtherLabelValidationRule = (function (_EqualityValidationRuleBase2) {
+    _inherits(EqualityWithOtherLabelValidationRule, _EqualityValidationRuleBase2);
+
     function EqualityWithOtherLabelValidationRule(otherValue, otherLabel) {
       _classCallCheck(this, EqualityWithOtherLabelValidationRule);
 
-      _EqualityValidationRuleBase2.call(this, otherValue, true, otherLabel);
+      _EqualityValidationRuleBase2.call(this, otherValue, true, otherLabel, 'EqualityWithOtherLabelValidationRule');
     }
-
-    _inherits(EqualityWithOtherLabelValidationRule, _EqualityValidationRuleBase2);
 
     return EqualityWithOtherLabelValidationRule;
   })(EqualityValidationRuleBase);
@@ -22186,13 +22241,13 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.EqualityWithOtherLabelValidationRule = EqualityWithOtherLabelValidationRule;
 
   var InEqualityValidationRule = (function (_EqualityValidationRuleBase3) {
+    _inherits(InEqualityValidationRule, _EqualityValidationRuleBase3);
+
     function InEqualityValidationRule(otherValue) {
       _classCallCheck(this, InEqualityValidationRule);
 
-      _EqualityValidationRuleBase3.call(this, otherValue, false);
+      _EqualityValidationRuleBase3.call(this, otherValue, false, null, 'InEqualityValidationRule');
     }
-
-    _inherits(InEqualityValidationRule, _EqualityValidationRuleBase3);
 
     return InEqualityValidationRule;
   })(EqualityValidationRuleBase);
@@ -22200,13 +22255,13 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.InEqualityValidationRule = InEqualityValidationRule;
 
   var InEqualityWithOtherLabelValidationRule = (function (_EqualityValidationRuleBase4) {
+    _inherits(InEqualityWithOtherLabelValidationRule, _EqualityValidationRuleBase4);
+
     function InEqualityWithOtherLabelValidationRule(otherValue, otherLabel) {
       _classCallCheck(this, InEqualityWithOtherLabelValidationRule);
 
-      _EqualityValidationRuleBase4.call(this, otherValue, false, otherLabel);
+      _EqualityValidationRuleBase4.call(this, otherValue, false, otherLabel, 'InEqualityWithOtherLabelValidationRule');
     }
-
-    _inherits(InEqualityWithOtherLabelValidationRule, _EqualityValidationRuleBase4);
 
     return InEqualityWithOtherLabelValidationRule;
   })(EqualityValidationRuleBase);
@@ -22214,6 +22269,8 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
   exports.InEqualityWithOtherLabelValidationRule = InEqualityWithOtherLabelValidationRule;
 
   var InCollectionValidationRule = (function (_ValidationRule22) {
+    _inherits(InCollectionValidationRule, _ValidationRule22);
+
     function InCollectionValidationRule(collection) {
       _classCallCheck(this, InCollectionValidationRule);
 
@@ -22223,10 +22280,8 @@ define('aurelia-validation/validation/validation-rules',['exports', '../validati
           if (newValue === collection[i]) return true;
         }
         return false;
-      });
+      }, null, 'InCollectionValidationRule');
     }
-
-    _inherits(InCollectionValidationRule, _ValidationRule22);
 
     return InCollectionValidationRule;
   })(ValidationRule);
@@ -22296,7 +22351,7 @@ define('aurelia-validation/validation/validation-rules-collection',['exports', '
                   };
                 } else {
                   if (!previousRuleResult.isValid) {
-                    throw Error('ValidationRulesCollection.validate caught an unexpected result while validating it\'s chain of rules.');
+                    throw Error("ValidationRulesCollection.validate caught an unexpected result while validating it's chain of rules.");
                   }
                   return previousRuleResult;
                 }
@@ -22325,7 +22380,7 @@ define('aurelia-validation/validation/validation-rules-collection',['exports', '
     };
 
     ValidationRulesCollection.prototype.addValidationRule = function addValidationRule(validationRule) {
-      if (validationRule.validate === undefined) throw new Error('That\'s not a valid validationRule');
+      if (validationRule.validate === undefined) throw new Error("That's not a valid validationRule");
       this.validationRules.push(validationRule);
     };
 
@@ -22372,7 +22427,7 @@ define('aurelia-validation/validation/validation-rules-collection',['exports', '
     };
 
     SwitchCaseValidationRulesCollection.prototype.getCurrentCollection = function getCurrentCollection(caseLabel) {
-      var createIfNotExists = arguments[1] === undefined ? false : arguments[1];
+      var createIfNotExists = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
       if (caseLabel === this.defaultCaseLabel) return this.defaultCollection;
       var currentCollection = null;
@@ -22646,7 +22701,7 @@ define('aurelia-validation/validation/validation-property',['exports', '../valid
     }
 
     ValidationProperty.prototype.addValidationRule = function addValidationRule(validationRule) {
-      if (validationRule.validate === undefined) throw new Error('That\'s not a valid validationRule');
+      if (validationRule.validate === undefined) throw new Error("That's not a valid validationRule");
       this.collectionOfValidationRules.addValidationRule(validationRule);
       this.validateCurrentValue(false);
     };
@@ -22674,11 +22729,11 @@ define('aurelia-validation/validation/validation-property',['exports', '../valid
             if (_this2.latestValue === validationResponse.latestValue) _this2.propertyResult.setValidity(validationResponse, shouldBeDirty);
             return validationResponse.isValid;
           })['catch'](function (err) {
-            console.log('Unexpected behavior: a validation-rules-collection should always fulfil', err);
-            throw Error('Unexpected behavior: a validation-rules-collection should always fulfil');
+            console.log("Unexpected behavior: a validation-rules-collection should always fulfil", err);
+            throw Error("Unexpected behavior: a validation-rules-collection should always fulfil");
           });
         }, function () {
-          throw Error('An exception occurred while trying to load the locale');
+          throw Error("An exception occurred while trying to load the locale");
         });
       }
     };
@@ -23095,8 +23150,8 @@ define('aurelia-validation/validation/validation-group',['exports', '../validati
     ValidationGroup.prototype.validate = function validate() {
       var _this3 = this;
 
-      var forceDirty = arguments[0] === undefined ? true : arguments[0];
-      var forceExecution = arguments[1] === undefined ? true : arguments[1];
+      var forceDirty = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
+      var forceExecution = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
 
       this.isValidating = true;
       var promise = Promise.resolve(true);
@@ -23112,8 +23167,8 @@ define('aurelia-validation/validation/validation-group',['exports', '../validati
         _loop(i);
       }
       promise = promise['catch'](function () {
-        console.log('Should never get here: a validation property should always resolve to true/false!');
-        throw Error('Should never get here: a validation property should always resolve to true/false!');
+        console.log("Should never get here: a validation property should always resolve to true/false!");
+        throw Error("Should never get here: a validation property should always resolve to true/false!");
       });
 
       this.onValidateCallbacks.forEach(function (onValidateCallback) {
@@ -23356,9 +23411,7 @@ define('aurelia-validation/validation/validation',['exports', 'aurelia-binding',
       this.config = validationConfig ? validationConfig : Validation.defaults;
     }
 
-    var _Validation = Validation;
-
-    _Validation.prototype.on = function on(subject, configCallback) {
+    Validation.prototype.on = function on(subject, configCallback) {
       var conf = new _validationValidationConfig.ValidationConfig(this.config);
       if (configCallback !== null && configCallback !== undefined && typeof configCallback === 'function') {
         configCallback(conf);
@@ -23366,12 +23419,13 @@ define('aurelia-validation/validation/validation',['exports', 'aurelia-binding',
       return new _validationValidationGroup.ValidationGroup(subject, this.observerLocator, conf);
     };
 
-    _Validation.prototype.onBreezeEntity = function onBreezeEntity(breezeEntity, configCallback) {
+    Validation.prototype.onBreezeEntity = function onBreezeEntity(breezeEntity, configCallback) {
       var validation = this.on(breezeEntity, configCallback);
       validation.onBreezeEntity();
       return validation;
     };
 
+    var _Validation = Validation;
     Validation = _aureliaDependencyInjection.inject(_aureliaBinding.ObserverLocator)(Validation) || Validation;
     return Validation;
   })();
@@ -23396,19 +23450,17 @@ define('aurelia-validation/validation/validate-custom-attribute',['exports', 'au
       this.viewStrategy = null;
     }
 
-    var _ValidateCustomAttribute = ValidateCustomAttribute;
-
-    _ValidateCustomAttribute.prototype.valueChanged = function valueChanged(newValue) {
+    ValidateCustomAttribute.prototype.valueChanged = function valueChanged(newValue) {
       if (this.value === null || this.value === undefined) return;
       this.processedValidation = this.value;
       if (typeof this.value === 'string') {
         return;
       } else {
-        this.subscribeChangedHandlers(this.element);
-      }
+          this.subscribeChangedHandlers(this.element);
+        }
     };
 
-    _ValidateCustomAttribute.prototype.subscribeChangedHandlers = function subscribeChangedHandlers(currentElement) {
+    ValidateCustomAttribute.prototype.subscribeChangedHandlers = function subscribeChangedHandlers(currentElement) {
       var _this = this;
 
       this.viewStrategy = this.value.config.getViewStrategy();
@@ -23425,12 +23477,13 @@ define('aurelia-validation/validation/validate-custom-attribute',['exports', 'au
       }
     };
 
-    _ValidateCustomAttribute.prototype.detached = function detached() {};
+    ValidateCustomAttribute.prototype.detached = function detached() {};
 
-    _ValidateCustomAttribute.prototype.attached = function attached() {
+    ValidateCustomAttribute.prototype.attached = function attached() {
       if (this.processedValidation === null || this.processedValidation === undefined) this.valueChanged(this.value);
     };
 
+    var _ValidateCustomAttribute = ValidateCustomAttribute;
     ValidateCustomAttribute = _aureliaDependencyInjection.inject(Element)(ValidateCustomAttribute) || ValidateCustomAttribute;
     ValidateCustomAttribute = _aureliaTemplating.customAttribute('validate')(ValidateCustomAttribute) || ValidateCustomAttribute;
     return ValidateCustomAttribute;
@@ -23511,7 +23564,7 @@ define('aurelia-validation/index',['exports', './validation/validation-config', 
   exports.__esModule = true;
   exports.configure = configure;
 
-  function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
+  function _interopExportWildcard(obj, defaults) { var newObj = defaults({}, obj); delete newObj['default']; return newObj; }
 
   function _defaults(obj, defaults) { var keys = Object.getOwnPropertyNames(defaults); for (var i = 0; i < keys.length; i++) { var key = keys[i]; var value = Object.getOwnPropertyDescriptor(defaults, key); if (value && value.configurable && obj[key] === undefined) { Object.defineProperty(obj, key, value); } } return obj; }
 
@@ -23519,9 +23572,9 @@ define('aurelia-validation/index',['exports', './validation/validation-config', 
   exports.ValidationConfig = _validationValidationConfig.ValidationConfig;
   exports.ValidationLocale = _validationValidationLocale.ValidationLocale;
 
-  _defaults(exports, _interopRequireWildcard(_validationValidationResult));
+  _defaults(exports, _interopExportWildcard(_validationValidationResult, _defaults));
 
-  _defaults(exports, _interopRequireWildcard(_validationValidationRules));
+  _defaults(exports, _interopExportWildcard(_validationValidationRules, _defaults));
 
   exports.Validation = _validationValidation.Validation;
   exports.ValidateCustomAttribute = _validationValidateCustomAttribute.ValidateCustomAttribute;
@@ -23531,11 +23584,11 @@ define('aurelia-validation/index',['exports', './validation/validation-config', 
 
   function configure(aurelia, configCallback) {
 
-    aurelia.globalizeResources('./validation/validate-custom-attribute');
+    aurelia.globalResources('./validation/validate-custom-attribute');
     if (configCallback !== undefined && typeof configCallback === 'function') {
       configCallback(_validationValidation.Validation.defaults);
     }
-    aurelia.withSingleton(_validationValidationConfig.ValidationConfig, _validationValidation.Validation.defaults);
+    aurelia.singleton(_validationValidationConfig.ValidationConfig, _validationValidation.Validation.defaults);
     return _validationValidation.Validation.defaults.locale();
   }
 });

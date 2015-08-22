@@ -43,5 +43,10 @@ require.config({
       location: 'bower_components/aurelia-validation/dist/amd',
       main: 'index'
     },
+   {
+     name: 'gooy-aurelia-animator-velocity',
+     location: 'aurelia-latest/aurelia-animator-velocity/dist/amd',
+     main : 'index'
+   },
     { name: "core-js", location: "bower_components/core-js/client", main: "core" }  ]
 });

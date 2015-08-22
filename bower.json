@@ -25,6 +25,7 @@
     "tests"
   ],
   "dependencies": {
+    "gooy-aurelia-animator-velocity": "gooy/aurelia-animator-velocity",
     "aurelia-dependency-injection": "aurelia/dependency-injection#latest",
     "aurelia-event-aggregator": "aurelia/event-aggregator#latest",
     "aurelia-framework": "aurelia/framework#latest",

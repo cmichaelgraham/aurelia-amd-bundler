@@ -8,6 +8,7 @@ mkdir aurelia-latest
 
 cd aurelia-latest
 
+../clone-and-build.sh gooy aurelia-animator-velocity
 ../clone-and-build.sh aurelia templating-resources
 ../clone-and-build.sh aurelia loader
 ../clone-and-build.sh aurelia loader-default
