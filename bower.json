@@ -25,6 +25,13 @@
     "tests"
   ],
   "dependencies": {
+    "aurelia-path": "aurelia/path#latest",
+    "aurelia-task-queue": "aurelia/task-queue#latest",
+    "aurelia-logging": "aurelia/logging#latest",
+    "aurelia-metadata": "aurelia/metadata#latest",
+    "aurelia-binding": "aurelia/binding#latest",
+    "aurelia-templating": "aurelia/templating#latest",
+    "aurelia-route-recognizer": "aurelia/route-recognizer#latest",
     "aurelia-dependency-injection": "aurelia/dependency-injection#latest",
     "aurelia-event-aggregator": "aurelia/event-aggregator#latest",
     "aurelia-framework": "aurelia/framework#latest",
@@ -44,11 +51,11 @@
     "aurelia-validation": "aurelia/validation#latest",
     "aurelia-animator-css": "aurelia/animator-css",
     "gooy-aurelia-animator-velocity": "gooy/aurelia-animator-velocity",
-    "velocity": "velocity",
-    "jsol": "clarkduvall/JSOL",
+    "velocity": "julianshapiro/velocity#latest",
+    "jsol": "daepark/JSOL#latest",
     "bootstrap": "latest",
     "fontawesome": "latest",
     "webcomponentsjs": "latest",
-    "core-js": "zloirock/core-js"
+    "core-js": "zloirock/core-js#latest"
   }
 }

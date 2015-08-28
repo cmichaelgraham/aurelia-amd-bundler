@@ -73,7 +73,7 @@ declare module 'aurelia-framework' {
        * @param {config} config The configuration for the specified plugin.
        * @return {FrameworkConfiguration} Returns the current FrameworkConfiguration instance.
       */
-    feature(plugin: string, config: any): FrameworkConfiguration;
+    feature(plugin: string, config?: any): FrameworkConfiguration;
     
     /**
        * Adds globally available view resources to be imported into the Aurelia framework.
@@ -102,7 +102,7 @@ declare module 'aurelia-framework' {
        * @param {config} config The configuration for the specified plugin.
        * @return {FrameworkConfiguration} Returns the current FrameworkConfiguration instance.
      */
-    plugin(plugin: string, config: any): FrameworkConfiguration;
+    plugin(plugin: string, config?: any): FrameworkConfiguration;
     
     /**
        * Plugs in the default binding language from aurelia-templating-binding.

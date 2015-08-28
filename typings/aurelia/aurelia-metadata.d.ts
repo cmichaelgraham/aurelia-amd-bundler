@@ -1,7 +1,8 @@
 declare module 'aurelia-metadata' {
-  import * as core from 'core-js';
+  import 'core-js';
   export interface MetadataType {
     global: Object;
+    noop: Function;
     resource: string;
     paramTypes: string;
     properties: string;
@@ -18,7 +19,7 @@ declare module 'aurelia-metadata' {
   * @class Metadata
   * @static
   */
-  export var Metadata: any;
+  export const Metadata: any;
   
   /**
   * A metadata annotation that describes the origin module of the function to which it's attached.
@@ -56,5 +57,5 @@ declare module 'aurelia-metadata' {
     constructor();
     decorator(decorator: Function): DecoratorApplicator;
   }
-  export let Decorators: any;
+  export const Decorators: any;
 }

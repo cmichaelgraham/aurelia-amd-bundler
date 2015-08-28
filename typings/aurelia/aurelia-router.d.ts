@@ -167,7 +167,7 @@ declare module 'aurelia-router' {
   * @param {String} url The url to redirect to.
   */
   export class Redirect {
-    constructor(url: any, options: any);
+    constructor(url: any, options?: any);
     
     /**
       * Called by the activation system to set the child router.
@@ -327,7 +327,7 @@ declare module 'aurelia-router' {
     constructor(container: any, history: any);
     
     /**
-      * Gets a valid undicating whether or not this [[Router]] is the root in the router tree. I.e., it has no parent.
+      * Gets a valid indicating whether or not this [[Router]] is the root in the router tree. I.e., it has no parent.
       */
     isRoot(): any;
     
