@@ -1,12 +1,5 @@
 declare module 'aurelia-fetch-client' {
   import 'core-js';
-
-  // added manully to fix compiler errors
-  interface Request {}
-  interface Response {}
-  interface URLSearchParams {}
-  interface Headers {}
-  interface BufferSource {}
   
   /* eslint-disable */
   export interface Interceptor {
