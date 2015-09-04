@@ -55,6 +55,7 @@
     "jsol": "daepark/JSOL#latest",
     "bootstrap": "latest",
     "fontawesome": "latest",
+    "fetch": "github/fetch#latest",
     "webcomponentsjs": "latest",
     "core-js": "zloirock/core-js#latest"
   }

@@ -19,6 +19,8 @@ define("aurelia-bundle-manifest", [
   'aurelia-templating-router',
   'aurelia-route-recognizer',
   'aurelia-http-client',
+  'aurelia-fetch-client',
+  'fetch',
   'aurelia-bootstrapper',
   'aurelia-html-template-element',
   'aurelia-validation',
