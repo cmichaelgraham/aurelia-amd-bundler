@@ -28,7 +28,8 @@ define("aurelia-bundle-manifest", [
   'gooy-aurelia-animator-velocity',
   'jsol',
   'velocity',
-  'core-js'
+  'core-js',
+  'text'
   ], function(_path,
   _loader,
   _loader_default,

@@ -27,7 +27,8 @@ require.config({
     'aurelia-validation': 'aurelia-latest/validation/dist/amd/aurelia-validation',
     'aurelia-animator-css': 'aurelia-latest/animator-css/dist/amd/aurelia-animator-css',
     'fetch': 'bower_components/fetch/fetch',
-    'jsol': 'bower_components/jsol/jsol'
+    'jsol': 'bower_components/jsol/jsol',
+    'text': 'bower_components/text/text'
   },
 
   packages : [

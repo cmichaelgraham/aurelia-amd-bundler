@@ -57,6 +57,7 @@
     "fontawesome": "latest",
     "fetch": "github/fetch#latest",
     "webcomponentsjs": "latest",
-    "core-js": "zloirock/core-js#latest"
+    "core-js": "zloirock/core-js#latest",
+    "text": "requirejs/text"
   }
 }
