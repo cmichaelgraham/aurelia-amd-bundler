@@ -37,6 +37,11 @@ require.config({
       main : 'aurelia-templating-router'
     },
     {
+      name: 'aurelia-dialog',
+      location: 'bower_components/aurelia-dialog/dist/amd',
+      main : 'index'
+    },
+    {
       name: 'aurelia-templating-resources',
       location: 'bower_components/aurelia-templating-resources/dist/amd',
       main : 'aurelia-templating-resources'

@@ -1,5 +1,6 @@
 define("aurelia-bundle-manifest", [
   'aurelia-path',
+  'aurelia-dialog',
   'aurelia-loader',
   'aurelia-loader-default',
   'aurelia-task-queue',

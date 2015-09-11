@@ -22,6 +22,7 @@ cd aurelia-latest
 ../clone-and-build.sh aurelia framework
 ../clone-and-build.sh aurelia metadata
 ../clone-and-build.sh aurelia binding
+../clone-and-build.sh aurelia dialog
 ../clone-and-build.sh aurelia dependency-injection
 ../clone-and-build.sh aurelia router
 ../clone-and-build.sh aurelia templating-binding

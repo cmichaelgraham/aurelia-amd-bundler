@@ -30,6 +30,7 @@
     "aurelia-logging": "aurelia/logging#latest",
     "aurelia-metadata": "aurelia/metadata#latest",
     "aurelia-binding": "aurelia/binding#latest",
+    "aurelia-dialog": "aurelia/dialog#latest",
     "aurelia-templating": "aurelia/templating#latest",
     "aurelia-route-recognizer": "aurelia/route-recognizer#latest",
     "aurelia-dependency-injection": "aurelia/dependency-injection#latest",
