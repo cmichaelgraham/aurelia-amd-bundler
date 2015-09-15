@@ -4,7 +4,7 @@ declare module 'aurelia-templating' {
   import { Metadata, Origin, Decorators }  from 'aurelia-metadata';
   import { relativeToFile }  from 'aurelia-path';
   import { TemplateRegistryEntry, Loader }  from 'aurelia-loader';
-  import { ValueConverter, Binding, bindingMode, ObserverLocator, BindingExpression, ValueConverterResource, EventManager }  from 'aurelia-binding';
+  import { ValueConverter, Binding, subscriberCollection, bindingMode, ObserverLocator, BindingExpression, ValueConverterResource, EventManager }  from 'aurelia-binding';
   import { Container, inject }  from 'aurelia-dependency-injection';
   import { TaskQueue }  from 'aurelia-task-queue';
   export interface ViewCreateInstruction {
@@ -277,6 +277,14 @@ declare module 'aurelia-templating' {
     attached(): any;
     detached(): any;
   }
+  export class BehaviorPropertyObserver {
+    constructor(taskQueue: any, obj: any, propertyName: any, selfSubscriber: any, initialValue: any);
+    getValue(): any;
+    setValue(newValue: any): any;
+    call(): any;
+    subscribe(context: any, callable: any): any;
+    unsubscribe(context: any, callable: any): any;
+  }
   export class BindableProperty {
     constructor(nameOrConfig: any);
     registerWith(target: any, behavior: any, descriptor: any): any;
@@ -285,13 +293,6 @@ declare module 'aurelia-templating' {
     createObserver(bindingContext: any): any;
     initialize(bindingContext: any, observerLookup: any, attributes: any, behaviorHandlesBind: any, boundProperties: any): any;
     createDynamicProperty(bindingContext: any, observerLookup: any, behaviorHandlesBind: any, name: any, attribute: any, boundProperties: any): any;
-  }
-  class BehaviorPropertyObserver {
-    constructor(taskQueue: any, obj: any, propertyName: any, selfSubscriber: any, initialValue: any);
-    getValue(): any;
-    setValue(newValue: any): any;
-    call(): any;
-    subscribe(callback: any): any;
   }
   export class HtmlBehaviorResource {
     constructor();

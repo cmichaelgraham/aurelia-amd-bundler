@@ -1,6 +1,13 @@
 define("aurelia-bundle-manifest", [
   'aurelia-path',
   'aurelia-dialog',
+  'aurelia-dialog/dialog-body',
+  'text!aurelia-dialog/dialog-body.html',
+  'aurelia-dialog/dialog-footer',
+  'text!aurelia-dialog/dialog-footer.html',
+  'aurelia-dialog/dialog',
+  'text!aurelia-dialog/dialog.html',
+  'text!aurelia-dialog/dialog.css',
   'aurelia-loader',
   'aurelia-loader-default',
   'aurelia-task-queue',

@@ -62,5 +62,5 @@ require.config({
      location: 'aurelia-latest/aurelia-animator-velocity/dist/amd',
      main : 'index'
    },
-   { name: "core-js", location: "bower_components/core-js/client", main: "core" }  ]
+   { name: "core-js", location: "bower_components/core-js/client", main: "core.min" }  ]
 });

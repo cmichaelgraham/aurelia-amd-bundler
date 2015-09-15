@@ -34,6 +34,7 @@ declare module 'aurelia-templating-binding' {
     bind(source: any): any;
     setValue(): any;
     partChanged(newValue: any, oldValue: any, connecting: any): any;
+    call(context: any, newValue: any, oldValue: any): any;
     connect(): any;
     interpolate(): any;
     unbind(): any;
