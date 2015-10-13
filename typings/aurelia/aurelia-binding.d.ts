@@ -2,7 +2,16 @@ declare module 'aurelia-binding' {
   import 'core-js';
   import { FEATURE, DOM }  from 'aurelia-pal';
   import { TaskQueue }  from 'aurelia-task-queue';
-  import { Decorators, Metadata }  from 'aurelia-metadata';
+  import { decorators, metadata }  from 'aurelia-metadata';
+  export interface Disposable {
+    dispose(): void;
+  }
+  export interface PropertyObserver {
+    subscribe(callback: ((newValue: any, oldValue: any) => void)): Disposable;
+  }
+  export interface CollectionObserver {
+    subscribe(callback: ((changeRecords: any) => void)): Disposable;
+  }
   export const sourceContext: any;
   export function connectable(): any;
   export function subscriberCollection(): any;
@@ -397,7 +406,7 @@ declare module 'aurelia-binding' {
   export class ValueConverterResource {
     constructor(name: any);
     static convention(name: any): any;
-    analyze(container: any, target: any): any;
+    initialize(container: any, target: any): any;
     register(registry: any, name: any): any;
     load(container: any, target: any): any;
   }
@@ -415,13 +424,19 @@ declare module 'aurelia-binding' {
     unbind(): any;
   }
   export class NameExpression {
-    constructor(name: any, mode: any);
+    constructor(property: any, apiName: any);
     createBinding(target: any): any;
+    static locateAPI(element: Element, apiName: string): Object;
   }
   class NameBinder {
-    constructor(property: any, target: any, mode: any);
+    constructor(property: any, target: any);
     bind(source: any): any;
     unbind(): any;
   }
-  export const bindingSystem: any;
+  export const bindingEngine: any;
+  class ExpressionObserver {
+    constructor(scope: any, expression: any);
+    subscribe(callback: any): any;
+    call(): any;
+  }
 }

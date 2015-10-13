@@ -1,5 +1,5 @@
 declare module 'aurelia-dependency-injection' {
-  import * as core from 'core-js';
+  import 'core-js';
   import { metadata, decorators }  from 'aurelia-metadata';
   import { AggregateError }  from 'aurelia-pal';
   

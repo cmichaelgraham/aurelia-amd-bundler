@@ -9,6 +9,5 @@ declare module 'aurelia-task-queue' {
     queueTask(task: Callable | Function): void;
     flushTaskQueue(): void;
     flushMicroTaskQueue(): void;
-    onError(error: Error, task: Callable | Function): void;
   }
 }

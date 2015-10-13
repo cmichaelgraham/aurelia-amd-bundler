@@ -26,6 +26,8 @@
   ],
   "dependencies": {
     "aurelia-path": "aurelia/path#latest",
+    "aurelia-pal": "aurelia/pal#latest",
+    "aurelia-pal-browser": "aurelia/pal-browser#latest",
     "aurelia-task-queue": "aurelia/task-queue#latest",
     "aurelia-logging": "aurelia/logging#latest",
     "aurelia-metadata": "aurelia/metadata#latest",
@@ -60,5 +62,16 @@
     "webcomponentsjs": "latest",
     "core-js": "zloirock/core-js#latest",
     "text": "requirejs/text"
+  },
+  "resolutions": {
+    "aurelia-path": "0.10.0",
+    "aurelia-task-queue": "0.8.0",
+    "aurelia-metadata": "0.9.0",
+    "aurelia-logging": "0.8.0",
+    "aurelia-binding": "0.10.0",
+    "aurelia-templating": "0.16.0",
+    "aurelia-dependency-injection": "0.11.0",
+    "aurelia-framework": "0.17.0",
+    "aurelia-loader": "0.10.0"
   }
 }

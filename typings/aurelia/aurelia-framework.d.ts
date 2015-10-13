@@ -1,12 +1,11 @@
 declare module 'aurelia-framework' {
   import 'core-js';
   import * as TheLogManager from 'aurelia-logging';
-  import { ViewEngine, BindingLanguage, ViewSlot, ViewResources, CompositionEngine, Animator }  from 'aurelia-templating';
+  import { ViewEngine, BindingLanguage, ViewSlot, ViewResources, CompositionEngine, Animator, templatingEngine }  from 'aurelia-templating';
   import { join }  from 'aurelia-path';
   import { Container }  from 'aurelia-dependency-injection';
   import { Loader }  from 'aurelia-loader';
   import { DOM, PLATFORM }  from 'aurelia-pal';
-  import { bindingSystem }  from 'aurelia-binding';
   
   /**
    * Manages configuring the aurelia framework instance.
@@ -177,5 +176,6 @@ declare module 'aurelia-framework' {
   export * from 'aurelia-loader';
   export * from 'aurelia-task-queue';
   export * from 'aurelia-path';
+  export * from 'aurelia-pal';
   export const LogManager: any;
 }

@@ -1,11 +1,11 @@
 declare module 'aurelia-templating' {
   import 'core-js';
   import * as LogManager from 'aurelia-logging';
-  import { Metadata, Origin, Decorators }  from 'aurelia-metadata';
+  import { metadata, Origin, decorators }  from 'aurelia-metadata';
   import { relativeToFile }  from 'aurelia-path';
   import { TemplateRegistryEntry, Loader }  from 'aurelia-loader';
   import { DOM, PLATFORM, FEATURE }  from 'aurelia-pal';
-  import { ValueConverter, Binding, ValueConverterResource, subscriberCollection, bindingMode, ObserverLocator, BindingExpression, EventManager }  from 'aurelia-binding';
+  import { ValueConverter, Binding, ValueConverterResource, subscriberCollection, bindingMode, ObserverLocator, BindingExpression, EventManager, bindingEngine }  from 'aurelia-binding';
   import { Container, inject }  from 'aurelia-dependency-injection';
   import { TaskQueue }  from 'aurelia-task-queue';
   export interface ViewCreateInstruction {
@@ -190,7 +190,7 @@ declare module 'aurelia-templating' {
     getValueConverter(name: string): ValueConverter;
   }
   export class View {
-    constructor(viewFactory: ViewFactory, container: Container, fragment: DocumentFragment, behaviors: BehaviorInstance[], bindings: Binding[], children: ViewNode[], systemControlled: boolean, contentSelectors: ContentSelector[]);
+    constructor(viewFactory: ViewFactory, container: Container, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], systemControlled: boolean, contentSelectors: ContentSelector[]);
     returnToCache(): void;
     created(): void;
     bind(bindingContext: Object, systemUpdate?: boolean): void;
@@ -250,16 +250,15 @@ declare module 'aurelia-templating' {
   }
   export class ResourceModule {
     constructor(moduleId: string);
-    analyze(container: Container): any;
+    initialize(container: Container): any;
     register(registry: ViewResources, name?: string): any;
     load(container: Container, loadContext?: ResourceLoadContext): Promise<void>;
   }
   export class ResourceDescription {
     constructor(key: string, exportedValue: any, resourceTypeMeta: Object);
-    analyze(container: Container): any;
-    register(registry: ViewResources, name?: string): any;
+    initialize(container: Container): void;
+    register(registry: ViewResources, name?: string): void;
     load(container: Container, loadContext?: ResourceLoadContext): Promise<void> | void;
-    static get(resource: any, key?: string): ResourceDescription;
   }
   export class ModuleAnalyzer {
     constructor();
@@ -284,9 +283,8 @@ declare module 'aurelia-templating' {
     importViewModelResource(moduleImport: string, moduleMember: string): Promise<ResourceDescription>;
     importViewResources(moduleIds: string[], names: string[], resources: ViewResources, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewResources>;
   }
-  export class BehaviorInstance {
-    constructor(behavior: any, bindingContext: any, instruction: any);
-    static createForUnitTest(type: any, attributes: any, bindingContext: any): any;
+  export class Controller {
+    constructor(behavior: any, model: any, instruction: any);
     created(context: any): any;
     bind(context: any): any;
     unbind(): any;
@@ -314,11 +312,11 @@ declare module 'aurelia-templating' {
     constructor();
     static convention(name: string, existing?: HtmlBehaviorResource): HtmlBehaviorResource;
     addChildBinding(behavior: BindingExpression): void;
-    analyze(container: Container, target: Function): void;
-    load(container: Container, target: Function, viewStrategy?: ViewStrategy, transientView?: boolean, loadContext?: ResourceLoadContext): Promise<HtmlBehaviorResource>;
+    initialize(container: Container, target: Function): void;
     register(registry: ViewResources, name?: string): void;
+    load(container: Container, target: Function, viewStrategy?: ViewStrategy, transientView?: boolean, loadContext?: ResourceLoadContext): Promise<HtmlBehaviorResource>;
     compile(compiler: ViewCompiler, resources: ViewResources, node: Node, instruction: BehaviorInstruction, parentNode?: Node): Node;
-    create(container: Container, instruction?: BehaviorInstruction, element?: Element, bindings?: Binding[]): BehaviorInstance;
+    create(container: Container, instruction?: BehaviorInstruction, element?: Element, bindings?: Binding[]): Controller;
     ensurePropertiesDefined(instance: Object, lookup: Object): any;
   }
   export class ChildObserver {
@@ -338,14 +336,15 @@ declare module 'aurelia-templating' {
     static inject: any;
     constructor(viewEngine: any);
     activate(instruction: any): any;
-    createBehaviorAndSwap(instruction: any): any;
-    createBehavior(instruction: any): any;
+    createControllerAndSwap(instruction: any): any;
+    createController(instruction: any): any;
     createViewModel(instruction: any): any;
     compose(instruction: any): any;
   }
   export class ElementConfigResource {
-    load(container: any, Target: any): any;
+    initialize(): any;
     register(): any;
+    load(container: any, Target: any): any;
   }
   export function resource(instance: any): any;
   export function behavior(override: any): any;
@@ -363,4 +362,5 @@ declare module 'aurelia-templating' {
   export function inlineView(markup: string, dependencies?: Array<string | Function | Object>, dependencyBaseUrl?: string): any;
   export function noView(target: any): any;
   export function elementConfig(target: any): any;
+  export const templatingEngine: any;
 }
