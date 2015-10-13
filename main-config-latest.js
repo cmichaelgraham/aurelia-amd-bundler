@@ -25,6 +25,8 @@ require.config({
     'aurelia-http-client': 'aurelia-latest/http-client/dist/amd/aurelia-http-client',
     'aurelia-fetch-client': 'aurelia-latest/fetch-client/dist/amd/aurelia-fetch-client',
     'aurelia-validation': 'aurelia-latest/validation/dist/amd/aurelia-validation',
+    'aurelia-pal': 'aurelia-latest/pal/dist/amd/aurelia-pal',
+    'aurelia-pal-browser': 'aurelia-latest/pal-browser/dist/amd/aurelia-pal-browser',
     'aurelia-animator-css': 'aurelia-latest/animator-css/dist/amd/aurelia-animator-css',
     'fetch': 'bower_components/fetch/fetch',
     'jsol': 'bower_components/jsol/jsol',

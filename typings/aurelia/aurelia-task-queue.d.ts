@@ -1,4 +1,5 @@
 declare module 'aurelia-task-queue' {
+  import { DOM }  from 'aurelia-pal';
   export interface Callable {
     call(): void;
   }

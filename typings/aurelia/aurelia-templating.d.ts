@@ -1,10 +1,11 @@
 declare module 'aurelia-templating' {
-  import * as core from 'core-js';
+  import 'core-js';
   import * as LogManager from 'aurelia-logging';
   import { Metadata, Origin, Decorators }  from 'aurelia-metadata';
   import { relativeToFile }  from 'aurelia-path';
   import { TemplateRegistryEntry, Loader }  from 'aurelia-loader';
-  import { ValueConverter, Binding, subscriberCollection, bindingMode, ObserverLocator, BindingExpression, ValueConverterResource, EventManager }  from 'aurelia-binding';
+  import { DOM, PLATFORM, FEATURE }  from 'aurelia-pal';
+  import { ValueConverter, Binding, ValueConverterResource, subscriberCollection, bindingMode, ObserverLocator, BindingExpression, EventManager }  from 'aurelia-binding';
   import { Container, inject }  from 'aurelia-dependency-injection';
   import { TaskQueue }  from 'aurelia-task-queue';
   export interface ViewCreateInstruction {
@@ -29,13 +30,6 @@ declare module 'aurelia-templating' {
     detached(): void;
     unbind(): void;
   }
-  export let DOMBoundary: any;
-  export let hasShadowDOM: any;
-  export function nextElementSibling(element: Node): Element;
-  export function createTemplateFromMarkup(markup: string): Element;
-  export function replaceNode(newNode: Node, node: Node, parentNode: Node): void;
-  export function removeNode(node: Node, parentNode: Node): void;
-  export function injectStyles(styles: string, destination?: Element, prepend?: boolean): any;
   export const animationEvent: any;
   export class Animator {
     static configureDefault(container: any, animatorInstance: any): any;
@@ -43,51 +37,51 @@ declare module 'aurelia-templating' {
     
     /**
        * Execute an 'enter' animation on an element
-       * 
+       *
        * @param element {HTMLElement}         Element to animate
-       * 
+       *
        * @returns {Promise}                   Resolved when the animation is done
        */
     enter(element: any): any;
     
     /**
        * Execute a 'leave' animation on an element
-       * 
+       *
        * @param element {HTMLElement}         Element to animate
-       * 
+       *
        * @returns {Promise}                   Resolved when the animation is done
        */
     leave(element: any): any;
     
     /**
        * Add a class to an element to trigger an animation.
-       * 
+       *
        * @param element {HTMLElement}         Element to animate
        * @param className {String}            Properties to animate or name of the effect to use
-       * 
+       *
        * @returns {Promise}                   Resolved when the animation is done
        */
     removeClass(element: any, className: any): any;
     
     /**
        * Add a class to an element to trigger an animation.
-       * 
+       *
        * @param element {HTMLElement}         Element to animate
        * @param className {String}            Properties to animate or name of the effect to use
-       * 
+       *
        * @returns {Promise}                   Resolved when the animation is done
        */
     addClass(element: any, className: any): any;
     
     /**
        * Execute a single animation.
-       * 
+       *
        * @param element {HTMLElement}         Element to animate
        * @param className {Object|String}    Properties to animate or name of the effect to use
-       *                                      For css animators this represents the className to 
+       *                                      For css animators this represents the className to
        *                                      be added and removed right after the animation is done
        * @param options {Object}              options for the animation (duration, easing, ...)
-       * 
+       *
        * @returns {Promise}                   Resolved when the animation is done
        */
     animate(element: any, className: any, options: any): any;
@@ -95,25 +89,25 @@ declare module 'aurelia-templating' {
     /**
        * Run a sequence of animations one after the other.
        * for example : animator.runSequence("fadeIn","callout")
-       * 
+       *
        * @param sequence {Array}          An array of effectNames or classNames
-       * 
+       *
        * @returns {Promise}               Resolved when all animations are done
        */
     runSequence(sequence: any): any;
     
     /**
        * Register an effect (for JS based animators)
-       * 
+       *
        * @param effectName {String}          name identifier of the effect
        * @param properties {Object}          Object with properties for the effect
-       * 
+       *
        */
     registerEffect(effectName: any, properties: any): any;
     
     /**
        * Unregister an effect (for JS based animators)
-       * 
+       *
        * @param effectName {String}          name identifier of the effect
        */
     unregisterEffect(effectName: any): any;
@@ -254,12 +248,34 @@ declare module 'aurelia-templating' {
     compileSurrogate(node: any, resources: any): any;
     compileElement(node: any, resources: any, instructions: any, parentNode: any, parentInjectorId: any, targetLightDOM: any): any;
   }
+  export class ResourceModule {
+    constructor(moduleId: string);
+    analyze(container: Container): any;
+    register(registry: ViewResources, name?: string): any;
+    load(container: Container, loadContext?: ResourceLoadContext): Promise<void>;
+  }
+  export class ResourceDescription {
+    constructor(key: string, exportedValue: any, resourceTypeMeta: Object);
+    analyze(container: Container): any;
+    register(registry: ViewResources, name?: string): any;
+    load(container: Container, loadContext?: ResourceLoadContext): Promise<void> | void;
+    static get(resource: any, key?: string): ResourceDescription;
+  }
+  export class ModuleAnalyzer {
+    constructor();
+    getAnalysis(moduleId: string): ResourceModule;
+    analyze(moduleId: string, moduleInstance: any, viewModelMember?: string): ResourceModule;
+  }
   class ProxyViewFactory {
     constructor(promise: any);
-    absorb(factory: any): any;
+    create(container: Container, bindingContext?: Object, createInstruction?: ViewCreateInstruction, element?: Element): View;
+    isCaching: any;
+    setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void;
+    getCachedView(): View;
+    returnViewToCache(view: View): void;
   }
   export class ViewEngine {
-    static inject(): any;
+    static inject: any;
     constructor(loader: Loader, container: Container, viewCompiler: ViewCompiler, moduleAnalyzer: ModuleAnalyzer, appResources: ViewResources);
     addResourcePlugin(extension: string, implementation: string): any;
     enhance(container: Container, element: Element, resources: ViewResources, bindingContext?: Object): View;
@@ -305,24 +321,6 @@ declare module 'aurelia-templating' {
     create(container: Container, instruction?: BehaviorInstruction, element?: Element, bindings?: Binding[]): BehaviorInstance;
     ensurePropertiesDefined(instance: Object, lookup: Object): any;
   }
-  export class ResourceModule {
-    constructor(moduleId: string);
-    analyze(container: Container): any;
-    register(registry: ViewResources, name?: string): any;
-    load(container: Container, loadContext?: ResourceLoadContext): Promise<void>;
-  }
-  export class ResourceDescription {
-    constructor(key: string, exportedValue: any, resourceTypeMeta: Object);
-    analyze(container: Container): any;
-    register(registry: ViewResources, name?: string): any;
-    load(container: Container, loadContext?: ResourceLoadContext): Promise<void> | void;
-    static get(resource: any, key?: string): ResourceDescription;
-  }
-  export class ModuleAnalyzer {
-    constructor();
-    getAnalysis(moduleId: string): ResourceModule;
-    analyze(moduleId: string, moduleInstance: any, viewModelMember?: string): ResourceModule;
-  }
   export class ChildObserver {
     constructor(config: any);
     create(target: any, behavior: any): any;
@@ -337,7 +335,7 @@ declare module 'aurelia-templating' {
     onChange(mutations: any): any;
   }
   export class CompositionEngine {
-    static inject(): any;
+    static inject: any;
     constructor(viewEngine: any);
     activate(instruction: any): any;
     createBehaviorAndSwap(instruction: any): any;
@@ -346,7 +344,7 @@ declare module 'aurelia-templating' {
     compose(instruction: any): any;
   }
   export class ElementConfigResource {
-    load(container: any, target: any): any;
+    load(container: any, Target: any): any;
     register(): any;
   }
   export function resource(instance: any): any;
@@ -358,9 +356,6 @@ declare module 'aurelia-templating' {
   export function dynamicOptions(target: any): any;
   export function sync(selectorOrConfig: any): any;
   export function useShadowDOM(target: any): any;
-  
-  // this is now deprecated in favor of the processContent decorator
-  export function skipContentProcessing(target: any): any;
   export function processContent(processor: any): any;
   export function containerless(target: any): any;
   export function viewStrategy(strategy: any): any;

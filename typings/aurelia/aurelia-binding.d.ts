@@ -1,26 +1,13 @@
 declare module 'aurelia-binding' {
-  import * as core from 'core-js';
+  import 'core-js';
+  import { FEATURE, DOM }  from 'aurelia-pal';
   import { TaskQueue }  from 'aurelia-task-queue';
-  import { All, Container }  from 'aurelia-dependency-injection';
   import { Decorators, Metadata }  from 'aurelia-metadata';
+  export const sourceContext: any;
+  export function connectable(): any;
   export function subscriberCollection(): any;
-  export class AccessKeyedObserver {
-    constructor(expression: any, scope: any, binding: any);
-    getValue(): any;
-    setValue(newValue: any): any;
-    subscribe(context: any, callable: any): any;
-    unsubscribe(context: any, callable: any): any;
-    subscribeMember(object: any, key: any): any;
-    unsubscribeMember(): any;
-    objectChanged(newValue: any, oldValue: any): any;
-    keyChanged(newValue: any, oldValue: any): any;
-    memberChanged(newValue: any, oldValue: any): any;
-    call(context: any, newValue: any, oldValue: any): any;
-  }
   export function calcSplices(current: any, currentStart: any, currentEnd: any, old: any, oldStart: any, oldEnd: any): any;
   export function projectArraySplices(array: any, changeRecords: any): any;
-  export var hasObjectObserve: any;
-  export var hasArrayObserve: any;
   export function getChangeRecords(map: any): any;
   export class ModifyCollectionObserver {
     constructor(taskQueue: any, collection: any);
@@ -51,51 +38,6 @@ declare module 'aurelia-binding' {
     getLengthObserver(): any;
     handleChanges(changeRecords: any): any;
   }
-  export class CompositeObserver {
-    constructor(expression: any, scope: any, binding: any);
-    getValue(): any;
-    subscribe(context: any, callable: any): any;
-    unsubscribe(context: any, callable: any): any;
-    addPrimary(expression: any): any;
-    addChild(expression: any, condition: any): any;
-    isObservable: any;
-    call(context: any): any;
-    connect(connect: any): any;
-  }
-  
-  //  ValueConverter
-  //  - Args
-  // 
-  //  Conditional
-  //  - Condition
-  //  - Yes
-  //  - No
-  //  - should not connect Yes if Condition is falsey
-  //  - should not connect No if Condition is truthy
-  // 
-  //  CallScope
-  //  - Name
-  //  - Args
-  //  - should not connect args if name is null/Undefined/not a function
-  // 
-  //  CallMember
-  //  - Instance
-  //  - Args
-  //  - should not connect args if instance is null/Undefined/not a function
-  // 
-  //  CallFunction
-  //  - Func
-  //  - Args
-  //  - should not connect args if instance is null/Undefined/not a function
-  // 
-  //  Binary
-  //  - Left
-  //  - Right
-  //  - should not connect Right if operator is && and Left is falsey
-  //  - should not connect Right if operator is || and Left is truthy
-  // 
-  //  PrefixNot
-  //  - expression
   export class Expression {
     constructor();
     evaluate(scope: any, valueConverters: any, args?: any): any;
@@ -153,6 +95,8 @@ declare module 'aurelia-binding' {
     accept(visitor: any): any;
     connect(binding: any, scope: any): any;
   }
+  
+  //  todo: consider adding `binding.observeProperty(scope, this.name);`
   export class CallMember extends Expression {
     constructor(object: any, name: any, args: any);
     evaluate(scope: any, valueConverters: any, args: any): any;
@@ -223,7 +167,7 @@ declare module 'aurelia-binding' {
     visitLiteralObject(literal: any): any;
     visitLiteralString(literal: any): any;
   }
-  export var bindingMode: any;
+  export const bindingMode: any;
   export class Token {
     constructor(index: any, text: any);
     withOp(op: any): any;
@@ -285,6 +229,7 @@ declare module 'aurelia-binding' {
     decrement(): any;
   }
   class DefaultEventStrategy {
+    delegatedHandlers: any;
     subscribe(target: any, targetEvent: any, callback: any, delegate: any): any;
   }
   export class EventManager {
@@ -335,7 +280,6 @@ declare module 'aurelia-binding' {
     subscriberAdded(): any;
     subscriberRemoved(propertyName: any, callback: any): any;
     getObserver(propertyName: any, descriptor: any): any;
-    handleChanges(changes: any): any;
   }
   export class XLinkAttributeObserver {
     
@@ -409,33 +353,34 @@ declare module 'aurelia-binding' {
   }
   export function hasDeclaredDependencies(descriptor: any): any;
   export function declarePropertyDependencies(ctor: any, propertyName: any, dependencies: any): any;
-  export var elements: any;
-  export var presentationElements: any;
-  export var presentationAttributes: any;
-  export function isStandardSvgAttribute(nodeName: any, attributeName: any): any;
+  export const elements: any;
+  export const presentationElements: any;
+  export const presentationAttributes: any;
+  export class SVGAnalyzer {
+    constructor();
+    isStandardSvgAttribute(nodeName: any, attributeName: any): any;
+  }
   export class ObserverLocator {
-    static inject(): any;
-    constructor(taskQueue: any, eventManager: any, dirtyChecker: any, observationAdapters: any);
+    static inject: any;
+    constructor(taskQueue: any, eventManager: any, dirtyChecker: any, svgAnalyzer: any);
     getObserver(obj: any, propertyName: any): any;
     getOrCreateObserversLookup(obj: any): any;
     createObserversLookup(obj: any): any;
-    getObservationAdapter(obj: any, propertyName: any, descriptor: any): any;
+    addAdapter(adapter: ObjectObservationAdapter): any;
+    getAdapterObserver(obj: any, propertyName: any, descriptor: any): any;
     createPropertyObserver(obj: any, propertyName: any): any;
     getArrayObserver(array: any): any;
     getMapObserver(map: any): any;
   }
   export class ObjectObservationAdapter {
-    handlesProperty(object: any, propertyName: any, descriptor: any): any;
     getObserver(object: any, propertyName: any, descriptor: any): any;
   }
   export class BindingExpression {
     constructor(observerLocator: any, targetProperty: any, sourceExpression: any, mode: any, valueConverterLookupFunction: any, attribute: any);
     createBinding(target: any): any;
-    static create(targetProperty: any, sourceExpression: any, mode?: any): any;
   }
   class Binding {
     constructor(observerLocator: any, sourceExpression: any, target: any, targetProperty: any, mode: any, valueConverterLookupFunction: any);
-    getObserver(obj: any, propertyName: any): any;
     call(context: any, newValue: any, oldValue: any): any;
     bind(source: any): any;
     unbind(): any;
@@ -478,4 +423,5 @@ declare module 'aurelia-binding' {
     bind(source: any): any;
     unbind(): any;
   }
+  export const bindingSystem: any;
 }

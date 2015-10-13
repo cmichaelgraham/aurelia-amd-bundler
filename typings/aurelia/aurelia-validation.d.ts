@@ -1,72 +1,11 @@
 declare module 'aurelia-validation' {
+  import { Metadata }  from 'aurelia-metadata';
   import { inject }  from 'aurelia-dependency-injection';
   import { customAttribute }  from 'aurelia-templating';
-  import { Metadata }  from 'aurelia-metadata';
   import { ObserverLocator }  from 'aurelia-binding';
-  export class ValidationResult {
-    constructor();
-    addProperty(name: any): any;
-    checkValidity(): any;
-    clear(): any;
-  }
-  export class ValidationResultProperty {
-    constructor(group: any);
-    clear(): any;
-    onValidate(onValidateCallback: any): any;
-    notifyObserversOfChange(): any;
-    setValidity(validationResponse: any, shouldBeDirty: any): any;
-  }
-  export class ValidationLocale {
-    constructor(defaults: any, data: any);
-    getValueFor(identifier: any, category: any): any;
-    setting(settingIdentifier: any): any;
-    translate(translationIdentifier: any, newValue: any, threshold: any): any;
-  }
-  class ValidationLocaleRepository {
-    constructor();
-    load(localeIdentifier: any, basePath: any): any;
-    addLocale(localeIdentifier: any, data: any): any;
-  }
-  export class ValidateCustomAttribute {
-    constructor(element: any);
-    valueChanged(newValue: any): any;
-    
-    // this is just to tell the real validation instance (higher in the DOM) the exact property-path to bind to
-    subscribeChangedHandlers(currentElement: any): any;
-    attached(): any;
-  }
-  export class ValidateCustomAttributeViewStrategyBase {
-    constructor();
-    getValidationProperty(validation: any, element: any): any;
-    prepareElement(validationProperty: any, element: any): any;
-    updateElement(validationProperty: any, element: any): any;
-  }
-  export class TWBootstrapViewStrategy extends ValidateCustomAttributeViewStrategyBase {
-    constructor(appendMessageToInput: any, appendMessageToLabel: any, helpBlockClass: any);
-    searchFormGroup(currentElement: any, currentDepth: any): any;
-    findLabels(formGroup: any, inputId: any): any;
-    findLabelsRecursively(currentElement: any, inputId: any, currentLabels: any, currentDepth: any): any;
-    appendMessageToElement(element: any, validationProperty: any): any;
-    appendUIVisuals(validationProperty: any, currentElement: any): any;
-    prepareElement(validationProperty: any, element: any): any;
-    updateElement(validationProperty: any, element: any): any;
-  }
-  export class ValidateCustomAttributeViewStrategy {
-  }
-  export class Utilities {
-    static getValue(val: any): any;
-    static isEmptyValue(val: any): any;
-  }
-  export class PathObserver {
-    constructor(observerLocator: any, subject: any, path: any);
-    
-    // TODO: this should be replaced with reuse of the Binding system
-    observeParts(propertyName: any): any;
-    observePart(part: any): any;
-    getObserver(): any;
-    getValue(): any;
-    subscribe(callback: any): any;
-    unsubscribe(): any;
+  export class Debouncer {
+    constructor(debounceTimeout: any);
+    debounce(func: any): any;
   }
   export class ValidationMetadata {
     static metadataKey: any;
@@ -80,9 +19,28 @@ declare module 'aurelia-validation' {
     setup(validation: any): any;
   }
   export function ensure(setupStep: any): any;
-  export class Debouncer {
-    constructor(debounceTimeout: any);
-    debounce(func: any): any;
+  export class PathObserver {
+    constructor(observerLocator: any, subject: any, path: any);
+    
+    // TODO: this should be replaced with reuse of the Binding system
+    observeParts(propertyName: any): any;
+    observePart(part: any): any;
+    getObserver(): any;
+    getValue(): any;
+    subscribe(callback: any): any;
+    unsubscribe(): any;
+  }
+  export class Utilities {
+    static getValue(val: any): any;
+    static isEmptyValue(val: any): any;
+  }
+  export class ValidateCustomAttribute {
+    constructor(element: any);
+    valueChanged(newValue: any): any;
+    
+    // this is just to tell the real validation instance (higher in the DOM) the exact property-path to bind to
+    subscribeChangedHandlers(currentElement: any): any;
+    attached(): any;
   }
   export class ValidationConfigDefaults {
   }
@@ -103,152 +61,6 @@ declare module 'aurelia-validation' {
     getViewStrategy(): any;
     treatAllPropertiesAsMandatory(): any;
     treatAllPropertiesAsOptional(): any;
-  }
-  export class ValidationRulesCollection {
-    constructor(config: any);
-    
-    /**
-       * Returns a promise that fulfils and resolves to simple result status object.
-       */
-    validate(newValue: any, locale: any): any;
-    addValidationRule(validationRule: any): any;
-    addValidationRuleCollection(validationRulesCollection: any): any;
-    isNotEmpty(): any;
-    canBeEmpty(): any;
-    withMessage(message: any): any;
-  }
-  export class SwitchCaseValidationRulesCollection {
-    constructor(conditionExpression: any, config: any);
-    case(caseLabel: any): any;
-    
-    // force creation
-    default(): any;
-    getCurrentCollection(caseLabel: any, createIfNotExists?: any): any;
-    validate(newValue: any, locale: any): any;
-    addValidationRule(validationRule: any): any;
-    addValidationRuleCollection(validationRulesCollection: any): any;
-    isNotEmpty(): any;
-    canBeEmpty(): any;
-    withMessage(message: any): any;
-  }
-  export class ValidationRule {
-    constructor(threshold: any, onValidate: any, message: any, ruleName: any);
-    withMessage(message: any): any;
-    explain(): any;
-    setResult(result: any, currentValue: any, locale: any): any;
-    
-    /**
-       * Validation rules: return a promise that fulfills and resolves to true/false
-       */
-    validate(currentValue: any, locale: any): any;
-  }
-  export class URLValidationRule extends ValidationRule {
-    
-    // https://github.com/chriso/validator.js/blob/master/LICENSE
-    static isIP(str: any, version: any): any;
-    static isFQDN(str: any, options: any): any;
-    
-    //  threshold here renamed to startingThreshold because linter was mad,
-    //   probably not the best name
-    constructor(startingThreshold: any);
-  }
-  export class EmailValidationRule extends ValidationRule {
-    
-    // https://github.com/chriso/validator.js/blob/master/LICENSE
-    static testEmailUserUtf8Regex(user: any): any;
-    static isFQDN(str: any): any;
-    constructor();
-  }
-  export class MinimumLengthValidationRule extends ValidationRule {
-    constructor(minimumLength: any);
-  }
-  export class MaximumLengthValidationRule extends ValidationRule {
-    constructor(maximumLength: any);
-  }
-  export class BetweenLengthValidationRule extends ValidationRule {
-    constructor(minimumLength: any, maximumLength: any);
-  }
-  export class CustomFunctionValidationRule extends ValidationRule {
-    constructor(customFunction: any, threshold: any);
-  }
-  export class NumericValidationRule extends ValidationRule {
-    constructor();
-  }
-  export class RegexValidationRule extends ValidationRule {
-    constructor(startingRegex: any, ruleName: any);
-  }
-  export class ContainsOnlyValidationRule extends RegexValidationRule {
-    constructor(regex: any);
-  }
-  export class MinimumValueValidationRule extends ValidationRule {
-    constructor(minimumValue: any);
-  }
-  export class MinimumInclusiveValueValidationRule extends ValidationRule {
-    constructor(minimumValue: any);
-  }
-  export class MaximumValueValidationRule extends ValidationRule {
-    constructor(maximumValue: any);
-  }
-  export class MaximumInclusiveValueValidationRule extends ValidationRule {
-    constructor(maximumValue: any);
-  }
-  export class BetweenValueValidationRule extends ValidationRule {
-    constructor(minimumValue: any, maximumValue: any);
-  }
-  export class DigitValidationRule extends ValidationRule {
-    constructor();
-  }
-  export class NoSpacesValidationRule extends ValidationRule {
-    constructor();
-  }
-  export class AlphaNumericValidationRule extends ValidationRule {
-    constructor();
-  }
-  export class AlphaValidationRule extends ValidationRule {
-    constructor();
-  }
-  export class AlphaOrWhitespaceValidationRule extends ValidationRule {
-    constructor();
-  }
-  export class AlphaNumericOrWhitespaceValidationRule extends ValidationRule {
-    constructor();
-  }
-  export class MediumPasswordValidationRule extends ValidationRule {
-    constructor(minimumComplexityLevel: any, ruleName: any);
-  }
-  export class StrongPasswordValidationRule extends MediumPasswordValidationRule {
-    constructor();
-  }
-  export class EqualityValidationRuleBase extends ValidationRule {
-    constructor(startingOtherValue: any, equality: any, otherValueLabel: any, ruleName: any);
-  }
-  export class EqualityValidationRule extends EqualityValidationRuleBase {
-    constructor(otherValue: any);
-  }
-  export class EqualityWithOtherLabelValidationRule extends EqualityValidationRuleBase {
-    constructor(otherValue: any, otherLabel: any);
-  }
-  export class InEqualityValidationRule extends EqualityValidationRuleBase {
-    constructor(otherValue: any);
-  }
-  export class InEqualityWithOtherLabelValidationRule extends EqualityValidationRuleBase {
-    constructor(otherValue: any, otherLabel: any);
-  }
-  export class InCollectionValidationRule extends ValidationRule {
-    constructor(startingCollection: any);
-  }
-  export class ValidationProperty {
-    constructor(observerLocator: any, propertyName: any, validationGroup: any, propertyResult: any, config: any);
-    addValidationRule(validationRule: any): any;
-    validateCurrentValue(forceDirty: any, forceExecution: any): any;
-    clear(): any;
-    destroy(): any;
-    
-    //  TODO: what else needs to be done for proper cleanup?
-    /**
-       * returns a promise that fulfils and resolves to true/false
-       */
-    validate(newValue: any, shouldBeDirty: any, forceExecution: any): any;
   }
   export class ValidationGroupBuilder {
     constructor(observerLocator: any, validationGroup: any);
@@ -554,6 +366,182 @@ declare module 'aurelia-validation' {
        */
     withMessage(message: any): any;
   }
+  export class ValidationLocale {
+    constructor(defaults: any, data: any);
+    getValueFor(identifier: any, category: any): any;
+    setting(settingIdentifier: any): any;
+    translate(translationIdentifier: any, newValue: any, threshold: any): any;
+  }
+  class ValidationLocaleRepository {
+    constructor();
+    load(localeIdentifier: any, basePath: any): any;
+    addLocale(localeIdentifier: any, data: any): any;
+  }
+  export class ValidationProperty {
+    constructor(observerLocator: any, propertyName: any, validationGroup: any, propertyResult: any, config: any);
+    addValidationRule(validationRule: any): any;
+    validateCurrentValue(forceDirty: any, forceExecution: any): any;
+    clear(): any;
+    destroy(): any;
+    
+    //  TODO: what else needs to be done for proper cleanup?
+    /**
+       * returns a promise that fulfils and resolves to true/false
+       */
+    validate(newValue: any, shouldBeDirty: any, forceExecution: any): any;
+  }
+  export class ValidationResult {
+    constructor();
+    addProperty(name: any): any;
+    checkValidity(): any;
+    clear(): any;
+  }
+  export class ValidationResultProperty {
+    constructor(group: any);
+    clear(): any;
+    onValidate(onValidateCallback: any): any;
+    notifyObserversOfChange(): any;
+    setValidity(validationResponse: any, shouldBeDirty: any): any;
+  }
+  export class ValidationRulesCollection {
+    constructor(config: any);
+    
+    /**
+       * Returns a promise that fulfils and resolves to simple result status object.
+       */
+    validate(newValue: any, locale: any): any;
+    addValidationRule(validationRule: any): any;
+    addValidationRuleCollection(validationRulesCollection: any): any;
+    isNotEmpty(): any;
+    canBeEmpty(): any;
+    withMessage(message: any): any;
+  }
+  export class SwitchCaseValidationRulesCollection {
+    constructor(conditionExpression: any, config: any);
+    case(caseLabel: any): any;
+    
+    // force creation
+    default(): any;
+    getCurrentCollection(caseLabel: any, createIfNotExists?: any): any;
+    validate(newValue: any, locale: any): any;
+    addValidationRule(validationRule: any): any;
+    addValidationRuleCollection(validationRulesCollection: any): any;
+    isNotEmpty(): any;
+    canBeEmpty(): any;
+    withMessage(message: any): any;
+  }
+  export class ValidationRule {
+    constructor(threshold: any, onValidate: any, message: any, ruleName: any);
+    withMessage(message: any): any;
+    explain(): any;
+    setResult(result: any, currentValue: any, locale: any): any;
+    
+    /**
+       * Validation rules: return a promise that fulfills and resolves to true/false
+       */
+    validate(currentValue: any, locale: any): any;
+  }
+  export class URLValidationRule extends ValidationRule {
+    
+    // https://github.com/chriso/validator.js/blob/master/LICENSE
+    static isIP(str: any, version: any): any;
+    static isFQDN(str: any, options: any): any;
+    
+    //  threshold here renamed to startingThreshold because linter was mad,
+    //   probably not the best name
+    constructor(startingThreshold: any);
+  }
+  export class EmailValidationRule extends ValidationRule {
+    
+    // https://github.com/chriso/validator.js/blob/master/LICENSE
+    static testEmailUserUtf8Regex(user: any): any;
+    static isFQDN(str: any): any;
+    constructor();
+  }
+  export class MinimumLengthValidationRule extends ValidationRule {
+    constructor(minimumLength: any);
+  }
+  export class MaximumLengthValidationRule extends ValidationRule {
+    constructor(maximumLength: any);
+  }
+  export class BetweenLengthValidationRule extends ValidationRule {
+    constructor(minimumLength: any, maximumLength: any);
+  }
+  export class CustomFunctionValidationRule extends ValidationRule {
+    constructor(customFunction: any, threshold: any);
+  }
+  export class NumericValidationRule extends ValidationRule {
+    constructor();
+  }
+  export class RegexValidationRule extends ValidationRule {
+    constructor(startingRegex: any, ruleName: any);
+  }
+  export class ContainsOnlyValidationRule extends RegexValidationRule {
+    constructor(regex: any);
+  }
+  export class MinimumValueValidationRule extends ValidationRule {
+    constructor(minimumValue: any);
+  }
+  export class MinimumInclusiveValueValidationRule extends ValidationRule {
+    constructor(minimumValue: any);
+  }
+  export class MaximumValueValidationRule extends ValidationRule {
+    constructor(maximumValue: any);
+  }
+  export class MaximumInclusiveValueValidationRule extends ValidationRule {
+    constructor(maximumValue: any);
+  }
+  export class BetweenValueValidationRule extends ValidationRule {
+    constructor(minimumValue: any, maximumValue: any);
+  }
+  export class DigitValidationRule extends ValidationRule {
+    constructor();
+  }
+  export class NoSpacesValidationRule extends ValidationRule {
+    constructor();
+  }
+  export class AlphaNumericValidationRule extends ValidationRule {
+    constructor();
+  }
+  export class AlphaValidationRule extends ValidationRule {
+    constructor();
+  }
+  export class AlphaOrWhitespaceValidationRule extends ValidationRule {
+    constructor();
+  }
+  export class AlphaNumericOrWhitespaceValidationRule extends ValidationRule {
+    constructor();
+  }
+  export class MediumPasswordValidationRule extends ValidationRule {
+    constructor(minimumComplexityLevel: any, ruleName: any);
+  }
+  export class StrongPasswordValidationRule extends MediumPasswordValidationRule {
+    constructor();
+  }
+  export class EqualityValidationRuleBase extends ValidationRule {
+    constructor(startingOtherValue: any, equality: any, otherValueLabel: any, ruleName: any);
+  }
+  export class EqualityValidationRule extends EqualityValidationRuleBase {
+    constructor(otherValue: any);
+  }
+  export class EqualityWithOtherLabelValidationRule extends EqualityValidationRuleBase {
+    constructor(otherValue: any, otherLabel: any);
+  }
+  export class InEqualityValidationRule extends EqualityValidationRuleBase {
+    constructor(otherValue: any);
+  }
+  export class InEqualityWithOtherLabelValidationRule extends EqualityValidationRuleBase {
+    constructor(otherValue: any, otherLabel: any);
+  }
+  export class InCollectionValidationRule extends ValidationRule {
+    constructor(startingCollection: any);
+  }
+  export class ValidationViewStrategy {
+    constructor();
+    getValidationProperty(validation: any, element: any): any;
+    prepareElement(validationProperty: any, element: any): any;
+    updateElement(validationProperty: any, element: any): any;
+  }
   export class Validation {
     
     /**
@@ -570,5 +558,17 @@ declare module 'aurelia-validation' {
        */
     on(subject: any, configCallback: any): any;
     onBreezeEntity(breezeEntity: any, configCallback: any): any;
+  }
+  export class TWBootstrapViewStrategyBase extends ValidationViewStrategy {
+    constructor(appendMessageToInput: any, appendMessageToLabel: any, helpBlockClass: any);
+    searchFormGroup(currentElement: any, currentDepth: any): any;
+    findLabels(formGroup: any, inputId: any): any;
+    findLabelsRecursively(currentElement: any, inputId: any, currentLabels: any, currentDepth: any): any;
+    appendMessageToElement(element: any, validationProperty: any): any;
+    appendUIVisuals(validationProperty: any, currentElement: any): any;
+    prepareElement(validationProperty: any, element: any): any;
+    updateElement(validationProperty: any, element: any): any;
+  }
+  export class TWBootstrapViewStrategy {
   }
 }
