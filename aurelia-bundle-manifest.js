@@ -1,13 +1,13 @@
 define("aurelia-bundle-manifest", [
   'aurelia-path',
-  'aurelia-dialog',
-  'aurelia-dialog/ai-dialog-body',
-  'text!aurelia-dialog/ai-dialog-body.html',
-  'aurelia-dialog/ai-dialog-footer',
-  'text!aurelia-dialog/ai-dialog-footer.html',
-  'aurelia-dialog/ai-dialog',
-  'text!aurelia-dialog/ai-dialog.html',
-  'text!aurelia-dialog/dialog.css',
+  // 'aurelia-dialog',
+  // 'aurelia-dialog/ai-dialog-body',
+  // 'text!aurelia-dialog/ai-dialog-body.html',
+  // 'aurelia-dialog/ai-dialog-footer',
+  // 'text!aurelia-dialog/ai-dialog-footer.html',
+  // 'aurelia-dialog/ai-dialog',
+  // 'text!aurelia-dialog/ai-dialog.html',
+  // 'text!aurelia-dialog/dialog.css',
   'aurelia-loader',
   'aurelia-loader-default',
   'aurelia-task-queue',
@@ -38,7 +38,6 @@ define("aurelia-bundle-manifest", [
   'gooy-aurelia-animator-velocity',
   'jsol',
   'velocity',
-  'core-js',
   'text'
   ], function(_path,
   _loader,
@@ -62,8 +61,7 @@ define("aurelia-bundle-manifest", [
   _http_client,
   _bootstrapper,
   _html_template_element,
-  _validation,
-  _core_js
+  _validation
 ){
     // alert(_dependency_injection.inject)
   });

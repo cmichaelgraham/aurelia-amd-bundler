@@ -20,7 +20,7 @@ require.config({
     'aurelia-dependency-injection': 'aurelia-latest/dependency-injection/dist/amd/aurelia-dependency-injection',
     'aurelia-router': 'aurelia-latest/router/dist/amd/aurelia-router',
     'aurelia-templating-binding': 'aurelia-latest/templating-binding/dist/amd/aurelia-templating-binding',
-    'aurelia-templating-router': 'aurelia-latest/templating-router/dist/amd/aurelia-templating-router',
+    //'aurelia-templating-router': 'aurelia-latest/templating-router/dist/amd/aurelia-templating-router',
     'aurelia-route-recognizer': 'aurelia-latest/route-recognizer/dist/amd/aurelia-route-recognizer',
     'aurelia-http-client': 'aurelia-latest/http-client/dist/amd/aurelia-http-client',
     'aurelia-fetch-client': 'aurelia-latest/fetch-client/dist/amd/aurelia-fetch-client',
@@ -64,5 +64,6 @@ require.config({
      location: 'aurelia-latest/aurelia-animator-velocity/dist/amd',
      main : 'index'
    },
-   { name: "core-js", location: "bower_components/core-js/client", main: "core.min" }  ]
+   { name: "core-js", location: "bower_components/core-js/client", main: "core" }
+   ]
 });

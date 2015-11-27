@@ -20,11 +20,14 @@ require.config({
     'aurelia-dependency-injection': 'bower_components/aurelia-dependency-injection/dist/amd/aurelia-dependency-injection',
     'aurelia-router': 'bower_components/aurelia-router/dist/amd/aurelia-router',
     'aurelia-templating-binding': 'bower_components/aurelia-templating-binding/dist/amd/aurelia-templating-binding',
+    //'aurelia-templating-router': 'bower_components/aurelia-templating-router/dist/amd/aurelia-templating-router',
     'aurelia-route-recognizer': 'bower_components/aurelia-route-recognizer/dist/amd/aurelia-route-recognizer',
     'aurelia-http-client': 'bower_components/aurelia-http-client/dist/amd/aurelia-http-client',
     'aurelia-fetch-client': 'bower_components/aurelia-fetch-client/dist/amd/aurelia-fetch-client',
     'aurelia-validation': 'bower_components/aurelia-validation/dist/amd/aurelia-validation',
     'aurelia-animator-css': 'bower_components/aurelia-animator-css/dist/amd/aurelia-animator-css',
+    'aurelia-pal': 'bower_components/aurelia-pal/dist/amd/aurelia-pal',
+    'aurelia-pal-browser': 'bower_components/aurelia-pal-browser/dist/amd/aurelia-pal-browser',
     'fetch': 'bower_components/fetch/fetch',
     'jsol': 'bower_components/jsol/jsol',
     'text': 'bower_components/text/text'
@@ -61,5 +64,6 @@ require.config({
      location: 'aurelia-latest/aurelia-animator-velocity/dist/amd',
      main : 'index'
    },
-    { name: "core-js", location: "bower_components/core-js/client", main: "core" }  ]
+    { name: "core-js", location: "bower_components/core-js/client", main: "core" }
+  ]
 });

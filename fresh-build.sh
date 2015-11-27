@@ -8,35 +8,35 @@ mkdir aurelia-latest
 
 cd aurelia-latest
 
-../clone-and-build.sh gooy aurelia-animator-velocity
-../clone-and-build.sh aurelia templating-resources
-../clone-and-build.sh aurelia loader
-../clone-and-build.sh aurelia loader-default
-../clone-and-build.sh aurelia path
-../clone-and-build.sh aurelia task-queue
-../clone-and-build.sh aurelia logging
-../clone-and-build.sh aurelia logging-console
-../clone-and-build.sh aurelia history
-../clone-and-build.sh aurelia history-browser
-../clone-and-build.sh aurelia event-aggregator
-../clone-and-build.sh aurelia framework
-../clone-and-build.sh aurelia metadata
-../clone-and-build.sh aurelia binding
-../clone-and-build.sh aurelia dialog
-../clone-and-build.sh aurelia dependency-injection
-../clone-and-build.sh aurelia router
-../clone-and-build.sh aurelia templating-binding
-../clone-and-build.sh aurelia templating-router
-../clone-and-build.sh aurelia route-recognizer
-../clone-and-build.sh aurelia http-client
-../clone-and-build.sh aurelia fetch-client
-../clone-and-build.sh aurelia bootstrapper
-../clone-and-build.sh aurelia html-template-element
-../clone-and-build.sh aurelia templating
-../clone-and-build.sh aurelia validation
-../clone-and-build.sh aurelia animator-css
-../clone-and-build.sh aurelia pal
-../clone-and-build.sh aurelia pal-browser
+../fresh-build-clone-and-build.sh gooy aurelia-animator-velocity
+../fresh-build-clone-and-build.sh aurelia templating-resources
+../fresh-build-clone-and-build.sh aurelia loader
+../fresh-build-clone-and-build.sh aurelia loader-default
+../fresh-build-clone-and-build.sh aurelia path
+../fresh-build-clone-and-build.sh aurelia task-queue
+../fresh-build-clone-and-build.sh aurelia logging
+../fresh-build-clone-and-build.sh aurelia logging-console
+../fresh-build-clone-and-build.sh aurelia history
+../fresh-build-clone-and-build.sh aurelia history-browser
+../fresh-build-clone-and-build.sh aurelia event-aggregator
+../fresh-build-clone-and-build.sh aurelia framework
+../fresh-build-clone-and-build.sh aurelia metadata
+../fresh-build-clone-and-build.sh aurelia binding
+../fresh-build-clone-and-build.sh aurelia dialog
+../fresh-build-clone-and-build.sh aurelia dependency-injection
+../fresh-build-clone-and-build.sh aurelia router
+../fresh-build-clone-and-build.sh aurelia templating-binding
+../fresh-build-clone-and-build.sh aurelia templating-router
+../fresh-build-clone-and-build.sh aurelia route-recognizer
+../fresh-build-clone-and-build.sh aurelia http-client
+../fresh-build-clone-and-build.sh aurelia fetch-client
+../fresh-build-clone-and-build.sh aurelia bootstrapper
+../fresh-build-clone-and-build.sh aurelia html-template-element
+../fresh-build-clone-and-build.sh aurelia templating
+../fresh-build-clone-and-build.sh aurelia validation
+../fresh-build-clone-and-build.sh aurelia animator-css
+../fresh-build-clone-and-build.sh aurelia pal
+../fresh-build-clone-and-build.sh aurelia pal-browser
 
 cd ..
 

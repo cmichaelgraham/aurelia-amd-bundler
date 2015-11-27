@@ -4,6 +4,10 @@
 cp scripts/aurelia/* ../aurelia-typescript/skel-nav-esri-vs-ts/skel-nav-esri-vs-ts/scripts/aurelia
 cp -r typings ../aurelia-typescript/skel-nav-esri-vs-ts/skel-nav-esri-vs-ts
 
+# get-started-esri-vs-ts
+cp scripts/aurelia/* ../aurelia-typescript/get-started-esri-vs-ts/get-started-esri-vs-ts/scripts/aurelia
+cp -r typings ../aurelia-typescript/get-started-esri-vs-ts/get-started-esri-vs-ts
+
 # skel-nav-require-vs-ts
 cp scripts/aurelia/* ../aurelia-typescript/skel-nav-require-vs-ts/skel-nav-require-vs-ts/scripts/aurelia
 cp -r typings ../aurelia-typescript/skel-nav-require-vs-ts/skel-nav-require-vs-ts

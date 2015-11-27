@@ -1,5 +1,5 @@
 declare module 'aurelia-validation' {
-  import { Metadata }  from 'aurelia-metadata';
+  import { metadata }  from 'aurelia-metadata';
   import { inject }  from 'aurelia-dependency-injection';
   import { customAttribute }  from 'aurelia-templating';
   import { ObserverLocator }  from 'aurelia-binding';
@@ -542,6 +542,12 @@ declare module 'aurelia-validation' {
     prepareElement(validationProperty: any, element: any): any;
     updateElement(validationProperty: any, element: any): any;
   }
+  
+  /**
+   * A lightweight validation plugin
+   * @class Validation
+   * @constructor
+   */
   export class Validation {
     
     /**
