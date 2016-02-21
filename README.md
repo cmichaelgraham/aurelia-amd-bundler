@@ -11,8 +11,8 @@
 2. open `git bash shell`
 2. run ``
 3. bundle
-* if you are doing a fresh build: run `./fresh-build.sh`
-* if you are updating the bundle: run `./update-build.sh`
+  1. if you are doing a fresh build: run `./fresh-build.sh`
+  2. if you are updating the bundle: run `./update-build.sh`
 4. install [node](https://nodejs.org/)
 3. install bower (run `npm install -g bower`)
 
