@@ -6,8 +6,14 @@
 
 ## steps to bundle
 
-1. open `git bash shell`
-2. install [node](https://nodejs.org/)
+1. if you've run before and you want a fresh build of the latest aurelia bits, remove the `` folder
+2. remove the `bower_components` folder
+2. open `git bash shell`
+2. run ``
+3. bundle
+* if you are doing a fresh build: run `./fresh-build.sh`
+* if you are updating the bundle: run `./update-build.sh`
+4. install [node](https://nodejs.org/)
 3. install bower (run `npm install -g bower`)
 
 
