@@ -1,12 +1,12 @@
 declare module 'aurelia-templating-resources' {
   import * as LogManager from 'aurelia-logging';
-  import { bindingMode, EventManager, sourceContext, createOverrideContext, BindingBehavior, ValueConverter, valueConverter, ObserverLocator }  from 'aurelia-binding';
-  import { ViewResources, resource, ViewCompileInstruction, useView, customElement, bindable, customAttribute, TargetInstruction, BoundViewFactory, ViewSlot, templateController, Animator, CompositionEngine, noView, ViewEngine }  from 'aurelia-templating';
-  import { Loader }  from 'aurelia-loader';
-  import { Container, inject }  from 'aurelia-dependency-injection';
-  import { relativeToFile }  from 'aurelia-path';
+  import { inject, Container }  from 'aurelia-dependency-injection';
+  import { BoundViewFactory, ViewSlot, customAttribute, templateController, Animator, useView, customElement, bindable, ViewResources, resource, ViewCompileInstruction, CompositionEngine, noView, View, TargetInstruction, ViewEngine }  from 'aurelia-templating';
+  import { createOverrideContext, bindingMode, EventManager, BindingBehavior, ValueConverter, sourceContext, mergeSplice, valueConverter, ObserverLocator }  from 'aurelia-binding';
   import { DOM, FEATURE }  from 'aurelia-pal';
   import { TaskQueue }  from 'aurelia-task-queue';
+  import { Loader }  from 'aurelia-loader';
+  import { relativeToFile }  from 'aurelia-path';
   
   /**
   * A strategy is for repeating a template over an iterable or iterable-like object.
@@ -18,67 +18,34 @@ declare module 'aurelia-templating-resources' {
   }
   
   /**
-  * A strategy for repeating a template over null or undefined (does nothing)
+  * Creates a binding context for decandant elements to bind to.
   */
-  export class NullRepeatStrategy {
-    instanceChanged(repeat: any, items: any): any;
-    getCollectionObserver(observerLocator: any, items: any): any;
-  }
-  export class UpdateTriggerBindingBehavior {
-    static inject: any;
-    constructor(eventManager: any);
-    bind(binding: any, source: any, ...events: any[]): any;
-    unbind(binding: any, source: any): any;
-  }
-  export class BindingSignaler {
-    signals: any;
-    signal(name: string): void;
-  }
-  export class DebounceBindingBehavior {
-    bind(binding: any, source: any, delay?: any): any;
-    
-    //  should not delay initial target update that occurs during bind.
-    unbind(binding: any, source: any): any;
-  }
-  export class ThrottleBindingBehavior {
-    bind(binding: any, source: any, delay?: any): any;
-    unbind(binding: any, source: any): any;
-  }
-  class ModeBindingBehavior {
-    constructor(mode: any);
-    bind(binding: any, source: any, lookupFunctions: any): any;
-    unbind(binding: any, source: any): any;
-  }
-  export class OneTimeBindingBehavior extends ModeBindingBehavior {
-    constructor();
-  }
-  export class OneWayBindingBehavior extends ModeBindingBehavior {
-    constructor();
-  }
-  export class TwoWayBindingBehavior extends ModeBindingBehavior {
-    constructor();
-  }
-  
-  /**
-  * Default Html Sanitizer to prevent script injection.
-  */
-  export class HTMLSanitizer {
+  export class With {
     
     /**
-      * Sanitizes the provided input.
-      * @param input The input to be sanitized.
+      * Creates an instance of With.
+      * @param viewFactory The factory generating the view.
+      * @param viewSlot The slot the view is injected in to.
       */
-    sanitize(input: any): any;
-  }
-  class CSSResource {
-    constructor(address: string);
-    initialize(container: Container, target: Function): void;
-    register(registry: ViewResources, name?: string): void;
-    load(container: Container): Promise<CSSResource>;
-  }
-  class CSSViewEngineHooks {
-    constructor(mode: string);
-    beforeCompile(content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction): void;
+    constructor(viewFactory: any, viewSlot: any);
+    
+    /**
+      * Binds the With with provided binding context and override context.
+      * @param bindingContext The binding context.
+      * @param overrideContext An override context for binding.
+      */
+    bind(bindingContext: any, overrideContext: any): any;
+    
+    /**
+      * Invoked everytime the bound value changes.
+      * @param newValue The new value.
+      */
+    valueChanged(newValue: any): any;
+    
+    /**
+      * Unbinds With
+      */
+    unbind(): any;
   }
   
   /**
@@ -120,73 +87,15 @@ declare module 'aurelia-templating-resources' {
       */
     unbind(): any;
   }
-  
-  /**
-  * Attribute to be placed on any element to have it emit the View Compiler's
-  * TargetInstruction into the debug console, giving you insight into all the
-  * parsed bindings, behaviors and event handers for the targeted element.
-  */
-  export class CompileSpy {
-    
-    /**
-      * Creates and instanse of CompileSpy.
-      * @param element target element on where attribute is placed on.
-      * @param instruction instructions for how the target element should be enhanced.
-      */
-    constructor(element: any, instruction: any);
+  export class UpdateTriggerBindingBehavior {
+    static inject: any;
+    constructor(eventManager: any);
+    bind(binding: any, source: any, ...events: any[]): any;
+    unbind(binding: any, source: any): any;
   }
-  
-  /**
-  * CustomAttribute that binds provided DOM element's focus attribute with a property on the viewmodel.
-  */
-  export class Focus {
-    
-    /**
-      * Creates an instance of Focus.
-      * @paramelement Target element on where attribute is placed on.
-      * @param taskQueue The TaskQueue instance.
-      */
-    constructor(element: any, taskQueue: any);
-    
-    /**
-      * Invoked everytime the bound value changes.
-      * @param newValue The new value.
-      */
-    valueChanged(newValue: any): any;
-    
-    /**
-      * Invoked when the attribute is attached to the DOM.
-      */
-    attached(): any;
-    
-    /**
-      * Invoked when the attribute is detached from the DOM.
-      */
-    detached(): any;
-  }
-  
-  /**
-  * Marks any part of a view to be replacable by the consumer.
-  */
-  export class Replaceable {
-    
-    /**
-      * @param viewFactory target The factory generating the view.
-      * @param viewSlot viewSlot The slot the view is injected in to.
-      */
-    constructor(viewFactory: any, viewSlot: any);
-    
-    /**
-      * Binds the replaceable to the binding context and override context.
-      * @param bindingContext The binding context.
-      * @param overrideContext An override context for binding.
-      */
-    bind(bindingContext: any, overrideContext: any): any;
-    
-    /**
-      * Unbinds the replaceable.
-      */
-    unbind(): any;
+  export class ThrottleBindingBehavior {
+    bind(binding: any, source: any, delay?: any): any;
+    unbind(binding: any, source: any): any;
   }
   
   /**
@@ -215,121 +124,27 @@ declare module 'aurelia-templating-resources' {
   }
   
   /**
-  * Creates a binding context for decandant elements to bind to.
+  * Marks any part of a view to be replacable by the consumer.
   */
-  export class With {
+  export class Replaceable {
     
     /**
-      * Creates an instance of With.
-      * @param viewFactory The factory generating the view.
-      * @param viewSlot The slot the view is injected in to.
+      * @param viewFactory target The factory generating the view.
+      * @param viewSlot viewSlot The slot the view is injected in to.
       */
     constructor(viewFactory: any, viewSlot: any);
     
     /**
-      * Binds the With with provided binding context and override context.
+      * Binds the replaceable to the binding context and override context.
       * @param bindingContext The binding context.
       * @param overrideContext An override context for binding.
       */
     bind(bindingContext: any, overrideContext: any): any;
     
     /**
-      * Invoked everytime the bound value changes.
-      * @param newValue The new value.
-      */
-    valueChanged(newValue: any): any;
-    
-    /**
-      * Unbinds With
+      * Unbinds the replaceable.
       */
     unbind(): any;
-  }
-  
-  /**
-  * Binding to conditionally include or not include template logic depending on returned result
-  * - value should be Boolean or will be treated as such (truthy / falsey)
-  */
-  export class If {
-    
-    /**
-      * Creates an instance of If.
-      * @param {BoundViewFactory} viewFactory The factory generating the view
-      * @param {ViewSlot} viewSlot The slot the view is injected in to
-      * @param {TaskQueue} taskQueue
-      */
-    constructor(viewFactory: any, viewSlot: any, taskQueue: any);
-    
-    /**
-      * Binds the if to the binding context and override context
-      * @param bindingContext The binding context
-      * @param overrideContext An override context for binding.
-      */
-    bind(bindingContext: any, overrideContext: any): any;
-    
-    /**
-      * Invoked everytime value property changes.
-      * @param newValue The new value
-      */
-    valueChanged(newValue: any): any;
-    
-    /**
-      * Unbinds the if
-      */
-    unbind(): any;
-  }
-  
-  /**
-  * Used to compose a new view / view-model template or bind to an existing instance.
-  */
-  export class Compose {
-    model: any;
-    view: any;
-    viewModel: any;
-    
-    /**
-      * Creates an instance of Compose.
-      * @param element The Compose element.
-      * @param container The dependency injection container instance.
-      * @param compositionEngine CompositionEngine instance to compose the element.
-      * @param viewSlot The slot the view is injected in to.
-      * @param viewResources Collection of resources used to compile the the view.
-      * @param taskQueue The TaskQueue instance.
-      */
-    constructor(element: any, container: any, compositionEngine: any, viewSlot: any, viewResources: any, taskQueue: any);
-    
-    /**
-      * Used to set the bindingContext.
-      *
-      * @param {bindingContext} bindingContext The context in which the view model is executed in.
-      * @param {overrideContext} overrideContext The context in which the view model is executed in.
-      */
-    bind(bindingContext: any, overrideContext: any): any;
-    
-    /**
-      * Unbinds the Compose.
-      */
-    unbind(bindingContext: any, overrideContext: any): any;
-    
-    /**
-      * Invoked everytime the bound model changes.
-      * @param newValue The new value.
-      * @param oldValue The old value.
-      */
-    modelChanged(newValue: any, oldValue: any): any;
-    
-    /**
-      * Invoked everytime the bound view changes.
-      * @param newValue The new value.
-      * @param oldValue The old value.
-      */
-    viewChanged(newValue: any, oldValue: any): any;
-    
-    /**
-        * Invoked everytime the bound view model changes.
-        * @param newValue The new value.
-        * @param oldValue The old value.
-        */
-    viewModelChanged(newValue: any, oldValue: any): any;
   }
   
   /**
@@ -369,31 +184,235 @@ declare module 'aurelia-templating-resources' {
   * Returns whether an expression has the OneTimeBindingBehavior applied.
   */
   export function isOneTime(expression: any): any;
-  export class SignalBindingBehavior {
-    static inject(): any;
-    signals: any;
-    constructor(bindingSignaler: any);
-    bind(binding: any, source: any, name: any): any;
-    unbind(binding: any, source: any): any;
+  
+  /**
+  * Forces a binding instance to reevaluate.
+  */
+  export function updateOneTimeBinding(binding: any): any;
+  
+  /**
+  * A strategy for repeating a template over null or undefined (does nothing)
+  */
+  export class NullRepeatStrategy {
+    instanceChanged(repeat: any, items: any): any;
+    getCollectionObserver(observerLocator: any, items: any): any;
   }
   
   /**
-  * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
+  * Binding to conditionally include or not include template logic depending on returned result
+  * - value should be Boolean or will be treated as such (truthy / falsey)
   */
-  export class SanitizeHTMLValueConverter {
+  export class If {
     
     /**
-       * Creates an instanse of the value converter.
-       * @param sanitizer The html sanitizer.
-       */
-    constructor(sanitizer: any);
-    
-    /**
-      * Process the provided markup that flows to the view.
-      * @param untrustedMarkup The untrusted markup to be sanitized.
+      * Creates an instance of If.
+      * @param {BoundViewFactory} viewFactory The factory generating the view
+      * @param {ViewSlot} viewSlot The slot the view is injected in to
+      * @param {TaskQueue} taskQueue
       */
-    toView(untrustedMarkup: any): any;
+    constructor(viewFactory: any, viewSlot: any, taskQueue: any);
+    
+    /**
+      * Binds the if to the binding context and override context
+      * @param bindingContext The binding context
+      * @param overrideContext An override context for binding.
+      */
+    bind(bindingContext: any, overrideContext: any): any;
+    
+    /**
+      * Invoked everytime value property changes.
+      * @param newValue The new value
+      */
+    valueChanged(newValue: any): any;
+    
+    /**
+      * Unbinds the if
+      */
+    unbind(): any;
   }
+  
+  /**
+  * Default Html Sanitizer to prevent script injection.
+  */
+  export class HTMLSanitizer {
+    
+    /**
+      * Sanitizes the provided input.
+      * @param input The input to be sanitized.
+      */
+    sanitize(input: any): any;
+  }
+  
+  /**
+  * Binding to conditionally show markup in the DOM based on the value.
+  * - different from "if" in that the markup is still added to the DOM, simply not shown.
+  */
+  export class Hide {
+    
+    /**
+      * Creates a new instance of Hide.
+      * @param element Target element to conditionally hide.
+      * @param animator The animator that conditionally adds or removes the aurelia-hide css class.
+      */
+    constructor(element: any, animator: any);
+    
+    /**
+      * Invoked everytime the bound value changes.
+      * @param newValue The new value.
+      */
+    valueChanged(newValue: any): any;
+    
+    /**
+      * Binds the Hide attribute.
+      */
+    bind(bindingContext: any): any;
+  }
+  
+  /**
+  * CustomAttribute that binds provided DOM element's focus attribute with a property on the viewmodel.
+  */
+  export class Focus {
+    
+    /**
+      * Creates an instance of Focus.
+      * @paramelement Target element on where attribute is placed on.
+      * @param taskQueue The TaskQueue instance.
+      */
+    constructor(element: any, taskQueue: any);
+    
+    /**
+      * Invoked everytime the bound value changes.
+      * @param newValue The new value.
+      */
+    valueChanged(newValue: any): any;
+    
+    /**
+      * Invoked when the attribute is attached to the DOM.
+      */
+    attached(): any;
+    
+    /**
+      * Invoked when the attribute is detached from the DOM.
+      */
+    detached(): any;
+  }
+  export class DebounceBindingBehavior {
+    bind(binding: any, source: any, delay?: any): any;
+    
+    //  should not delay initial target update that occurs during bind.
+    unbind(binding: any, source: any): any;
+  }
+  class CSSResource {
+    constructor(address: string);
+    initialize(container: Container, target: Function): void;
+    register(registry: ViewResources, name?: string): void;
+    load(container: Container): Promise<CSSResource>;
+  }
+  class CSSViewEngineHooks {
+    constructor(mode: string);
+    beforeCompile(content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction): void;
+  }
+  
+  /**
+  * Used to compose a new view / view-model template or bind to an existing instance.
+  */
+  export class Compose {
+    model: any;
+    view: any;
+    viewModel: any;
+    
+    /**
+      * Creates an instance of Compose.
+      * @param element The Compose element.
+      * @param container The dependency injection container instance.
+      * @param compositionEngine CompositionEngine instance to compose the element.
+      * @param viewSlot The slot the view is injected in to.
+      * @param viewResources Collection of resources used to compile the the view.
+      * @param taskQueue The TaskQueue instance.
+      */
+    constructor(element: any, container: any, compositionEngine: any, viewSlot: any, viewResources: any, taskQueue: any);
+    
+    /**
+      * Invoked when the component has been created.
+      *
+      * @param owningView The view that this component was created inside of.
+      */
+    created(owningView: View): any;
+    
+    /**
+      * Used to set the bindingContext.
+      *
+      * @param bindingContext The context in which the view model is executed in.
+      * @param overrideContext The context in which the view model is executed in.
+      */
+    bind(bindingContext: any, overrideContext: any): any;
+    
+    /**
+      * Unbinds the Compose.
+      */
+    unbind(bindingContext: any, overrideContext: any): any;
+    
+    /**
+      * Invoked everytime the bound model changes.
+      * @param newValue The new value.
+      * @param oldValue The old value.
+      */
+    modelChanged(newValue: any, oldValue: any): any;
+    
+    /**
+      * Invoked everytime the bound view changes.
+      * @param newValue The new value.
+      * @param oldValue The old value.
+      */
+    viewChanged(newValue: any, oldValue: any): any;
+    
+    /**
+        * Invoked everytime the bound view model changes.
+        * @param newValue The new value.
+        * @param oldValue The old value.
+        */
+    viewModelChanged(newValue: any, oldValue: any): any;
+  }
+  
+  /**
+  * Attribute to be placed on any element to have it emit the View Compiler's
+  * TargetInstruction into the debug console, giving you insight into all the
+  * parsed bindings, behaviors and event handers for the targeted element.
+  */
+  export class CompileSpy {
+    
+    /**
+      * Creates and instanse of CompileSpy.
+      * @param element target element on where attribute is placed on.
+      * @param instruction instructions for how the target element should be enhanced.
+      */
+    constructor(element: any, instruction: any);
+  }
+  export class BindingSignaler {
+    signals: any;
+    signal(name: string): void;
+  }
+  class ModeBindingBehavior {
+    constructor(mode: any);
+    bind(binding: any, source: any, lookupFunctions: any): any;
+    unbind(binding: any, source: any): any;
+  }
+  export class OneTimeBindingBehavior extends ModeBindingBehavior {
+    constructor();
+  }
+  export class OneWayBindingBehavior extends ModeBindingBehavior {
+    constructor();
+  }
+  export class TwoWayBindingBehavior extends ModeBindingBehavior {
+    constructor();
+  }
+  
+  /**
+  * Behaviors that do not require the composition lifecycle callbacks when replacing
+  * their binding context.
+  */
+  export const lifecycleOptionalBehaviors: any;
+  export function viewsRequireLifecycle(viewFactory: any): any;
   
   /**
   * A strategy for repeating a template over an array.
@@ -401,19 +420,22 @@ declare module 'aurelia-templating-resources' {
   export class ArrayRepeatStrategy {
     
     /**
-      * Process the provided array items.
-      * @param items The underlying array.
-      */
-    instanceChanged(repeat: any, items: any): any;
-    
-    /**
-      * Gets an Array observer.
+      * Gets an observer for the specified collection.
+      * @param observerLocator The observer locator instance.
       * @param items The items to be observed.
       */
     getCollectionObserver(observerLocator: any, items: any): any;
     
     /**
-      * Handles changes to the underlying array.
+      * Handle the repeat's collection instance changing.
+      * @param repeat The repeater instance.
+      * @param items The new array instance.
+      */
+    instanceChanged(repeat: any, items: any): any;
+    
+    /**
+      * Handle the repeat's collection instance mutating.
+      * @param repeat The repeat instance.
       * @param array The modified array.
       * @param splices Records of array changes.
       */
@@ -460,6 +482,56 @@ declare module 'aurelia-templating-resources' {
       * @param value The Number of how many time to iterate.
       */
     instanceChanged(repeat: any, value: any): any;
+  }
+  
+  /**
+  * A strategy for repeating a template over a Set.
+  */
+  export class SetRepeatStrategy {
+    
+    /**
+      * Gets a Set observer.
+      * @param items The items to be observed.
+      */
+    getCollectionObserver(observerLocator: any, items: any): any;
+    
+    /**
+      * Process the provided Set entries.
+      * @param items The entries to process.
+      */
+    instanceChanged(repeat: any, items: any): any;
+    
+    /**
+      * Handle changes in a Set collection.
+      * @param map The underlying Set collection.
+      * @param records The change records.
+      */
+    instanceMutated(repeat: any, set: any, records: any): any;
+  }
+  
+  /**
+  * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
+  */
+  export class SanitizeHTMLValueConverter {
+    
+    /**
+       * Creates an instanse of the value converter.
+       * @param sanitizer The html sanitizer.
+       */
+    constructor(sanitizer: any);
+    
+    /**
+      * Process the provided markup that flows to the view.
+      * @param untrustedMarkup The untrusted markup to be sanitized.
+      */
+    toView(untrustedMarkup: any): any;
+  }
+  export class SignalBindingBehavior {
+    static inject(): any;
+    signals: any;
+    constructor(bindingSignaler: any);
+    bind(binding: any, source: any, name: any): any;
+    unbind(binding: any, source: any): any;
   }
   
   /**
@@ -518,7 +590,6 @@ declare module 'aurelia-templating-resources' {
       * Unbinds the repeat
       */
     unbind(): any;
-    processItemsByStrategy(): any;
     
     /**
       * Invoked everytime the item property changes.

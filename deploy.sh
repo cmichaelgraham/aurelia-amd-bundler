@@ -24,6 +24,14 @@ cp -r typings ../aurelia-typescript/pwkad-aurelia-samples/pwkad-aurelia-samples
 cp scripts/aurelia/* ../aurelia-typescript/code-sandbox/code-sandbox/scripts/aurelia
 cp -r typings ../aurelia-typescript/code-sandbox/code-sandbox
 
+# nwind-breeze-bootstrap
+cp scripts/aurelia/* ../aurelia-typescript/nwind-breeze-bootstrap/nwind-breeze-bootstrap/scripts/aurelia
+cp -r typings ../aurelia-typescript/nwind-breeze-bootstrap/nwind-breeze-bootstrap
+
+# skel-nav-atom
+cp scripts/aurelia/* ../aurelia-typescript/skel-nav-esri-atom/scripts/aurelia
+cp -r typings ../aurelia-typescript/skel-nav-esri-atom
+
 
 # multi-level-menu
 cp scripts/aurelia/* ../aurelia-typescript/multi-level-menu/multi-level-menu/scripts/aurelia
@@ -56,6 +64,12 @@ cp -r typings ../aurelia-typescript/skel-nav-esri-vs-ts-telerik/skel-nav-esri-vs
 # skel-nav-ts
 cp scripts/aurelia/* ../aurelia-typescript-atom/skel-nav-ts/scripts/aurelia
 cp -r typings ../aurelia-typescript-atom/skel-nav-ts
+
+# ------------ skel-nav-esri4-vs-ts ------------------------------------------------------------
+
+# skel-nav-ts
+cp scripts/aurelia/* ../skel-nav-esri4-vs-ts/skel-nav-esri4-vs-ts/scripts/aurelia
+cp -r typings ../skel-nav-esri4-vs-ts/skel-nav-esri4-vs-ts
 
 
 # + skel-nav-esri-vscode-ts

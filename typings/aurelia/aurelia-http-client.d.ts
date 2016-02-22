@@ -1,5 +1,4 @@
 declare module 'aurelia-http-client' {
-  import 'core-js';
   import { join, buildQueryString }  from 'aurelia-path';
   import { PLATFORM, DOM }  from 'aurelia-pal';
   
@@ -75,6 +74,7 @@ declare module 'aurelia-http-client' {
    * Represents an XHR transformer.
    */
   export interface XHRTransformer {
+    (client: HttpClient, processor: RequestMessageProcessor, message: RequestMessage, xhr: XHR): void;
   }
   
   /**
@@ -107,6 +107,7 @@ declare module 'aurelia-http-client' {
    * Transforms a request.
    */
   export interface RequestTransformer {
+    (client: HttpClient, processor: RequestMessageProcessor, message: RequestMessage): void;
   }
   
   /**
@@ -222,7 +223,7 @@ declare module 'aurelia-http-client' {
     /**
       * The status code of the response.
       */
-    statusCode: string;
+    statusCode: number;
     
     /**
       * The raw response.
@@ -248,6 +249,11 @@ declare module 'aurelia-http-client' {
       * The mime type of the response.
       */
     mimeType: string;
+    
+    /**
+      * The headers received with the response.
+      */
+    headers: Headers;
     
     /**
       * Creates an instance of HttpResponseMessage.
@@ -590,6 +596,11 @@ declare module 'aurelia-http-client' {
   * The main HTTP client object.
   */
   export class HttpClient {
+    
+    /**
+      * Indicates whether or not the client is in the process of requesting resources.
+      */
+    isRequesting: boolean;
     
     /**
       * Creates an instance of HttpClient.
