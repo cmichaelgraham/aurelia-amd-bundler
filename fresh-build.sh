@@ -9,6 +9,7 @@ mkdir aurelia-latest
 cd aurelia-latest
 
 ../fresh-build-clone-and-build.sh gooy aurelia-animator-velocity
+../fresh-build-clone-and-build.sh aurelia polyfills
 ../fresh-build-clone-and-build.sh aurelia templating-resources
 ../fresh-build-clone-and-build.sh aurelia loader
 ../fresh-build-clone-and-build.sh aurelia loader-default

@@ -1,8 +1,19 @@
 declare module 'aurelia-dialog' {
-  import { customElement, bindable, customAttribute, ViewSlot, CompositionEngine }  from 'aurelia-templating';
-  import { Origin }  from 'aurelia-metadata';
-  import { Container }  from 'aurelia-dependency-injection';
+  import {
+    customElement,
+    bindable,
+    customAttribute,
+    ViewSlot,
+    CompositionEngine
+  } from 'aurelia-templating';
+  import {
+    Origin
+  } from 'aurelia-metadata';
+  import {
+    Container
+  } from 'aurelia-dependency-injection';
   export class AiDialogBody {
+  
   }
   
   /**
@@ -22,23 +33,22 @@ declare module 'aurelia-dialog' {
     constructor(controller: any);
   }
   export class AiDialog {
+  
   }
   export class AttachFocus {
     static inject: any;
+    value: any;
     constructor(element: any);
     attached(): any;
+    valueChanged(newValue: any): any;
   }
   export class DialogController {
+    settings: any;
     constructor(renderer: DialogRenderer, settings: any, resolve: Function, reject: Function);
-    ok(result: DialogResult): any;
-    cancel(result: DialogResult): any;
+    ok(result: any): any;
+    cancel(result: any): any;
     error(message: any): any;
-    close(ok: boolean, result: DialogResult): any;
-  }
-  class DialogResult {
-    wasCancelled: any;
-    output: any;
-    constructor(cancelled: any, result: any);
+    close(ok: boolean, result: any): any;
   }
   export let globalSettings: any;
   export class DialogRenderer {

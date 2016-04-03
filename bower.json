@@ -25,7 +25,8 @@
     "tests"
   ],
   "dependencies": {
-    "aurelia-animator-css": "aurelia/animator-css",
+    "aurelia-animator-css": "aurelia/animator-css#latest",
+    "aurelia-polyfills": "aurelia/polyfills#latest",
     "aurelia-binding": "aurelia/binding#latest",
     "aurelia-bootstrapper": "aurelia/bootstrapper#latest",
     "aurelia-dialog": "aurelia/dialog#latest",
