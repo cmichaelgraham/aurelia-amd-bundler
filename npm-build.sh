@@ -31,7 +31,7 @@ rm -fR node_modules
 ./npm-build-lib.sh aurelia pal-browser
 ./npm-build-lib.sh whatwg fetch
 ./npm-build-lib.sh velocity animate
-./npm-build-lib.sh julianshapiro velocity
+./npm-build-lib-from-github.sh julianshapiro velocity
 ./npm-build-lib.sh bootstrap
 ./npm-build-lib-from-github.sh requirejs text
 ./npm-build-lib.sh font-awesome

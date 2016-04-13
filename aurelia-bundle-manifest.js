@@ -8,6 +8,7 @@ define("aurelia-bundle-manifest", [
   // 'aurelia-dialog/ai-dialog',
   // 'text!aurelia-dialog/ai-dialog.html',
   // 'text!aurelia-dialog/dialog.css',
+  'aurelia-polyfills',
   'aurelia-loader',
   'aurelia-loader-default',
   'aurelia-task-queue',
@@ -34,9 +35,9 @@ define("aurelia-bundle-manifest", [
   'aurelia-bootstrapper',
   'aurelia-validation',
   'aurelia-animator-css',
-  'aurelia-animator-velocity',
-  'velocity',
-  'velocity.ui',
-  'jsol',
+//  'aurelia-animator-velocity',
+//  'velocity-animate',
+//  'velocity-animate/velocity.ui.min',
+//  'jsol',
   'text'
   ], function(){});

@@ -3,6 +3,7 @@ require.config({
 
   paths: {
     'aurelia-bootstrapper': 'bower_components/aurelia-bootstrapper/dist/amd/aurelia-bootstrapper',
+    'aurelia-polyfills': 'bower_components/aurelia-polyfills/dist/amd/aurelia-polyfills',
     'aurelia-loader-default': 'bower_components/aurelia-loader-default/dist/amd/aurelia-loader-default',
     'aurelia-path': 'bower_components/aurelia-path/dist/amd/aurelia-path',
     'aurelia-task-queue': 'bower_components/aurelia-task-queue/dist/amd/aurelia-task-queue',
@@ -20,7 +21,6 @@ require.config({
     'aurelia-dependency-injection': 'bower_components/aurelia-dependency-injection/dist/amd/aurelia-dependency-injection',
     'aurelia-router': 'bower_components/aurelia-router/dist/amd/aurelia-router',
     'aurelia-templating-binding': 'bower_components/aurelia-templating-binding/dist/amd/aurelia-templating-binding',
-    //'aurelia-templating-router': 'bower_components/aurelia-templating-router/dist/amd/aurelia-templating-router',
     'aurelia-route-recognizer': 'bower_components/aurelia-route-recognizer/dist/amd/aurelia-route-recognizer',
     'aurelia-http-client': 'bower_components/aurelia-http-client/dist/amd/aurelia-http-client',
     'aurelia-fetch-client': 'bower_components/aurelia-fetch-client/dist/amd/aurelia-fetch-client',
@@ -60,7 +60,7 @@ require.config({
       main: 'velocity.min'
     },
    {
-     name: 'gooy-aurelia-animator-velocity',
+     name: 'aurelia-animator-velocity',
      location: 'aurelia-latest/aurelia-animator-velocity/dist/amd',
      main : 'index'
    },

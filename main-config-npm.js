@@ -6,11 +6,8 @@ require.config({
         'aurelia-fetch-client': 'node_modules/aurelia-fetch-client/dist/amd/aurelia-fetch-client',
         'aurelia-validation': 'node_modules/aurelia-validation/dist/amd/aurelia-validation',
         'aurelia-animator-css': 'node_modules/aurelia-animator-css/dist/amd/aurelia-animator-css',
-        'aurelia-animator-velocity': 'node_modules/aurelia-animator-velocity/dist/amd/aurelia-animator-velocity',
-        'velocity-animate': 'node_modules/velocity-animate',
-        'velocity': 'node_modules/velocity-animate/velocity.min',
-        'velocity.ui': 'node_modules/velocity-animate/velocity.ui.min',
-        'jsol': 'node_modules/bower_components/jsol/jsol',
+        //'aurelia-animator-velocity': 'node_modules/aurelia-animator-velocity/dist/amd/aurelia-animator-velocity',
+        //'jsol': 'node_modules/bower_components/jsol/jsol',
 
         "aurelia-loader": "node_modules/aurelia-loader/dist/amd/aurelia-loader",
         "aurelia-loader-default": "node_modules/aurelia-loader-default/dist/amd/aurelia-loader-default",
@@ -34,8 +31,9 @@ require.config({
         "aurelia-framework": "node_modules/aurelia-framework/dist/amd/aurelia-framework",
         "aurelia-history": "node_modules/aurelia-history/dist/amd/aurelia-history",
         "aurelia-history-browser": "node_modules/aurelia-history-browser/dist/amd/aurelia-history-browser",
+        //"velocity": "velocity-animate/velocity.min",
         "fetch": "node_modules/whatwg-fetch/fetch",
-        "text": "node_modules/text/text",
+        "text": "node_modules/text/text"
     },
     packages: [
         {
@@ -48,6 +46,11 @@ require.config({
             location: 'node_modules/aurelia-templating-resources/dist/amd',
             main: 'aurelia-templating-resources'
         },
+        // {
+        //     name: 'velocity-animate',
+        //     location: 'node_modules/velocity-animate',
+        //     main: 'velocity.min'
+        // },
         {
             name: 'aurelia-dialog',
             location: 'node_modules/aurelia-dialog/dist/amd',
