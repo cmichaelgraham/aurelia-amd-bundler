@@ -1,7 +1,7 @@
 rm -fR node_modules
 
 ./npm-build-lib.sh aurelia animator-velocity
-./npm-build-lib.sh aurelia polyfills
+./npm-build-lib.sh aurelia polyfills@1.0.0-beta.1.1.2
 ./npm-build-lib.sh aurelia templating-resources
 ./npm-build-lib.sh aurelia loader
 ./npm-build-lib.sh aurelia loader-default
@@ -13,7 +13,7 @@ rm -fR node_modules
 ./npm-build-lib.sh aurelia history-browser
 ./npm-build-lib.sh aurelia event-aggregator
 ./npm-build-lib.sh aurelia framework
-./npm-build-lib.sh aurelia metadata
+./npm-build-lib.sh aurelia metadata@1.0.0-beta.1.2.0
 ./npm-build-lib.sh aurelia binding
 ./npm-build-lib.sh aurelia dialog
 ./npm-build-lib.sh aurelia dependency-injection
@@ -29,6 +29,7 @@ rm -fR node_modules
 ./npm-build-lib.sh aurelia animator-css
 ./npm-build-lib.sh aurelia pal
 ./npm-build-lib.sh aurelia pal-browser
+./npm-build-lib.sh bluebird
 ./npm-build-lib.sh whatwg fetch
 ./npm-build-lib.sh velocity animate
 ./npm-build-lib-from-github.sh julianshapiro velocity

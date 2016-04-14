@@ -35,6 +35,9 @@ define("aurelia-bundle-manifest", [
   'aurelia-bootstrapper',
   'aurelia-validation',
   'aurelia-animator-css',
+  
+  'bluebird',
+  
 //  'aurelia-animator-velocity',
 //  'velocity-animate',
 //  'velocity-animate/velocity.ui.min',

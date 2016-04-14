@@ -31,6 +31,10 @@ require.config({
         "aurelia-framework": "node_modules/aurelia-framework/dist/amd/aurelia-framework",
         "aurelia-history": "node_modules/aurelia-history/dist/amd/aurelia-history",
         "aurelia-history-browser": "node_modules/aurelia-history-browser/dist/amd/aurelia-history-browser",
+        
+        "bluebird": "node_modules/bluebird/js/browser/bluebird.min",
+        "webcomponentsjs": "node_modules/webcomponentsjs/micro",
+        
         //"velocity": "velocity-animate/velocity.min",
         "fetch": "node_modules/whatwg-fetch/fetch",
         "text": "node_modules/text/text"
