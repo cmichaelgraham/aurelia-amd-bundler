@@ -224,9 +224,26 @@ define('aurelia-pal',['exports'], function (exports) {
         return innerError;
       }
 
-      if (innerError.stack) {
-        message += '\n------------------------------------------------\ninner error: ' + innerError.stack;
+      var separator = '\n------------------------------------------------\n';
+
+      message += separator + 'Inner Error:\n';
+
+      if (typeof innerError === 'string') {
+        message += 'Message: ' + innerError;
+      } else {
+        if (innerError.message) {
+          message += 'Message: ' + innerError.message;
+        } else {
+          message += 'Unknown Inner Error Type. Displaying Inner Error as JSON:\n ' + JSON.stringify(innerError, null, '  ');
+        }
+
+        if (innerError.stack) {
+          message += '\nInner Error Stack:\n' + innerError.stack;
+          message += '\nEnd Inner Error Stack';
+        }
       }
+
+      message += separator;
     }
 
     var e = new Error(message);
@@ -1989,7 +2006,7 @@ define('aurelia-logging',['exports'], function (exports) {
       _classCallCheck(this, Logger);
 
       if (key !== loggerConstructionKey) {
-        throw new Error('You cannot instantiate "Logger". Use the "getLogger" API instead.');
+        throw new Error('Cannot instantiate "Logger". Use "getLogger" instead.');
       }
 
       this.id = id;
@@ -2006,7 +2023,7 @@ define('aurelia-logging',['exports'], function (exports) {
     return Logger;
   }();
 });
-define('aurelia-logging-console',['exports', 'aurelia-pal', 'aurelia-logging'], function (exports, _aureliaPal, _aureliaLogging) {
+define('aurelia-logging-console',['exports', 'aurelia-logging'], function (exports, _aureliaLogging) {
   
 
   Object.defineProperty(exports, "__esModule", {
@@ -2018,34 +2035,6 @@ define('aurelia-logging-console',['exports', 'aurelia-pal', 'aurelia-logging'], 
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
-  }
-
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-    return typeof obj;
-  } : function (obj) {
-    return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  };
-
-  (function (global) {
-    global.console = global.console || {};
-    var con = global.console;
-    var prop = void 0;
-    var method = void 0;
-    var empty = {};
-    var dummy = function dummy() {};
-    var properties = 'memory'.split(',');
-    var methods = ('assert,clear,count,debug,dir,dirxml,error,exception,group,' + 'groupCollapsed,groupEnd,info,log,markTimeline,profile,profiles,profileEnd,' + 'show,table,time,timeEnd,timeline,timelineEnd,timeStamp,trace,warn').split(',');
-    while (prop = properties.pop()) {
-      if (!con[prop]) con[prop] = empty;
-    }while (method = methods.pop()) {
-      if (!con[method]) con[method] = dummy;
-    }
-  })(_aureliaPal.PLATFORM.global);
-
-  if (_aureliaPal.PLATFORM.global.console && _typeof(console.log) === 'object') {
-    ['log', 'info', 'warn', 'error', 'assert', 'dir', 'clear', 'profile', 'profileEnd'].forEach(function (method) {
-      console[method] = this.bind(console[method], console);
-    }, Function.prototype.call);
   }
 
   var ConsoleAppender = exports.ConsoleAppender = function () {
@@ -2109,29 +2098,37 @@ define('aurelia-history',['exports'], function (exports) {
     }
   }
 
+  function mi(name) {
+    throw new Error('History must implement ' + name + '().');
+  }
+
   var History = exports.History = function () {
     function History() {
       _classCallCheck(this, History);
     }
 
     History.prototype.activate = function activate(options) {
-      throw new Error('History must implement activate().');
+      mi('activate');
     };
 
     History.prototype.deactivate = function deactivate() {
-      throw new Error('History must implement deactivate().');
+      mi('deactivate');
+    };
+
+    History.prototype.getAbsoluteRoot = function getAbsoluteRoot() {
+      mi('getAbsoluteRoot');
     };
 
     History.prototype.navigate = function navigate(fragment, options) {
-      throw new Error('History must implement navigate().');
+      mi('navigate');
     };
 
     History.prototype.navigateBack = function navigateBack() {
-      throw new Error('History must implement navigateBack().');
+      mi('navigateBack');
     };
 
     History.prototype.setTitle = function setTitle(title) {
-      throw new Error('History must implement setTitle().');
+      mi('setTitle');
     };
 
     return History;
@@ -2350,6 +2347,11 @@ define('aurelia-history-browser',['exports', 'aurelia-pal', 'aurelia-history'], 
       this.linkHandler.deactivate();
     };
 
+    BrowserHistory.prototype.getAbsoluteRoot = function getAbsoluteRoot() {
+      var origin = createOrigin(this.location.protocol, this.location.hostname, this.location.port);
+      return '' + origin + this.root;
+    };
+
     BrowserHistory.prototype.navigate = function navigate(fragment) {
       var _ref = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
@@ -2451,11 +2453,15 @@ define('aurelia-history-browser',['exports', 'aurelia-pal', 'aurelia-history'], 
 
   function updateHash(location, fragment, replace) {
     if (replace) {
-      var href = location.href.replace(/(javascript:|#).*$/, '');
-      location.replace(href + '#' + fragment);
+      var _href = location.href.replace(/(javascript:|#).*$/, '');
+      location.replace(_href + '#' + fragment);
     } else {
       location.hash = '#' + fragment;
     }
+  }
+
+  function createOrigin(protocol, hostname, port) {
+    return protocol + '//' + hostname + (port ? ':' + port : '');
   }
 });
 define('aurelia-event-aggregator',['exports', 'aurelia-logging'], function (exports, _aureliaLogging) {
@@ -3234,7 +3240,7 @@ define('aurelia-dependency-injection',['exports', 'aurelia-metadata', 'aurelia-p
     };
   }
 });
-define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurelia-metadata'], function (exports, _aureliaPal, _aureliaTaskQueue, _aureliaMetadata) {
+define('aurelia-binding',['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-task-queue', 'aurelia-metadata'], function (exports, _aureliaLogging, _aureliaPal, _aureliaTaskQueue, _aureliaMetadata) {
   
 
   Object.defineProperty(exports, "__esModule", {
@@ -3260,6 +3266,25 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
   exports.valueConverter = valueConverter;
   exports.bindingBehavior = bindingBehavior;
   exports.observable = observable;
+
+  var LogManager = _interopRequireWildcard(_aureliaLogging);
+
+  function _interopRequireWildcard(obj) {
+    if (obj && obj.__esModule) {
+      return obj;
+    } else {
+      var newObj = {};
+
+      if (obj != null) {
+        for (var key in obj) {
+          if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key];
+        }
+      }
+
+      newObj.default = obj;
+      return newObj;
+    }
+  }
 
   var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
     return typeof obj;
@@ -3309,16 +3334,21 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
+  
 
   var _dec, _dec2, _class, _dec3, _class2, _dec4, _class3, _dec5, _class5, _dec6, _class7, _dec7, _class8, _dec8, _class9, _dec9, _class10, _class11, _temp, _dec10, _class12, _class13, _temp2;
 
+  var map = Object.create(null);
+
   function camelCase(name) {
-    return name.charAt(0).toLowerCase() + name.slice(1);
+    if (name in map) {
+      return map[name];
+    }
+    var result = name.charAt(0).toLowerCase() + name.slice(1).replace(/[_.-](\w|$)/g, function (_, x) {
+      return x.toUpperCase();
+    });
+    map[name] = result;
+    return result;
   }
 
   function createOverrideContext(bindingContext, parentOverrideContext) {
@@ -3643,7 +3673,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var ExpressionObserver = exports.ExpressionObserver = (_dec = connectable(), _dec2 = subscriberCollection(), _dec(_class = _dec2(_class = function () {
     function ExpressionObserver(scope, expression, observerLocator, lookupFunctions) {
-      _classCallCheck(this, ExpressionObserver);
+      
 
       this.scope = scope;
       this.expression = expression;
@@ -4095,7 +4125,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var ModifyCollectionObserver = exports.ModifyCollectionObserver = (_dec3 = subscriberCollection(), _dec3(_class2 = function () {
     function ModifyCollectionObserver(taskQueue, collection) {
-      _classCallCheck(this, ModifyCollectionObserver);
+      
 
       this.taskQueue = taskQueue;
       this.queued = false;
@@ -4199,7 +4229,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
   }()) || _class2);
   var CollectionLengthObserver = exports.CollectionLengthObserver = (_dec4 = subscriberCollection(), _dec4(_class3 = function () {
     function CollectionLengthObserver(collection) {
-      _classCallCheck(this, CollectionLengthObserver);
+      
 
       this.collection = collection;
       this.lengthPropertyName = collection instanceof Map || collection instanceof Set ? 'size' : 'length';
@@ -4240,8 +4270,9 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
   var unshift = Array.prototype.unshift;
 
   Array.prototype.pop = function () {
+    var notEmpty = this.length > 0;
     var methodCallResult = pop.apply(this, arguments);
-    if (this.__array_observer__ !== undefined) {
+    if (notEmpty && this.__array_observer__ !== undefined) {
       this.__array_observer__.addChangeRecord({
         type: 'delete',
         object: this,
@@ -4280,8 +4311,9 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
   };
 
   Array.prototype.shift = function () {
+    var notEmpty = this.length > 0;
     var methodCallResult = shift.apply(this, arguments);
-    if (this.__array_observer__ !== undefined) {
+    if (notEmpty && this.__array_observer__ !== undefined) {
       this.__array_observer__.addChangeRecord({
         type: 'delete',
         object: this,
@@ -4343,7 +4375,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(ModifyArrayObserver, _ModifyCollectionObse);
 
     function ModifyArrayObserver(taskQueue, array) {
-      _classCallCheck(this, ModifyArrayObserver);
+      
 
       return _possibleConstructorReturn(this, _ModifyCollectionObse.call(this, taskQueue, array));
     }
@@ -4351,7 +4383,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     ModifyArrayObserver.for = function _for(taskQueue, array) {
       if (!('__array_observer__' in array)) {
         var observer = ModifyArrayObserver.create(taskQueue, array);
-        Object.defineProperty(array, '__array_observer__', { value: observer, enumerable: false, configurable: false });
+        Reflect.defineProperty(array, '__array_observer__', { value: observer, enumerable: false, configurable: false });
       }
       return array.__array_observer__;
     };
@@ -4366,7 +4398,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var Expression = exports.Expression = function () {
     function Expression() {
-      _classCallCheck(this, Expression);
+      
 
       this.isChain = false;
       this.isAssignable = false;
@@ -4391,7 +4423,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(Chain, _Expression);
 
     function Chain(expressions) {
-      _classCallCheck(this, Chain);
+      
 
       var _this3 = _possibleConstructorReturn(this, _Expression.call(this));
 
@@ -4427,7 +4459,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(BindingBehavior, _Expression2);
 
     function BindingBehavior(expression, name, args) {
-      _classCallCheck(this, BindingBehavior);
+      
 
       var _this4 = _possibleConstructorReturn(this, _Expression2.call(this));
 
@@ -4485,7 +4517,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(ValueConverter, _Expression3);
 
     function ValueConverter(expression, name, args, allArgs) {
-      _classCallCheck(this, ValueConverter);
+      
 
       var _this5 = _possibleConstructorReturn(this, _Expression3.call(this));
 
@@ -4541,7 +4573,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(Assign, _Expression4);
 
     function Assign(target, value) {
-      _classCallCheck(this, Assign);
+      
 
       var _this6 = _possibleConstructorReturn(this, _Expression4.call(this));
 
@@ -4567,7 +4599,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(Conditional, _Expression5);
 
     function Conditional(condition, yes, no) {
-      _classCallCheck(this, Conditional);
+      
 
       var _this7 = _possibleConstructorReturn(this, _Expression5.call(this));
 
@@ -4601,7 +4633,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(AccessThis, _Expression6);
 
     function AccessThis(ancestor) {
-      _classCallCheck(this, AccessThis);
+      
 
       var _this8 = _possibleConstructorReturn(this, _Expression6.call(this));
 
@@ -4631,7 +4663,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(AccessScope, _Expression7);
 
     function AccessScope(name, ancestor) {
-      _classCallCheck(this, AccessScope);
+      
 
       var _this9 = _possibleConstructorReturn(this, _Expression7.call(this));
 
@@ -4667,7 +4699,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(AccessMember, _Expression8);
 
     function AccessMember(object, name) {
-      _classCallCheck(this, AccessMember);
+      
 
       var _this10 = _possibleConstructorReturn(this, _Expression8.call(this));
 
@@ -4712,7 +4744,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(AccessKeyed, _Expression9);
 
     function AccessKeyed(object, key) {
-      _classCallCheck(this, AccessKeyed);
+      
 
       var _this11 = _possibleConstructorReturn(this, _Expression9.call(this));
 
@@ -4758,7 +4790,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(CallScope, _Expression10);
 
     function CallScope(name, args, ancestor) {
-      _classCallCheck(this, CallScope);
+      
 
       var _this12 = _possibleConstructorReturn(this, _Expression10.call(this));
 
@@ -4797,7 +4829,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(CallMember, _Expression11);
 
     function CallMember(object, name, args) {
-      _classCallCheck(this, CallMember);
+      
 
       var _this13 = _possibleConstructorReturn(this, _Expression11.call(this));
 
@@ -4840,7 +4872,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(CallFunction, _Expression12);
 
     function CallFunction(func, args) {
-      _classCallCheck(this, CallFunction);
+      
 
       var _this14 = _possibleConstructorReturn(this, _Expression12.call(this));
 
@@ -4883,7 +4915,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(Binary, _Expression13);
 
     function Binary(operation, left, right) {
-      _classCallCheck(this, Binary);
+      
 
       var _this15 = _possibleConstructorReturn(this, _Expression13.call(this));
 
@@ -4916,15 +4948,15 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
           return left !== right;
       }
 
-      if (left === null || right === null) {
+      if (left === null || right === null || left === undefined || right === undefined) {
         switch (this.operation) {
           case '+':
-            if (left !== null) return left;
-            if (right !== null) return right;
+            if (left !== null && left !== undefined) return left;
+            if (right !== null && right !== undefined) return right;
             return 0;
           case '-':
-            if (left !== null) return left;
-            if (right !== null) return 0 - right;
+            if (left !== null && left !== undefined) return left;
+            if (right !== null && right !== undefined) return 0 - right;
             return 0;
         }
 
@@ -4977,7 +5009,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(PrefixNot, _Expression14);
 
     function PrefixNot(operation, expression) {
-      _classCallCheck(this, PrefixNot);
+      
 
       var _this16 = _possibleConstructorReturn(this, _Expression14.call(this));
 
@@ -5005,7 +5037,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(LiteralPrimitive, _Expression15);
 
     function LiteralPrimitive(value) {
-      _classCallCheck(this, LiteralPrimitive);
+      
 
       var _this17 = _possibleConstructorReturn(this, _Expression15.call(this));
 
@@ -5030,7 +5062,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(LiteralString, _Expression16);
 
     function LiteralString(value) {
-      _classCallCheck(this, LiteralString);
+      
 
       var _this18 = _possibleConstructorReturn(this, _Expression16.call(this));
 
@@ -5055,7 +5087,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(LiteralArray, _Expression17);
 
     function LiteralArray(elements) {
-      _classCallCheck(this, LiteralArray);
+      
 
       var _this19 = _possibleConstructorReturn(this, _Expression17.call(this));
 
@@ -5092,7 +5124,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(LiteralObject, _Expression18);
 
     function LiteralObject(keys, values) {
-      _classCallCheck(this, LiteralObject);
+      
 
       var _this20 = _possibleConstructorReturn(this, _Expression18.call(this));
 
@@ -5210,7 +5242,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var Unparser = exports.Unparser = function () {
     function Unparser(buffer) {
-      _classCallCheck(this, Unparser);
+      
 
       this.buffer = buffer;
     }
@@ -5404,7 +5436,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var ExpressionCloner = exports.ExpressionCloner = function () {
     function ExpressionCloner() {
-      _classCallCheck(this, ExpressionCloner);
+      
     }
 
     ExpressionCloner.prototype.cloneExpressionArray = function cloneExpressionArray(array) {
@@ -5504,7 +5536,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var Token = exports.Token = function () {
     function Token(index, text) {
-      _classCallCheck(this, Token);
+      
 
       this.index = index;
       this.text = text;
@@ -5534,7 +5566,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var Lexer = exports.Lexer = function () {
     function Lexer() {
-      _classCallCheck(this, Lexer);
+      
     }
 
     Lexer.prototype.lex = function lex(text) {
@@ -5555,7 +5587,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var Scanner = exports.Scanner = function () {
     function Scanner(input) {
-      _classCallCheck(this, Scanner);
+      
 
       this.input = input;
       this.length = input.length;
@@ -5909,7 +5941,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var Parser = exports.Parser = function () {
     function Parser() {
-      _classCallCheck(this, Parser);
+      
 
       this.cache = {};
       this.lexer = new Lexer();
@@ -5926,7 +5958,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var ParserImplementation = exports.ParserImplementation = function () {
     function ParserImplementation(lexer, input) {
-      _classCallCheck(this, ParserImplementation);
+      
 
       this.index = 0;
       this.input = input;
@@ -6327,7 +6359,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(ModifyMapObserver, _ModifyCollectionObse2);
 
     function ModifyMapObserver(taskQueue, map) {
-      _classCallCheck(this, ModifyMapObserver);
+      
 
       return _possibleConstructorReturn(this, _ModifyCollectionObse2.call(this, taskQueue, map));
     }
@@ -6335,7 +6367,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     ModifyMapObserver.for = function _for(taskQueue, map) {
       if (!('__map_observer__' in map)) {
         var observer = ModifyMapObserver.create(taskQueue, map);
-        Object.defineProperty(map, '__map_observer__', { value: observer, enumerable: false, configurable: false });
+        Reflect.defineProperty(map, '__map_observer__', { value: observer, enumerable: false, configurable: false });
       }
       return map.__map_observer__;
     };
@@ -6423,7 +6455,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var DelegateHandlerEntry = function () {
     function DelegateHandlerEntry(eventName) {
-      _classCallCheck(this, DelegateHandlerEntry);
+      
 
       this.eventName = eventName;
       this.count = 0;
@@ -6450,7 +6482,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var DefaultEventStrategy = function () {
     function DefaultEventStrategy() {
-      _classCallCheck(this, DefaultEventStrategy);
+      
 
       this.delegatedHandlers = [];
     }
@@ -6490,7 +6522,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var EventManager = exports.EventManager = function () {
     function EventManager() {
-      _classCallCheck(this, EventManager);
+      
 
       this.elementHandlerLookup = {};
       this.eventStrategyLookup = {};
@@ -6610,7 +6642,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var DirtyChecker = exports.DirtyChecker = function () {
     function DirtyChecker() {
-      _classCallCheck(this, DirtyChecker);
+      
 
       this.tracked = [];
       this.checkDelay = 120;
@@ -6661,7 +6693,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var DirtyCheckProperty = exports.DirtyCheckProperty = (_dec5 = subscriberCollection(), _dec5(_class5 = function () {
     function DirtyCheckProperty(dirtyChecker, obj, propertyName) {
-      _classCallCheck(this, DirtyCheckProperty);
+      
 
       this.dirtyChecker = dirtyChecker;
       this.obj = obj;
@@ -6705,6 +6737,10 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
     return DirtyCheckProperty;
   }()) || _class5);
+
+
+  var logger = LogManager.getLogger('property-observation');
+
   var propertyAccessor = exports.propertyAccessor = {
     getValue: function getValue(obj, propertyName) {
       return obj[propertyName];
@@ -6716,7 +6752,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var PrimitiveObserver = exports.PrimitiveObserver = function () {
     function PrimitiveObserver(primitive, propertyName) {
-      _classCallCheck(this, PrimitiveObserver);
+      
 
       this.doNotCache = true;
 
@@ -6742,7 +6778,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var SetterObserver = exports.SetterObserver = (_dec6 = subscriberCollection(), _dec6(_class7 = function () {
     function SetterObserver(taskQueue, obj, propertyName) {
-      _classCallCheck(this, SetterObserver);
+      
 
       this.taskQueue = taskQueue;
       this.obj = obj;
@@ -6803,14 +6839,14 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
       this.setValue = this.setterValue;
       this.getValue = this.getterValue;
 
-      try {
-        Object.defineProperty(this.obj, this.propertyName, {
-          configurable: true,
-          enumerable: true,
-          get: this.getValue.bind(this),
-          set: this.setValue.bind(this)
-        });
-      } catch (_) {}
+      if (!Reflect.defineProperty(this.obj, this.propertyName, {
+        configurable: true,
+        enumerable: this.propertyName in this.obj ? this.obj.propertyIsEnumerable(this.propertyName) : true,
+        get: this.getValue.bind(this),
+        set: this.setValue.bind(this)
+      })) {
+        logger.warn('Cannot observe property \'' + this.propertyName + '\' of object', this.obj);
+      }
     };
 
     return SetterObserver;
@@ -6818,7 +6854,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var XLinkAttributeObserver = exports.XLinkAttributeObserver = function () {
     function XLinkAttributeObserver(element, propertyName, attributeName) {
-      _classCallCheck(this, XLinkAttributeObserver);
+      
 
       this.element = element;
       this.propertyName = propertyName;
@@ -6851,7 +6887,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var DataAttributeObserver = exports.DataAttributeObserver = function () {
     function DataAttributeObserver(element, propertyName) {
-      _classCallCheck(this, DataAttributeObserver);
+      
 
       this.element = element;
       this.propertyName = propertyName;
@@ -6874,7 +6910,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var StyleObserver = exports.StyleObserver = function () {
     function StyleObserver(element, propertyName) {
-      _classCallCheck(this, StyleObserver);
+      
 
       this.element = element;
       this.propertyName = propertyName;
@@ -6941,7 +6977,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var ValueAttributeObserver = exports.ValueAttributeObserver = (_dec7 = subscriberCollection(), _dec7(_class8 = function () {
     function ValueAttributeObserver(element, propertyName, handler) {
-      _classCallCheck(this, ValueAttributeObserver);
+      
 
       this.element = element;
       this.propertyName = propertyName;
@@ -6993,10 +7029,11 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
 
   var checkedArrayContext = 'CheckedObserver:array';
+  var checkedValueContext = 'CheckedObserver:value';
 
   var CheckedObserver = exports.CheckedObserver = (_dec8 = subscriberCollection(), _dec8(_class9 = function () {
     function CheckedObserver(element, handler, observerLocator) {
-      _classCallCheck(this, CheckedObserver);
+      
 
       this.element = element;
       this.handler = handler;
@@ -7035,6 +7072,10 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
     CheckedObserver.prototype.call = function call(context, splices) {
       this.synchronizeElement();
+
+      if (!this.valueObserver && (this.valueObserver = this.element.__observers__.model || this.element.__observers__.value)) {
+        this.valueObserver.subscribe(checkedValueContext, this);
+      }
     };
 
     CheckedObserver.prototype.synchronizeElement = function synchronizeElement() {
@@ -7112,6 +7153,9 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
         this.arrayObserver.unsubscribe(checkedArrayContext, this);
         this.arrayObserver = null;
       }
+      if (this.valueObserver) {
+        this.valueObserver.unsubscribe(checkedValueContext, this);
+      }
     };
 
     return CheckedObserver;
@@ -7122,7 +7166,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var SelectValueObserver = exports.SelectValueObserver = (_dec9 = subscriberCollection(), _dec9(_class10 = function () {
     function SelectValueObserver(element, handler, observerLocator) {
-      _classCallCheck(this, SelectValueObserver);
+      
 
       this.element = element;
       this.handler = handler;
@@ -7329,7 +7373,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var ClassObserver = exports.ClassObserver = function () {
     function ClassObserver(element) {
-      _classCallCheck(this, ClassObserver);
+      
 
       this.element = element;
       this.doNotCache = true;
@@ -7407,7 +7451,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(ComputedExpression, _Expression19);
 
     function ComputedExpression(name, dependencies) {
-      _classCallCheck(this, ComputedExpression);
+      
 
       var _this26 = _possibleConstructorReturn(this, _Expression19.call(this));
 
@@ -7660,7 +7704,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var SVGAnalyzer = exports.SVGAnalyzer = function () {
     function SVGAnalyzer() {
-      _classCallCheck(this, SVGAnalyzer);
+      
 
       if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && elements.altGlyph) {
         elements.altglyph = elements.altGlyph;
@@ -7683,7 +7727,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var ObserverLocator = exports.ObserverLocator = (_temp = _class11 = function () {
     function ObserverLocator(taskQueue, eventManager, dirtyChecker, svgAnalyzer, parser) {
-      _classCallCheck(this, ObserverLocator);
+      
 
       this.taskQueue = taskQueue;
       this.eventManager = eventManager;
@@ -7691,6 +7735,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
       this.svgAnalyzer = svgAnalyzer;
       this.parser = parser;
       this.adapters = [];
+      this.logger = LogManager.getLogger('observer-locator');
     }
 
     ObserverLocator.prototype.getObserver = function getObserver(obj, propertyName) {
@@ -7721,14 +7766,14 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     ObserverLocator.prototype.createObserversLookup = function createObserversLookup(obj) {
       var value = {};
 
-      try {
-        Object.defineProperty(obj, '__observers__', {
-          enumerable: false,
-          configurable: false,
-          writable: false,
-          value: value
-        });
-      } catch (_) {}
+      if (!Reflect.defineProperty(obj, '__observers__', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: value
+      })) {
+        this.logger.warn('Cannot add observers to object', obj);
+      }
 
       return value;
     };
@@ -7827,7 +7872,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
     ObserverLocator.prototype.getAccessor = function getAccessor(obj, propertyName) {
       if (obj instanceof _aureliaPal.DOM.Element) {
-        if (propertyName === 'class' || propertyName === 'style' || propertyName === 'css' || propertyName === 'value' && (obj.tagName.toLowerCase() === 'input' || obj.tagName.toLowerCase() === 'select') || propertyName === 'checked' && obj.tagName.toLowerCase() === 'input' || /^xlink:.+$/.exec(propertyName)) {
+        if (propertyName === 'class' || propertyName === 'style' || propertyName === 'css' || propertyName === 'value' && (obj.tagName.toLowerCase() === 'input' || obj.tagName.toLowerCase() === 'select') || propertyName === 'checked' && obj.tagName.toLowerCase() === 'input' || propertyName === 'model' && obj.tagName.toLowerCase() === 'input' || /^xlink:.+$/.exec(propertyName)) {
           return this.getObserver(obj, propertyName);
         }
         if (/^\w+:|^data-|^aria-/.test(propertyName) || obj instanceof _aureliaPal.DOM.SVGElement && this.svgAnalyzer.isStandardSvgAttribute(obj.nodeName, propertyName)) {
@@ -7854,7 +7899,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var ObjectObservationAdapter = exports.ObjectObservationAdapter = function () {
     function ObjectObservationAdapter() {
-      _classCallCheck(this, ObjectObservationAdapter);
+      
     }
 
     ObjectObservationAdapter.prototype.getObserver = function getObserver(object, propertyName, descriptor) {
@@ -7866,7 +7911,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var BindingExpression = exports.BindingExpression = function () {
     function BindingExpression(observerLocator, targetProperty, sourceExpression, mode, lookupFunctions, attribute) {
-      _classCallCheck(this, BindingExpression);
+      
 
       this.observerLocator = observerLocator;
       this.targetProperty = targetProperty;
@@ -7888,7 +7933,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var Binding = exports.Binding = (_dec10 = connectable(), _dec10(_class12 = function () {
     function Binding(observerLocator, sourceExpression, target, targetProperty, mode, lookupFunctions) {
-      _classCallCheck(this, Binding);
+      
 
       this.observerLocator = observerLocator;
       this.sourceExpression = sourceExpression;
@@ -8000,7 +8045,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var CallExpression = exports.CallExpression = function () {
     function CallExpression(observerLocator, targetProperty, sourceExpression, lookupFunctions) {
-      _classCallCheck(this, CallExpression);
+      
 
       this.observerLocator = observerLocator;
       this.targetProperty = targetProperty;
@@ -8017,7 +8062,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var Call = exports.Call = function () {
     function Call(observerLocator, sourceExpression, target, targetProperty, lookupFunctions) {
-      _classCallCheck(this, Call);
+      
 
       this.sourceExpression = sourceExpression;
       this.target = target;
@@ -8075,7 +8120,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var ValueConverterResource = exports.ValueConverterResource = function () {
     function ValueConverterResource(name) {
-      _classCallCheck(this, ValueConverterResource);
+      
 
       this.name = name;
     }
@@ -8111,7 +8156,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var BindingBehaviorResource = exports.BindingBehaviorResource = function () {
     function BindingBehaviorResource(name) {
-      _classCallCheck(this, BindingBehaviorResource);
+      
 
       this.name = name;
     }
@@ -8147,7 +8192,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var ListenerExpression = exports.ListenerExpression = function () {
     function ListenerExpression(eventManager, targetEvent, sourceExpression, delegate, preventDefault, lookupFunctions) {
-      _classCallCheck(this, ListenerExpression);
+      
 
       this.eventManager = eventManager;
       this.targetEvent = targetEvent;
@@ -8167,7 +8212,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var Listener = exports.Listener = function () {
     function Listener(eventManager, targetEvent, delegate, sourceExpression, target, preventDefault, lookupFunctions) {
-      _classCallCheck(this, Listener);
+      
 
       this.eventManager = eventManager;
       this.targetEvent = targetEvent;
@@ -8238,7 +8283,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var NameExpression = exports.NameExpression = function () {
     function NameExpression(sourceExpression, apiName, lookupFunctions) {
-      _classCallCheck(this, NameExpression);
+      
 
       this.sourceExpression = sourceExpression;
       this.apiName = apiName;
@@ -8276,7 +8321,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var NameBinder = function () {
     function NameBinder(sourceExpression, target, lookupFunctions) {
-      _classCallCheck(this, NameBinder);
+      
 
       this.sourceExpression = sourceExpression;
       this.target = target;
@@ -8324,7 +8369,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
 
   var BindingEngine = exports.BindingEngine = (_temp2 = _class13 = function () {
     function BindingEngine(observerLocator, parser) {
-      _classCallCheck(this, BindingEngine);
+      
 
       this.observerLocator = observerLocator;
       this.parser = parser;
@@ -8407,7 +8452,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     _inherits(ModifySetObserver, _ModifyCollectionObse3);
 
     function ModifySetObserver(taskQueue, set) {
-      _classCallCheck(this, ModifySetObserver);
+      
 
       return _possibleConstructorReturn(this, _ModifyCollectionObse3.call(this, taskQueue, set));
     }
@@ -8415,7 +8460,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
     ModifySetObserver.for = function _for(taskQueue, set) {
       if (!('__set_observer__' in set)) {
         var observer = ModifySetObserver.create(taskQueue, set);
-        Object.defineProperty(set, '__set_observer__', { value: observer, enumerable: false, configurable: false });
+        Reflect.defineProperty(set, '__set_observer__', { value: observer, enumerable: false, configurable: false });
       }
       return set.__set_observer__;
     };
@@ -8507,7 +8552,7 @@ define('aurelia-binding',['exports', 'aurelia-pal', 'aurelia-task-queue', 'aurel
       descriptor2.get.dependencies = [innerPropertyName];
 
       if (!babel) {
-        Object.defineProperty(target, key2, descriptor2);
+        Reflect.defineProperty(target, key2, descriptor2);
       }
     };
 
@@ -9201,7 +9246,7 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
       _classCallCheck(this, BindingLanguage);
     }
 
-    BindingLanguage.prototype.inspectAttribute = function inspectAttribute(resources, attrName, attrValue) {
+    BindingLanguage.prototype.inspectAttribute = function inspectAttribute(resources, elementName, attrName, attrValue) {
       throw new Error('A BindingLanguage must implement inspectAttribute(...)');
     };
 
@@ -9209,8 +9254,8 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
       throw new Error('A BindingLanguage must implement createAttributeInstruction(...)');
     };
 
-    BindingLanguage.prototype.parseText = function parseText(resources, value) {
-      throw new Error('A BindingLanguage must implement parseText(...)');
+    BindingLanguage.prototype.inspectTextContent = function inspectTextContent(resources, value) {
+      throw new Error('A BindingLanguage must implement inspectTextContent(...)');
     };
 
     return BindingLanguage;
@@ -9366,9 +9411,10 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
   }();
 
   var View = exports.View = function () {
-    function View(viewFactory, fragment, controllers, bindings, children, contentSelectors) {
+    function View(container, viewFactory, fragment, controllers, bindings, children, contentSelectors) {
       _classCallCheck(this, View);
 
+      this.container = container;
       this.viewFactory = viewFactory;
       this.resources = viewFactory.resources;
       this.fragment = fragment;
@@ -9820,21 +9866,89 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
       }
     };
 
+    ViewSlot.prototype.move = function move(sourceIndex, targetIndex) {
+      if (sourceIndex === targetIndex) {
+        return;
+      }
+
+      var children = this.children;
+      var view = children[sourceIndex];
+
+      view.removeNodes();
+      view.insertNodesBefore(children[targetIndex].firstChild);
+      children.splice(sourceIndex, 1);
+      children.splice(targetIndex, 0, view);
+    };
+
     ViewSlot.prototype.remove = function remove(view, returnToCache, skipAnimation) {
       return this.removeAt(this.children.indexOf(view), returnToCache, skipAnimation);
     };
 
-    ViewSlot.prototype.removeAt = function removeAt(index, returnToCache, skipAnimation) {
+    ViewSlot.prototype.removeMany = function removeMany(viewsToRemove, returnToCache, skipAnimation) {
       var _this4 = this;
+
+      var children = this.children;
+      var ii = viewsToRemove.length;
+      var i = void 0;
+      var rmPromises = [];
+
+      viewsToRemove.forEach(function (child) {
+        if (skipAnimation) {
+          child.removeNodes();
+          return;
+        }
+
+        var animatableElement = getAnimatableElement(child);
+        if (animatableElement !== null) {
+          rmPromises.push(_this4.animator.leave(animatableElement).then(function () {
+            return child.removeNodes();
+          }));
+        } else {
+          child.removeNodes();
+        }
+      });
+
+      var removeAction = function removeAction() {
+        if (_this4.isAttached) {
+          for (i = 0; i < ii; ++i) {
+            viewsToRemove[i].detached();
+          }
+        }
+
+        if (returnToCache) {
+          for (i = 0; i < ii; ++i) {
+            viewsToRemove[i].returnToCache();
+          }
+        }
+
+        for (i = 0; i < ii; ++i) {
+          var index = children.indexOf(viewsToRemove[i]);
+          if (index >= 0) {
+            children.splice(index, 1);
+          }
+        }
+      };
+
+      if (rmPromises.length > 0) {
+        return Promise.all(rmPromises).then(function () {
+          return removeAction();
+        });
+      }
+
+      removeAction();
+    };
+
+    ViewSlot.prototype.removeAt = function removeAt(index, returnToCache, skipAnimation) {
+      var _this5 = this;
 
       var view = this.children[index];
 
       var removeAction = function removeAction() {
-        index = _this4.children.indexOf(view);
+        index = _this5.children.indexOf(view);
         view.removeNodes();
-        _this4.children.splice(index, 1);
+        _this5.children.splice(index, 1);
 
-        if (_this4.isAttached) {
+        if (_this5.isAttached) {
           view.detached();
         }
 
@@ -9858,7 +9972,7 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
     };
 
     ViewSlot.prototype.removeAll = function removeAll(returnToCache, skipAnimation) {
-      var _this5 = this;
+      var _this6 = this;
 
       var children = this.children;
       var ii = children.length;
@@ -9873,7 +9987,7 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
 
         var animatableElement = getAnimatableElement(child);
         if (animatableElement !== null) {
-          rmPromises.push(_this5.animator.leave(animatableElement).then(function () {
+          rmPromises.push(_this6.animator.leave(animatableElement).then(function () {
             return child.removeNodes();
           }));
         } else {
@@ -9882,7 +9996,7 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
       });
 
       var removeAction = function removeAction() {
-        if (_this5.isAttached) {
+        if (_this6.isAttached) {
           for (i = 0; i < ii; ++i) {
             children[i].detached();
           }
@@ -9894,7 +10008,7 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
           }
         }
 
-        _this5.children = [];
+        _this6.children = [];
       };
 
       if (rmPromises.length > 0) {
@@ -10411,7 +10525,7 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
         applyInstructions(containers, instructable, instruction, controllers, bindings, children, contentSelectors, partReplacements, resources);
       }
 
-      view = new View(this, fragment, controllers, bindings, children, contentSelectors);
+      view = new View(container, this, fragment, controllers, bindings, children, contentSelectors);
 
       if (!createInstruction.initiatedByBehavior) {
         view.created();
@@ -10526,7 +10640,7 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
         case 1:
           return this._compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
         case 3:
-          var expression = resources.getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
+          var expression = resources.getBindingLanguage(this.bindingLanguage).inspectTextContent(resources, node.wholeText);
           if (expression) {
             var marker = _aureliaPal.DOM.createElement('au-marker');
             var auTargetID = makeIntoInstructionTarget(marker);
@@ -10557,6 +10671,7 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
     };
 
     ViewCompiler.prototype._compileSurrogate = function _compileSurrogate(node, resources) {
+      var tagName = node.tagName.toLowerCase();
       var attributes = node.attributes;
       var bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
       var knownAttribute = void 0;
@@ -10581,7 +10696,7 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
         attrName = attr.name;
         attrValue = attr.value;
 
-        info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+        info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
         type = resources.getAttribute(info.attrName);
 
         if (type) {
@@ -10697,7 +10812,7 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
         type = resources.getElement(node.getAttribute('as-element') || tagName);
         if (type) {
           elementInstruction = BehaviorInstruction.element(node, type);
-          type.processAttributes(this, resources, attributes, elementInstruction);
+          type.processAttributes(this, resources, node, attributes, elementInstruction);
           behaviorInstructions.push(elementInstruction);
         }
       }
@@ -10706,7 +10821,7 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
         attr = attributes[i];
         attrName = attr.name;
         attrValue = attr.value;
-        info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+        info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
         type = resources.getAttribute(info.attrName);
         elementProperty = null;
 
@@ -11061,12 +11176,12 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
 
   var ProxyViewFactory = function () {
     function ProxyViewFactory(promise) {
-      var _this6 = this;
+      var _this7 = this;
 
       _classCallCheck(this, ProxyViewFactory);
 
       promise.then(function (x) {
-        return _this6.viewFactory = x;
+        return _this7.viewFactory = x;
       });
     }
 
@@ -11115,7 +11230,7 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
     };
 
     ViewEngine.prototype.loadViewFactory = function loadViewFactory(urlOrRegistryEntry, compileInstruction, loadContext) {
-      var _this7 = this;
+      var _this8 = this;
 
       loadContext = loadContext || new ResourceLoadContext();
 
@@ -11131,9 +11246,9 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
 
         loadContext.addDependency(urlOrRegistryEntry);
 
-        registryEntry.onReady = _this7.loadTemplateResources(registryEntry, compileInstruction, loadContext).then(function (resources) {
+        registryEntry.onReady = _this8.loadTemplateResources(registryEntry, compileInstruction, loadContext).then(function (resources) {
           registryEntry.resources = resources;
-          var viewFactory = _this7.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
+          var viewFactory = _this8.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
           registryEntry.factory = viewFactory;
           return viewFactory;
         });
@@ -11166,30 +11281,30 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
     };
 
     ViewEngine.prototype.importViewModelResource = function importViewModelResource(moduleImport, moduleMember) {
-      var _this8 = this;
+      var _this9 = this;
 
       return this.loader.loadModule(moduleImport).then(function (viewModelModule) {
         var normalizedId = _aureliaMetadata.Origin.get(viewModelModule).moduleId;
-        var resourceModule = _this8.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
+        var resourceModule = _this9.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
 
         if (!resourceModule.mainResource) {
           throw new Error('No view model found in module "' + moduleImport + '".');
         }
 
-        resourceModule.initialize(_this8.container);
+        resourceModule.initialize(_this9.container);
 
         return resourceModule.mainResource;
       });
     };
 
     ViewEngine.prototype.importViewResources = function importViewResources(moduleIds, names, resources, compileInstruction, loadContext) {
-      var _this9 = this;
+      var _this10 = this;
 
       loadContext = loadContext || new ResourceLoadContext();
       compileInstruction = compileInstruction || ViewCompileInstruction.normal;
 
       moduleIds = moduleIds.map(function (x) {
-        return _this9._applyLoaderPlugin(x);
+        return _this10._applyLoaderPlugin(x);
       });
 
       return this.loader.loadAllModules(moduleIds).then(function (imports) {
@@ -11199,8 +11314,8 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
         var normalizedId = void 0;
         var current = void 0;
         var associatedModule = void 0;
-        var container = _this9.container;
-        var moduleAnalyzer = _this9.moduleAnalyzer;
+        var container = _this10.container;
+        var moduleAnalyzer = _this10.moduleAnalyzer;
         var allAnalysis = new Array(imports.length);
 
         for (i = 0, ii = imports.length; i < ii; ++i) {
@@ -11832,7 +11947,7 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
     };
 
     HtmlBehaviorResource.prototype.load = function load(container, target, loadContext, viewStrategy, transientView) {
-      var _this10 = this;
+      var _this11 = this;
 
       var options = void 0;
 
@@ -11845,8 +11960,8 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
         }
 
         return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext).then(function (viewFactory) {
-          if (!transientView || !_this10.viewFactory) {
-            _this10.viewFactory = viewFactory;
+          if (!transientView || !_this11.viewFactory) {
+            _this11.viewFactory = viewFactory;
           }
 
           return viewFactory;
@@ -12335,7 +12450,7 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
     };
 
     CompositionEngine.prototype.createController = function createController(context) {
-      var _this11 = this;
+      var _this12 = this;
 
       var childContainer = void 0;
       var viewModel = void 0;
@@ -12348,7 +12463,7 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
         viewModelResource = context.viewModelResource;
         m = viewModelResource.metadata;
 
-        var viewStrategy = _this11.viewLocator.getViewStrategy(context.view || viewModel);
+        var viewStrategy = _this12.viewLocator.getViewStrategy(context.view || viewModel);
 
         if (context.viewResources) {
           viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
@@ -12648,7 +12763,7 @@ define('aurelia-templating',['exports', 'aurelia-logging', 'aurelia-pal', 'aurel
       var container = instruction.container || this._container.createChild();
       var view = factory.create(container, BehaviorInstruction.enhance());
 
-      view.bind(instruction.bindingContext || {});
+      view.bind(instruction.bindingContext || {}, instruction.overrideContext);
 
       return view;
     };
@@ -13311,17 +13426,18 @@ define('aurelia-route-recognizer',['exports', 'aurelia-path'], function (exports
   var escapeRegex = new RegExp('(\\' + specials.join('|\\') + ')', 'g');
 
   var StaticSegment = exports.StaticSegment = function () {
-    function StaticSegment(string) {
+    function StaticSegment(string, caseSensitive) {
       _classCallCheck(this, StaticSegment);
 
       this.string = string;
+      this.caseSensitive = caseSensitive;
     }
 
     StaticSegment.prototype.eachChar = function eachChar(callback) {
       var s = this.string;
       for (var i = 0, ii = s.length; i < ii; ++i) {
         var ch = s[i];
-        callback({ validChars: ch });
+        callback({ validChars: this.caseSensitive ? ch : ch.toUpperCase() + ch.toLowerCase() });
       }
     };
 
@@ -13424,7 +13540,7 @@ define('aurelia-route-recognizer',['exports', 'aurelia-path'], function (exports
       var names = [];
       var routeName = route.handler.name;
       var isEmpty = true;
-      var segments = parse(route.path, names, types);
+      var segments = parse(route.path, names, types, route.caseSensitive);
 
       for (var i = 0, ii = segments.length; i < ii; i++) {
         var segment = segments[i];
@@ -13459,7 +13575,7 @@ define('aurelia-route-recognizer',['exports', 'aurelia-path'], function (exports
       }
 
       currentState.handlers = handlers;
-      currentState.regex = new RegExp(regex + '$');
+      currentState.regex = new RegExp(regex + '$', route.caseSensitive ? '' : 'i');
       currentState.types = types;
 
       return currentState;
@@ -13584,7 +13700,7 @@ define('aurelia-route-recognizer',['exports', 'aurelia-path'], function (exports
     this.queryParams = queryParams || {};
   };
 
-  function parse(route, names, types) {
+  function parse(route, names, types, caseSensitive) {
     var normalizedRoute = route;
     if (route.charAt(0) === '/') {
       normalizedRoute = route.substr(1);
@@ -13611,7 +13727,7 @@ define('aurelia-route-recognizer',['exports', 'aurelia-path'], function (exports
       } else if (segment === '') {
         results.push(new EpsilonSegment());
       } else {
-        results.push(new StaticSegment(segment));
+        results.push(new StaticSegment(segment, caseSensitive));
         types.statics++;
       }
     }
@@ -13775,14 +13891,20 @@ define('aurelia-router',['exports', 'aurelia-logging', 'aurelia-route-recognizer
   }
 
   function _normalizeAbsolutePath(path, hasPushState) {
+    var absolute = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+
     if (!hasPushState && path[0] !== '#') {
       path = '#' + path;
+    }
+
+    if (hasPushState && absolute) {
+      path = path.substring(1, path.length);
     }
 
     return path;
   }
 
-  function _createRootedPath(fragment, baseUrl, hasPushState) {
+  function _createRootedPath(fragment, baseUrl, hasPushState, absolute) {
     if (isAbsoluteUrl.test(fragment)) {
       return fragment;
     }
@@ -13803,7 +13925,7 @@ define('aurelia-router',['exports', 'aurelia-logging', 'aurelia-route-recognizer
       path = path.substring(0, path.length - 1);
     }
 
-    return _normalizeAbsolutePath(path + fragment, hasPushState);
+    return _normalizeAbsolutePath(path + fragment, hasPushState, absolute);
   }
 
   function _resolveUrl(fragment, baseUrl, hasPushState) {
@@ -14527,6 +14649,8 @@ define('aurelia-router',['exports', 'aurelia-logging', 'aurelia-route-recognizer
     };
 
     Router.prototype.generate = function generate(name, params) {
+      var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
       var hasRoute = this._recognizer.hasRoute(name);
       if ((!this.isConfigured || !hasRoute) && this.parent) {
         return this.parent.generate(name, params);
@@ -14537,7 +14661,8 @@ define('aurelia-router',['exports', 'aurelia-logging', 'aurelia-route-recognizer
       }
 
       var path = this._recognizer.generate(name, params);
-      return _createRootedPath(path, this.baseUrl, this.history._hasPushState);
+      var rootedPath = _createRootedPath(path, this.baseUrl, this.history._hasPushState, options.absolute);
+      return options.absolute ? '' + this.history.getAbsoluteRoot() + rootedPath : rootedPath;
     };
 
     Router.prototype.createNavModel = function createNavModel(config) {
@@ -14573,8 +14698,8 @@ define('aurelia-router',['exports', 'aurelia-logging', 'aurelia-route-recognizer
       if (path.charAt(0) === '/') {
         path = path.substr(1);
       }
-
-      var state = this._recognizer.add({ path: path, handler: config });
+      var caseSensitive = config.caseSensitive === true;
+      var state = this._recognizer.add({ path: path, handler: config, caseSensitive: caseSensitive });
 
       if (path) {
         var _settings = config.settings;
@@ -14585,7 +14710,8 @@ define('aurelia-router',['exports', 'aurelia-logging', 'aurelia-route-recognizer
         withChild.hasChildRouter = true;
         this._childRecognizer.add({
           path: withChild.route,
-          handler: withChild
+          handler: withChild,
+          caseSensitive: caseSensitive
         });
 
         withChild.navModel = navModel;
@@ -14646,7 +14772,7 @@ define('aurelia-router',['exports', 'aurelia-logging', 'aurelia-route-recognizer
 
       for (var i = 0, length = nav.length; i < length; i++) {
         var _current2 = nav[i];
-        if (!_current2.href) {
+        if (!_current2.config.href) {
           _current2.href = _createRootedPath(_current2.relativeHref, this.baseUrl, this.history._hasPushState);
         }
       }
@@ -14990,9 +15116,67 @@ define('aurelia-router',['exports', 'aurelia-logging', 'aurelia-route-recognizer
     return output;
   }
 
+  var SafeSubscription = function () {
+    function SafeSubscription(subscriptionFunc) {
+      _classCallCheck(this, SafeSubscription);
+
+      this._subscribed = true;
+      this._subscription = subscriptionFunc(this);
+
+      if (!this._subscribed) this.unsubscribe();
+    }
+
+    SafeSubscription.prototype.unsubscribe = function unsubscribe() {
+      if (this._subscribed && this._subscription) this._subscription.unsubscribe();
+
+      this._subscribed = false;
+    };
+
+    _createClass(SafeSubscription, [{
+      key: 'subscribed',
+      get: function get() {
+        return this._subscribed;
+      }
+    }]);
+
+    return SafeSubscription;
+  }();
+
   function processPotential(obj, resolve, reject) {
     if (obj && typeof obj.then === 'function') {
       return Promise.resolve(obj).then(resolve).catch(reject);
+    }
+
+    if (obj && typeof obj.subscribe === 'function') {
+      var _ret4 = function () {
+        var obs = obj;
+        return {
+          v: new SafeSubscription(function (sub) {
+            return obs.subscribe({
+              next: function next() {
+                if (sub.subscribed) {
+                  sub.unsubscribe();
+                  resolve(obj);
+                }
+              },
+              error: function error(_error) {
+                if (sub.subscribed) {
+                  sub.unsubscribe();
+                  reject(_error);
+                }
+              },
+              complete: function complete() {
+                if (sub.subscribed) {
+                  sub.unsubscribe();
+                  resolve(obj);
+                }
+              }
+            });
+          })
+        };
+      }();
+
+      if ((typeof _ret4 === 'undefined' ? 'undefined' : _typeof(_ret4)) === "object") return _ret4.v;
     }
 
     try {
@@ -15104,7 +15288,7 @@ define('aurelia-router',['exports', 'aurelia-logging', 'aurelia-route-recognizer
       component.config = config;
 
       if ('configureRouter' in viewModel) {
-        var _ret4 = function () {
+        var _ret5 = function () {
           var childRouter = childContainer.getChildRouter();
           component.childRouter = childRouter;
 
@@ -15117,12 +15301,34 @@ define('aurelia-router',['exports', 'aurelia-logging', 'aurelia-route-recognizer
           };
         }();
 
-        if ((typeof _ret4 === 'undefined' ? 'undefined' : _typeof(_ret4)) === "object") return _ret4.v;
+        if ((typeof _ret5 === 'undefined' ? 'undefined' : _typeof(_ret5)) === "object") return _ret5.v;
       }
 
       return component;
     });
   }
+
+  var PipelineSlot = function () {
+    function PipelineSlot(container, name, alias) {
+      _classCallCheck(this, PipelineSlot);
+
+      this.steps = [];
+
+      this.container = container;
+      this.slotName = name;
+      this.slotAlias = alias;
+    }
+
+    PipelineSlot.prototype.getSteps = function getSteps() {
+      var _this6 = this;
+
+      return this.steps.map(function (x) {
+        return _this6.container.get(x);
+      });
+    };
+
+    return PipelineSlot;
+  }();
 
   var PipelineProvider = exports.PipelineProvider = function () {
     PipelineProvider.inject = function inject() {
@@ -15137,49 +15343,57 @@ define('aurelia-router',['exports', 'aurelia-logging', 'aurelia-route-recognizer
     }
 
     PipelineProvider.prototype.createPipeline = function createPipeline() {
-      var _this6 = this;
+      var _this7 = this;
 
       var pipeline = new Pipeline();
       this.steps.forEach(function (step) {
-        return pipeline.addStep(_this6.container.get(step));
+        return pipeline.addStep(_this7.container.get(step));
       });
       return pipeline;
     };
 
-    PipelineProvider.prototype.addStep = function addStep(name, step) {
-      var found = this.steps.find(function (x) {
+    PipelineProvider.prototype._findStep = function _findStep(name) {
+      return this.steps.find(function (x) {
         return x.slotName === name || x.slotAlias === name;
       });
+    };
+
+    PipelineProvider.prototype.addStep = function addStep(name, step) {
+      var found = this._findStep(name);
       if (found) {
-        found.steps.push(step);
+        if (!found.steps.includes(step)) {
+          found.steps.push(step);
+        }
       } else {
         throw new Error('Invalid pipeline slot name: ' + name + '.');
       }
     };
 
+    PipelineProvider.prototype.removeStep = function removeStep(name, step) {
+      var slot = this._findStep(name);
+      if (slot) {
+        slot.steps.splice(slot.steps.indexOf(step), 1);
+      }
+    };
+
+    PipelineProvider.prototype._clearSteps = function _clearSteps() {
+      var name = arguments.length <= 0 || arguments[0] === undefined ? '' : arguments[0];
+
+      var slot = this._findStep(name);
+      if (slot) {
+        slot.steps = [];
+      }
+    };
+
+    PipelineProvider.prototype.reset = function reset() {
+      this._clearSteps('authorize');
+      this._clearSteps('preActivate');
+      this._clearSteps('preRender');
+      this._clearSteps('postRender');
+    };
+
     PipelineProvider.prototype._createPipelineSlot = function _createPipelineSlot(name, alias) {
-      var _class6, _temp;
-
-      var PipelineSlot = (_temp = _class6 = function () {
-        function PipelineSlot(container) {
-          _classCallCheck(this, PipelineSlot);
-
-          this.container = container;
-        }
-
-        PipelineSlot.prototype.getSteps = function getSteps() {
-          var _this7 = this;
-
-          return PipelineSlot.steps.map(function (x) {
-            return _this7.container.get(x);
-          });
-        };
-
-        return PipelineSlot;
-      }(), _class6.inject = [_aureliaDependencyInjection.Container], _class6.slotName = name, _class6.slotAlias = alias, _class6.steps = [], _temp);
-
-
-      return PipelineSlot;
+      return new PipelineSlot(this.container, name, alias);
     };
 
     return PipelineProvider;
@@ -15231,11 +15445,11 @@ define('aurelia-router',['exports', 'aurelia-logging', 'aurelia-route-recognizer
       _Router.prototype.registerViewPort.call(this, viewPort, name);
 
       if (!this.isActive) {
-        var _ret5 = function () {
+        var _ret6 = function () {
           var viewModel = _this10._findViewModel(viewPort);
           if ('configureRouter' in viewModel) {
             if (!_this10.isConfigured) {
-              var _ret6 = function () {
+              var _ret7 = function () {
                 var resolveConfiguredPromise = _this10._resolveConfiguredPromise;
                 _this10._resolveConfiguredPromise = function () {};
                 return {
@@ -15250,14 +15464,14 @@ define('aurelia-router',['exports', 'aurelia-logging', 'aurelia-route-recognizer
                 };
               }();
 
-              if ((typeof _ret6 === 'undefined' ? 'undefined' : _typeof(_ret6)) === "object") return _ret6.v;
+              if ((typeof _ret7 === 'undefined' ? 'undefined' : _typeof(_ret7)) === "object") return _ret7.v;
             }
           } else {
             _this10.activate();
           }
         }();
 
-        if ((typeof _ret5 === 'undefined' ? 'undefined' : _typeof(_ret5)) === "object") return _ret5.v;
+        if ((typeof _ret6 === 'undefined' ? 'undefined' : _typeof(_ret6)) === "object") return _ret6.v;
       } else {
         this._dequeueInstruction();
       }
@@ -15421,7 +15635,7 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.TemplatingBindingLanguage = exports.SyntaxInterpreter = exports.ChildInterpolationBinding = exports.InterpolationBinding = exports.InterpolationBindingExpression = undefined;
+  exports.TemplatingBindingLanguage = exports.SyntaxInterpreter = exports.ChildInterpolationBinding = exports.InterpolationBinding = exports.InterpolationBindingExpression = exports.AttributeMap = undefined;
   exports.configure = configure;
 
   var LogManager = _interopRequireWildcard(_aureliaLogging);
@@ -15467,13 +15681,82 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
     if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  var _dec, _class;
-
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
+
+  var _class, _temp, _dec, _class2, _class3, _temp2, _class4, _temp3;
+
+  var AttributeMap = exports.AttributeMap = (_temp = _class = function () {
+    function AttributeMap(svg) {
+      _classCallCheck(this, AttributeMap);
+
+      this.elements = Object.create(null);
+      this.allElements = Object.create(null);
+
+      this.svg = svg;
+
+      this.registerUniversal('accesskey', 'accessKey');
+      this.registerUniversal('contenteditable', 'contentEditable');
+      this.registerUniversal('tabindex', 'tabIndex');
+      this.registerUniversal('textcontent', 'textContent');
+      this.registerUniversal('innerhtml', 'innerHTML');
+      this.registerUniversal('scrolltop', 'scrollTop');
+      this.registerUniversal('scrollleft', 'scrollLeft');
+      this.registerUniversal('readonly', 'readOnly');
+
+      this.register('label', 'for', 'htmlFor');
+
+      this.register('input', 'maxlength', 'maxLength');
+      this.register('input', 'minlength', 'minLength');
+      this.register('input', 'formaction', 'formAction');
+      this.register('input', 'formenctype', 'formEncType');
+      this.register('input', 'formmethod', 'formMethod');
+      this.register('input', 'formnovalidate', 'formNoValidate');
+      this.register('input', 'formtarget', 'formTarget');
+
+      this.register('td', 'rowspan', 'rowSpan');
+      this.register('td', 'colspan', 'colSpan');
+      this.register('th', 'rowspan', 'rowSpan');
+      this.register('th', 'colspan', 'colSpan');
+    }
+
+    AttributeMap.prototype.register = function register(elementName, attributeName, propertyName) {
+      elementName = elementName.toLowerCase();
+      attributeName = attributeName.toLowerCase();
+      var element = this.elements[elementName] = this.elements[elementName] || Object.create(null);
+      element[attributeName] = propertyName;
+    };
+
+    AttributeMap.prototype.registerUniversal = function registerUniversal(attributeName, propertyName) {
+      attributeName = attributeName.toLowerCase();
+      this.allElements[attributeName] = propertyName;
+    };
+
+    AttributeMap.prototype.map = function map(elementName, attributeName) {
+      if (this.svg.isStandardSvgAttribute(elementName, attributeName)) {
+        return attributeName;
+      }
+      elementName = elementName.toLowerCase();
+      attributeName = attributeName.toLowerCase();
+      var element = this.elements[elementName];
+      if (element !== undefined && attributeName in element) {
+        return element[attributeName];
+      }
+      if (attributeName in this.allElements) {
+        return this.allElements[attributeName];
+      }
+
+      if (/(^data-)|(^aria-)|:/.test(attributeName)) {
+        return attributeName;
+      }
+      return (0, _aureliaBinding.camelCase)(attributeName);
+    };
+
+    return AttributeMap;
+  }(), _class.inject = [_aureliaBinding.SVGAnalyzer], _temp);
 
   var InterpolationBindingExpression = exports.InterpolationBindingExpression = function () {
     function InterpolationBindingExpression(observerLocator, targetProperty, parts, mode, lookupFunctions, attribute) {
@@ -15576,7 +15859,7 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
     return InterpolationBinding;
   }();
 
-  var ChildInterpolationBinding = exports.ChildInterpolationBinding = (_dec = (0, _aureliaBinding.connectable)(), _dec(_class = function () {
+  var ChildInterpolationBinding = exports.ChildInterpolationBinding = (_dec = (0, _aureliaBinding.connectable)(), _dec(_class2 = function () {
     function ChildInterpolationBinding(target, observerLocator, sourceExpression, mode, lookupFunctions, targetProperty, left, right) {
       _classCallCheck(this, ChildInterpolationBinding);
 
@@ -15677,19 +15960,15 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
     };
 
     return ChildInterpolationBinding;
-  }()) || _class);
-
-  var SyntaxInterpreter = exports.SyntaxInterpreter = function () {
-    SyntaxInterpreter.inject = function inject() {
-      return [_aureliaBinding.Parser, _aureliaBinding.ObserverLocator, _aureliaBinding.EventManager];
-    };
-
-    function SyntaxInterpreter(parser, observerLocator, eventManager) {
+  }()) || _class2);
+  var SyntaxInterpreter = exports.SyntaxInterpreter = (_temp2 = _class3 = function () {
+    function SyntaxInterpreter(parser, observerLocator, eventManager, attributeMap) {
       _classCallCheck(this, SyntaxInterpreter);
 
       this.parser = parser;
       this.observerLocator = observerLocator;
       this.eventManager = eventManager;
+      this.attributeMap = attributeMap;
     }
 
     SyntaxInterpreter.prototype.interpret = function interpret(resources, element, info, existingInstruction, context) {
@@ -15708,7 +15987,7 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
     SyntaxInterpreter.prototype.determineDefaultBindingMode = function determineDefaultBindingMode(element, attrName, context) {
       var tagName = element.tagName.toLowerCase();
 
-      if (tagName === 'input' && (attrName === 'value' || attrName === 'checked' || attrName === 'files') || (tagName === 'textarea' || tagName === 'select') && attrName === 'value' || (attrName === 'textcontent' || attrName === 'innerhtml') && element.contentEditable === 'true' || attrName === 'scrolltop' || attrName === 'scrollleft') {
+      if (tagName === 'input' && (attrName === 'value' || attrName === 'files') && element.type !== 'checkbox' && element.type !== 'radio' || tagName === 'input' && attrName === 'checked' && (element.type === 'checkbox' || element.type === 'radio') || (tagName === 'textarea' || tagName === 'select') && attrName === 'value' || (attrName === 'textcontent' || attrName === 'innerhtml') && element.contentEditable === 'true' || attrName === 'scrolltop' || attrName === 'scrollleft') {
         return _aureliaBinding.bindingMode.twoWay;
       }
 
@@ -15722,7 +16001,7 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
     SyntaxInterpreter.prototype.bind = function bind(resources, element, info, existingInstruction, context) {
       var instruction = existingInstruction || _aureliaTemplating.BehaviorInstruction.attribute(info.attrName);
 
-      instruction.attributes[info.attrName] = new _aureliaBinding.BindingExpression(this.observerLocator, this.attributeMap[info.attrName] || info.attrName, this.parser.parse(info.attrValue), info.defaultBindingMode || this.determineDefaultBindingMode(element, info.attrName, context), resources.lookupFunctions);
+      instruction.attributes[info.attrName] = new _aureliaBinding.BindingExpression(this.observerLocator, this.attributeMap.map(element.tagName, info.attrName), this.parser.parse(info.attrValue), info.defaultBindingMode || this.determineDefaultBindingMode(element, info.attrName, context), resources.lookupFunctions);
 
       return instruction;
     };
@@ -15759,7 +16038,7 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
         current = attrValue[i];
 
         if (current === ';' && !inString) {
-          info = language.inspectAttribute(resources, name, target.trim());
+          info = language.inspectAttribute(resources, '?', name, target.trim());
           language.createAttributeInstruction(resources, element, info, instruction, context);
 
           if (!instruction.attributes[info.attrName]) {
@@ -15787,7 +16066,7 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
       }
 
       if (name !== null) {
-        info = language.inspectAttribute(resources, name, target.trim());
+        info = language.inspectAttribute(resources, '?', name, target.trim());
         language.createAttributeInstruction(resources, element, info, instruction, context);
 
         if (!instruction.attributes[info.attrName]) {
@@ -15831,7 +16110,7 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
     SyntaxInterpreter.prototype['two-way'] = function twoWay(resources, element, info, existingInstruction) {
       var instruction = existingInstruction || _aureliaTemplating.BehaviorInstruction.attribute(info.attrName);
 
-      instruction.attributes[info.attrName] = new _aureliaBinding.BindingExpression(this.observerLocator, this.attributeMap[info.attrName] || info.attrName, this.parser.parse(info.attrValue), _aureliaBinding.bindingMode.twoWay, resources.lookupFunctions);
+      instruction.attributes[info.attrName] = new _aureliaBinding.BindingExpression(this.observerLocator, this.attributeMap.map(element.tagName, info.attrName), this.parser.parse(info.attrValue), _aureliaBinding.bindingMode.twoWay, resources.lookupFunctions);
 
       return instruction;
     };
@@ -15839,7 +16118,7 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
     SyntaxInterpreter.prototype['one-way'] = function oneWay(resources, element, info, existingInstruction) {
       var instruction = existingInstruction || _aureliaTemplating.BehaviorInstruction.attribute(info.attrName);
 
-      instruction.attributes[info.attrName] = new _aureliaBinding.BindingExpression(this.observerLocator, this.attributeMap[info.attrName] || info.attrName, this.parser.parse(info.attrValue), _aureliaBinding.bindingMode.oneWay, resources.lookupFunctions);
+      instruction.attributes[info.attrName] = new _aureliaBinding.BindingExpression(this.observerLocator, this.attributeMap.map(element.tagName, info.attrName), this.parser.parse(info.attrValue), _aureliaBinding.bindingMode.oneWay, resources.lookupFunctions);
 
       return instruction;
     };
@@ -15847,24 +16126,20 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
     SyntaxInterpreter.prototype['one-time'] = function oneTime(resources, element, info, existingInstruction) {
       var instruction = existingInstruction || _aureliaTemplating.BehaviorInstruction.attribute(info.attrName);
 
-      instruction.attributes[info.attrName] = new _aureliaBinding.BindingExpression(this.observerLocator, this.attributeMap[info.attrName] || info.attrName, this.parser.parse(info.attrValue), _aureliaBinding.bindingMode.oneTime, resources.lookupFunctions);
+      instruction.attributes[info.attrName] = new _aureliaBinding.BindingExpression(this.observerLocator, this.attributeMap.map(element.tagName, info.attrName), this.parser.parse(info.attrValue), _aureliaBinding.bindingMode.oneTime, resources.lookupFunctions);
 
       return instruction;
     };
 
     return SyntaxInterpreter;
-  }();
+  }(), _class3.inject = [_aureliaBinding.Parser, _aureliaBinding.ObserverLocator, _aureliaBinding.EventManager, AttributeMap], _temp2);
 
   var info = {};
 
-  var TemplatingBindingLanguage = exports.TemplatingBindingLanguage = function (_BindingLanguage) {
+  var TemplatingBindingLanguage = exports.TemplatingBindingLanguage = (_temp3 = _class4 = function (_BindingLanguage) {
     _inherits(TemplatingBindingLanguage, _BindingLanguage);
 
-    TemplatingBindingLanguage.inject = function inject() {
-      return [_aureliaBinding.Parser, _aureliaBinding.ObserverLocator, SyntaxInterpreter];
-    };
-
-    function TemplatingBindingLanguage(parser, observerLocator, syntaxInterpreter) {
+    function TemplatingBindingLanguage(parser, observerLocator, syntaxInterpreter, attributeMap) {
       _classCallCheck(this, TemplatingBindingLanguage);
 
       var _this = _possibleConstructorReturn(this, _BindingLanguage.call(this));
@@ -15874,31 +16149,11 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
       _this.syntaxInterpreter = syntaxInterpreter;
       _this.emptyStringExpression = _this.parser.parse('\'\'');
       syntaxInterpreter.language = _this;
-      _this.attributeMap = syntaxInterpreter.attributeMap = {
-        'accesskey': 'accessKey',
-        'contenteditable': 'contentEditable',
-        'for': 'htmlFor',
-        'tabindex': 'tabIndex',
-        'textcontent': 'textContent',
-        'innerhtml': 'innerHTML',
-
-        'maxlength': 'maxLength',
-        'minlength': 'minLength',
-        'formaction': 'formAction',
-        'formenctype': 'formEncType',
-        'formmethod': 'formMethod',
-        'formnovalidate': 'formNoValidate',
-        'formtarget': 'formTarget',
-        'rowspan': 'rowSpan',
-        'colspan': 'colSpan',
-        'scrolltop': 'scrollTop',
-        'scrollleft': 'scrollLeft',
-        'readonly': 'readOnly'
-      };
+      _this.attributeMap = attributeMap;
       return _this;
     }
 
-    TemplatingBindingLanguage.prototype.inspectAttribute = function inspectAttribute(resources, attrName, attrValue) {
+    TemplatingBindingLanguage.prototype.inspectAttribute = function inspectAttribute(resources, elementName, attrName, attrValue) {
       var parts = attrName.split('.');
 
       info.defaultBindingMode = null;
@@ -15924,7 +16179,12 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
         info.attrName = attrName;
         info.attrValue = attrValue;
         info.command = null;
-        info.expression = this.parseContent(resources, attrName, attrValue);
+        var interpolationParts = this.parseInterpolation(resources, attrValue);
+        if (interpolationParts === null) {
+          info.expression = null;
+        } else {
+          info.expression = new InterpolationBindingExpression(this.observerLocator, this.attributeMap.map(elementName, attrName), interpolationParts, _aureliaBinding.bindingMode.oneWay, resources.lookupFunctions, attrName);
+        }
       }
 
       return info;
@@ -15947,13 +16207,17 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
       return instruction;
     };
 
-    TemplatingBindingLanguage.prototype.parseText = function parseText(resources, value) {
-      return this.parseContent(resources, 'textContent', value);
+    TemplatingBindingLanguage.prototype.inspectTextContent = function inspectTextContent(resources, value) {
+      var parts = this.parseInterpolation(resources, value);
+      if (parts === null) {
+        return null;
+      }
+      return new InterpolationBindingExpression(this.observerLocator, 'textContent', parts, _aureliaBinding.bindingMode.oneWay, resources.lookupFunctions, 'textContent');
     };
 
-    TemplatingBindingLanguage.prototype.parseContent = function parseContent(resources, attrName, attrValue) {
-      var i = attrValue.indexOf('${', 0);
-      var ii = attrValue.length;
+    TemplatingBindingLanguage.prototype.parseInterpolation = function parseInterpolation(resources, value) {
+      var i = value.indexOf('${', 0);
+      var ii = value.length;
       var char = void 0;
       var pos = 0;
       var open = 0;
@@ -15968,7 +16232,7 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
         i += 2;
 
         do {
-          char = attrValue[i];
+          char = value[i];
           i++;
 
           if (char === "'" || char === '"') {
@@ -15998,19 +16262,19 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
 
         if (open === 0) {
           parts = parts || [];
-          if (attrValue[interpolationStart - 1] === '\\' && attrValue[interpolationStart - 2] !== '\\') {
-            parts[partIndex] = attrValue.substring(pos, interpolationStart - 1) + attrValue.substring(interpolationStart, i);
+          if (value[interpolationStart - 1] === '\\' && value[interpolationStart - 2] !== '\\') {
+            parts[partIndex] = value.substring(pos, interpolationStart - 1) + value.substring(interpolationStart, i);
             partIndex++;
             parts[partIndex] = this.emptyStringExpression;
             partIndex++;
           } else {
-            parts[partIndex] = attrValue.substring(pos, interpolationStart);
+            parts[partIndex] = value.substring(pos, interpolationStart);
             partIndex++;
-            parts[partIndex] = this.parser.parse(attrValue.substring(interpolationStart + 2, i - 1));
+            parts[partIndex] = this.parser.parse(value.substring(interpolationStart + 2, i - 1));
             partIndex++;
           }
           pos = i;
-          i = attrValue.indexOf('${', i);
+          i = value.indexOf('${', i);
         } else {
           break;
         }
@@ -16020,14 +16284,12 @@ define('aurelia-templating-binding',['exports', 'aurelia-logging', 'aurelia-bind
         return null;
       }
 
-      parts[partIndex] = attrValue.substr(pos);
-
-      return new InterpolationBindingExpression(this.observerLocator, this.attributeMap[attrName] || attrName, parts, _aureliaBinding.bindingMode.oneWay, resources.lookupFunctions, attrName);
+      parts[partIndex] = value.substr(pos);
+      return parts;
     };
 
     return TemplatingBindingLanguage;
-  }(_aureliaTemplating.BindingLanguage);
-
+  }(_aureliaTemplating.BindingLanguage), _class4.inject = [_aureliaBinding.Parser, _aureliaBinding.ObserverLocator, SyntaxInterpreter, AttributeMap], _temp3);
   function configure(config) {
     config.container.registerSingleton(_aureliaTemplating.BindingLanguage, TemplatingBindingLanguage);
     config.container.registerAlias(_aureliaTemplating.BindingLanguage, TemplatingBindingLanguage);
@@ -16441,6 +16703,7 @@ define('aurelia-templating-resources/repeat-utilities',['exports', 'aurelia-bind
   exports.unwrapExpression = unwrapExpression;
   exports.isOneTime = isOneTime;
   exports.updateOneTimeBinding = updateOneTimeBinding;
+  exports.indexOf = indexOf;
 
 
   var oneTime = _aureliaBinding.bindingMode.oneTime;
@@ -16519,6 +16782,19 @@ define('aurelia-templating-resources/repeat-utilities',['exports', 'aurelia-bind
       binding.updateOneTimeBindings();
     }
   }
+
+  function indexOf(array, item, matcher, startIndex) {
+    if (!matcher) {
+      return array.indexOf(item);
+    }
+    var length = array.length;
+    for (var index = startIndex || 0; index < length; index++) {
+      if (matcher(array[index], item)) {
+        return index;
+      }
+    }
+    return -1;
+  }
 });
 define('aurelia-templating-resources/array-repeat-strategy',['exports', './repeat-utilities', 'aurelia-binding'], function (exports, _repeatUtilities, _aureliaBinding) {
   
@@ -16546,18 +16822,90 @@ define('aurelia-templating-resources/array-repeat-strategy',['exports', './repea
     ArrayRepeatStrategy.prototype.instanceChanged = function instanceChanged(repeat, items) {
       var _this = this;
 
-      if (repeat.viewsRequireLifecycle) {
-        var removePromise = repeat.removeAllViews(true);
-        if (removePromise instanceof Promise) {
-          removePromise.then(function () {
-            return _this._standardProcessInstanceChanged(repeat, items);
-          });
-          return;
-        }
+      var itemsLength = items.length;
+
+      if (!items || itemsLength === 0) {
+        repeat.removeAllViews(true);
+        return;
+      }
+
+      var children = repeat.views();
+      var viewsLength = children.length;
+
+      if (viewsLength === 0) {
         this._standardProcessInstanceChanged(repeat, items);
         return;
       }
-      this._inPlaceProcessItems(repeat, items);
+
+      if (repeat.viewsRequireLifecycle) {
+        (function () {
+          var childrenSnapshot = children.slice(0);
+          var itemNameInBindingContext = repeat.local;
+          var matcher = repeat.matcher();
+
+          var itemsPreviouslyInViews = [];
+          var viewsToRemove = [];
+
+          for (var index = 0; index < viewsLength; index++) {
+            var view = childrenSnapshot[index];
+            var oldItem = view.bindingContext[itemNameInBindingContext];
+
+            if ((0, _repeatUtilities.indexOf)(items, oldItem, matcher) === -1) {
+              viewsToRemove.push(view);
+            } else {
+              itemsPreviouslyInViews.push(oldItem);
+            }
+          }
+
+          var updateViews = void 0;
+          var removePromise = void 0;
+
+          if (itemsPreviouslyInViews.length > 0) {
+            removePromise = repeat.removeViews(viewsToRemove, true);
+            updateViews = function updateViews() {
+              for (var _index = 0; _index < itemsLength; _index++) {
+                var item = items[_index];
+                var indexOfView = (0, _repeatUtilities.indexOf)(itemsPreviouslyInViews, item, matcher, _index);
+                var _view = void 0;
+
+                if (indexOfView === -1) {
+                  var overrideContext = (0, _repeatUtilities.createFullOverrideContext)(repeat, items[_index], _index, itemsLength);
+                  repeat.insertView(_index, overrideContext.bindingContext, overrideContext);
+
+                  itemsPreviouslyInViews.splice(_index, 0, undefined);
+                } else if (indexOfView === _index) {
+                  _view = children[indexOfView];
+                  itemsPreviouslyInViews[indexOfView] = undefined;
+                } else {
+                  _view = children[indexOfView];
+                  repeat.moveView(indexOfView, _index);
+                  itemsPreviouslyInViews.splice(indexOfView, 1);
+                  itemsPreviouslyInViews.splice(_index, 0, undefined);
+                }
+
+                if (_view) {
+                  (0, _repeatUtilities.updateOverrideContext)(_view.overrideContext, _index, itemsLength);
+                }
+              }
+
+              _this._inPlaceProcessItems(repeat, items);
+            };
+          } else {
+            removePromise = repeat.removeAllViews(true);
+            updateViews = function updateViews() {
+              return _this._standardProcessInstanceChanged(repeat, items);
+            };
+          }
+
+          if (removePromise instanceof Promise) {
+            removePromise.then(updateViews);
+          } else {
+            updateViews();
+          }
+        })();
+      } else {
+        this._inPlaceProcessItems(repeat, items);
+      }
     };
 
     ArrayRepeatStrategy.prototype._standardProcessInstanceChanged = function _standardProcessInstanceChanged(repeat, items) {
@@ -17062,10 +17410,7 @@ define('aurelia-templating-resources/analyze-view-factory',['exports'], function
   function behaviorRequiresLifecycle(instruction) {
     var t = instruction.type;
     var name = t.elementName !== null ? t.elementName : t.attributeName;
-    if (lifecycleOptionalBehaviors.indexOf(name) === -1) {
-      return t.handlesAttached || t.handlesBind || t.handlesCreated || t.handlesDetached || t.handlesUnbind;
-    }
-    return instruction.viewFactory && viewsRequireLifecycle(instruction.viewFactory);
+    return lifecycleOptionalBehaviors.indexOf(name) === -1 && (t.handlesAttached || t.handlesBind || t.handlesCreated || t.handlesDetached || t.handlesUnbind) || t.viewFactory && viewsRequireLifecycle(t.viewFactory) || instruction.viewFactory && viewsRequireLifecycle(instruction.viewFactory);
   }
 
   function targetRequiresLifecycle(instruction) {
@@ -17086,6 +17431,8 @@ define('aurelia-templating-resources/analyze-view-factory',['exports'], function
     if ('_viewsRequireLifecycle' in viewFactory) {
       return viewFactory._viewsRequireLifecycle;
     }
+
+    viewFactory._viewsRequireLifecycle = false;
 
     if (viewFactory.viewFactory) {
       viewFactory._viewsRequireLifecycle = viewsRequireLifecycle(viewFactory.viewFactory);
@@ -17143,6 +17490,10 @@ define('aurelia-templating-resources/abstract-repeater',['exports'], function (e
       throw new Error('subclass must implement `view`');
     };
 
+    AbstractRepeater.prototype.matcher = function matcher() {
+      throw new Error('subclass must implement `matcher`');
+    };
+
     AbstractRepeater.prototype.addView = function addView(bindingContext, overrideContext) {
       throw new Error('subclass must implement `addView`');
     };
@@ -17151,8 +17502,16 @@ define('aurelia-templating-resources/abstract-repeater',['exports'], function (e
       throw new Error('subclass must implement `insertView`');
     };
 
+    AbstractRepeater.prototype.moveView = function moveView(sourceIndex, targetIndex) {
+      throw new Error('subclass must implement `moveView`');
+    };
+
     AbstractRepeater.prototype.removeAllViews = function removeAllViews(returnToCache, skipAnimation) {
       throw new Error('subclass must implement `removeAllViews`');
+    };
+
+    AbstractRepeater.prototype.removeViews = function removeViews(viewsToRemove, returnToCache, skipAnimation) {
+      throw new Error('subclass must implement `removeView`');
     };
 
     AbstractRepeater.prototype.removeView = function removeView(index, returnToCache, skipAnimation) {
@@ -17289,12 +17648,14 @@ define('aurelia-templating-resources/repeat',['exports', 'aurelia-dependency-inj
 
     Repeat.prototype.bind = function bind(bindingContext, overrideContext) {
       this.scope = { bindingContext: bindingContext, overrideContext: overrideContext };
+      this.matcherBinding = this._captureAndRemoveMatcherBinding();
       this.itemsChanged();
     };
 
     Repeat.prototype.unbind = function unbind() {
       this.scope = null;
       this.items = null;
+      this.matcherBinding = null;
       this.viewSlot.removeAll(true);
       this._unsubscribeCollection();
     };
@@ -17335,11 +17696,18 @@ define('aurelia-templating-resources/repeat',['exports', 'aurelia-dependency-inj
     };
 
     Repeat.prototype.handleCollectionMutated = function handleCollectionMutated(collection, changes) {
+      if (!this.collectionObserver) {
+        return;
+      }
       this.strategy.instanceMutated(this, collection, changes);
     };
 
     Repeat.prototype.handleInnerCollectionMutated = function handleInnerCollectionMutated(collection, changes) {
       var _this2 = this;
+
+      if (!this.collectionObserver) {
+        return;
+      }
 
       if (this.ignoreMutation) {
         return;
@@ -17381,6 +17749,25 @@ define('aurelia-templating-resources/repeat',['exports', 'aurelia-dependency-inj
       }
     };
 
+    Repeat.prototype._captureAndRemoveMatcherBinding = function _captureAndRemoveMatcherBinding() {
+      if (this.viewFactory.viewFactory) {
+        var instructions = this.viewFactory.viewFactory.instructions;
+        var instructionIds = Object.keys(instructions);
+        for (var i = 0; i < instructionIds.length; i++) {
+          var expressions = instructions[instructionIds[i]].expressions;
+          if (expressions) {
+            for (var ii = 0; i < expressions.length; i++) {
+              if (expressions[ii].targetProperty === 'matcher') {
+                var matcherBinding = expressions[ii];
+                expressions.splice(ii, 1);
+                return matcherBinding;
+              }
+            }
+          }
+        }
+      }
+    };
+
     Repeat.prototype.viewCount = function viewCount() {
       return this.viewSlot.children.length;
     };
@@ -17391,6 +17778,10 @@ define('aurelia-templating-resources/repeat',['exports', 'aurelia-dependency-inj
 
     Repeat.prototype.view = function view(index) {
       return this.viewSlot.children[index];
+    };
+
+    Repeat.prototype.matcher = function matcher() {
+      return this.matcherBinding ? this.matcherBinding.sourceExpression.evaluate(this.scope, this.matcherBinding.lookupFunctions) : null;
     };
 
     Repeat.prototype.addView = function addView(bindingContext, overrideContext) {
@@ -17405,8 +17796,16 @@ define('aurelia-templating-resources/repeat',['exports', 'aurelia-dependency-inj
       this.viewSlot.insert(index, view);
     };
 
+    Repeat.prototype.moveView = function moveView(sourceIndex, targetIndex) {
+      this.viewSlot.move(sourceIndex, targetIndex);
+    };
+
     Repeat.prototype.removeAllViews = function removeAllViews(returnToCache, skipAnimation) {
       return this.viewSlot.removeAll(returnToCache, skipAnimation);
+    };
+
+    Repeat.prototype.removeViews = function removeViews(viewsToRemove, returnToCache, skipAnimation) {
+      return this.viewSlot.removeMany(viewsToRemove, returnToCache, skipAnimation);
     };
 
     Repeat.prototype.removeView = function removeView(index, returnToCache, skipAnimation) {
@@ -17647,6 +18046,8 @@ define('aurelia-templating-resources/focus',['exports', 'aurelia-templating', 'a
 
       this.element = element;
       this.taskQueue = taskQueue;
+      this.isAttached = false;
+      this.needsApply = false;
 
       this.focusListener = function (e) {
         _this.value = true;
@@ -17659,29 +18060,39 @@ define('aurelia-templating-resources/focus',['exports', 'aurelia-templating', 'a
     }
 
     Focus.prototype.valueChanged = function valueChanged(newValue) {
-      if (newValue) {
-        this._giveFocus();
+      if (this.isAttached) {
+        this._apply();
+      } else {
+        this.needsApply = true;
+      }
+    };
+
+    Focus.prototype._apply = function _apply() {
+      var _this2 = this;
+
+      if (this.value) {
+        this.taskQueue.queueMicroTask(function () {
+          if (_this2.value) {
+            _this2.element.focus();
+          }
+        });
       } else {
         this.element.blur();
       }
     };
 
-    Focus.prototype._giveFocus = function _giveFocus() {
-      var _this2 = this;
-
-      this.taskQueue.queueMicroTask(function () {
-        if (_this2.value) {
-          _this2.element.focus();
-        }
-      });
-    };
-
     Focus.prototype.attached = function attached() {
+      this.isAttached = true;
+      if (this.needsApply) {
+        this.needsApply = false;
+        this._apply();
+      }
       this.element.addEventListener('focus', this.focusListener);
       this.element.addEventListener('blur', this.blurListener);
     };
 
     Focus.prototype.detached = function detached() {
+      this.isAttached = false;
       this.element.removeEventListener('focus', this.focusListener);
       this.element.removeEventListener('blur', this.blurListener);
     };
@@ -18356,13 +18767,13 @@ define('aurelia-templating-resources/html-resource-plugin',['exports', 'aurelia-
     });
   }
 });
-define('aurelia-templating-resources/aurelia-templating-resources',['exports', './compose', './if', './with', './repeat', './show', './hide', './sanitize-html', './replaceable', './focus', './compile-spy', './view-spy', 'aurelia-templating', './css-resource', 'aurelia-pal', './html-sanitizer', './binding-mode-behaviors', './throttle-binding-behavior', './debounce-binding-behavior', './signal-binding-behavior', './binding-signaler', './update-trigger-binding-behavior', './abstract-repeater', './repeat-strategy-locator', './html-resource-plugin', './null-repeat-strategy', './array-repeat-strategy', './map-repeat-strategy', './set-repeat-strategy', './number-repeat-strategy'], function (exports, _compose, _if, _with, _repeat, _show, _hide, _sanitizeHtml, _replaceable, _focus, _compileSpy, _viewSpy, _aureliaTemplating, _cssResource, _aureliaPal, _htmlSanitizer, _bindingModeBehaviors, _throttleBindingBehavior, _debounceBindingBehavior, _signalBindingBehavior, _bindingSignaler, _updateTriggerBindingBehavior, _abstractRepeater, _repeatStrategyLocator, _htmlResourcePlugin, _nullRepeatStrategy, _arrayRepeatStrategy, _mapRepeatStrategy, _setRepeatStrategy, _numberRepeatStrategy) {
+define('aurelia-templating-resources/aurelia-templating-resources',['exports', './compose', './if', './with', './repeat', './show', './hide', './sanitize-html', './replaceable', './focus', './compile-spy', './view-spy', 'aurelia-templating', './css-resource', 'aurelia-pal', './html-sanitizer', './binding-mode-behaviors', './throttle-binding-behavior', './debounce-binding-behavior', './signal-binding-behavior', './binding-signaler', './update-trigger-binding-behavior', './abstract-repeater', './repeat-strategy-locator', './html-resource-plugin', './null-repeat-strategy', './array-repeat-strategy', './map-repeat-strategy', './set-repeat-strategy', './number-repeat-strategy', './repeat-utilities', './analyze-view-factory'], function (exports, _compose, _if, _with, _repeat, _show, _hide, _sanitizeHtml, _replaceable, _focus, _compileSpy, _viewSpy, _aureliaTemplating, _cssResource, _aureliaPal, _htmlSanitizer, _bindingModeBehaviors, _throttleBindingBehavior, _debounceBindingBehavior, _signalBindingBehavior, _bindingSignaler, _updateTriggerBindingBehavior, _abstractRepeater, _repeatStrategyLocator, _htmlResourcePlugin, _nullRepeatStrategy, _arrayRepeatStrategy, _mapRepeatStrategy, _setRepeatStrategy, _numberRepeatStrategy, _repeatUtilities, _analyzeViewFactory) {
   
 
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.NumberRepeatStrategy = exports.SetRepeatStrategy = exports.MapRepeatStrategy = exports.ArrayRepeatStrategy = exports.NullRepeatStrategy = exports.RepeatStrategyLocator = exports.AbstractRepeater = exports.UpdateTriggerBindingBehavior = exports.BindingSignaler = exports.SignalBindingBehavior = exports.DebounceBindingBehavior = exports.ThrottleBindingBehavior = exports.TwoWayBindingBehavior = exports.OneWayBindingBehavior = exports.OneTimeBindingBehavior = exports.configure = exports.ViewSpy = exports.CompileSpy = exports.Focus = exports.Replaceable = exports.SanitizeHTMLValueConverter = exports.HTMLSanitizer = exports.Hide = exports.Show = exports.Repeat = exports.With = exports.If = exports.Compose = undefined;
+  exports.viewsRequireLifecycle = exports.unwrapExpression = exports.updateOneTimeBinding = exports.isOneTime = exports.getItemsSourceExpression = exports.updateOverrideContext = exports.createFullOverrideContext = exports.NumberRepeatStrategy = exports.SetRepeatStrategy = exports.MapRepeatStrategy = exports.ArrayRepeatStrategy = exports.NullRepeatStrategy = exports.RepeatStrategyLocator = exports.AbstractRepeater = exports.UpdateTriggerBindingBehavior = exports.BindingSignaler = exports.SignalBindingBehavior = exports.DebounceBindingBehavior = exports.ThrottleBindingBehavior = exports.TwoWayBindingBehavior = exports.OneWayBindingBehavior = exports.OneTimeBindingBehavior = exports.configure = exports.ViewSpy = exports.CompileSpy = exports.Focus = exports.Replaceable = exports.SanitizeHTMLValueConverter = exports.HTMLSanitizer = exports.Hide = exports.Show = exports.Repeat = exports.With = exports.If = exports.Compose = undefined;
 
 
   function configure(config) {
@@ -18414,6 +18825,13 @@ define('aurelia-templating-resources/aurelia-templating-resources',['exports', '
   exports.MapRepeatStrategy = _mapRepeatStrategy.MapRepeatStrategy;
   exports.SetRepeatStrategy = _setRepeatStrategy.SetRepeatStrategy;
   exports.NumberRepeatStrategy = _numberRepeatStrategy.NumberRepeatStrategy;
+  exports.createFullOverrideContext = _repeatUtilities.createFullOverrideContext;
+  exports.updateOverrideContext = _repeatUtilities.updateOverrideContext;
+  exports.getItemsSourceExpression = _repeatUtilities.getItemsSourceExpression;
+  exports.isOneTime = _repeatUtilities.isOneTime;
+  exports.updateOneTimeBinding = _repeatUtilities.updateOneTimeBinding;
+  exports.unwrapExpression = _repeatUtilities.unwrapExpression;
+  exports.viewsRequireLifecycle = _analyzeViewFactory.viewsRequireLifecycle;
 });
 define('aurelia-templating-resources', ['aurelia-templating-resources/aurelia-templating-resources'], function (main) { return main; });
 
@@ -18937,7 +19355,7 @@ define('aurelia-http-client',['exports', 'aurelia-path', 'aurelia-pal'], functio
 
       if (this.params) {
         var qs = (0, _aureliaPath.buildQueryString)(this.params);
-        url = qs ? url + '?' + qs : url;
+        url = qs ? url + (this.url.indexOf('?') < 0 ? '?' : '&') + qs : url;
       }
 
       return url;
@@ -19884,6 +20302,13 @@ define('aurelia-pal-browser',['exports', 'aurelia-pal'], function (exports, _aur
   exports._ensureElementMatches = _ensureElementMatches;
   exports._ensureHTMLTemplateElement = _ensureHTMLTemplateElement;
   exports.initialize = initialize;
+
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+    return typeof obj;
+  } : function (obj) {
+    return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  };
+
   function _ensureFunctionName() {
     function test() {}
 
@@ -20119,7 +20544,7 @@ define('aurelia-pal-browser',['exports', 'aurelia-pal'], function (exports, _aur
   var _FEATURE = exports._FEATURE = {};
 
   _FEATURE.shadowDOM = function () {
-    return !!HTMLElement.prototype.createShadowRoot;
+    return !!HTMLElement.prototype.attachShadow;
   }();
 
   _FEATURE.scopedCSS = function () {
@@ -20335,6 +20760,28 @@ define('aurelia-pal-browser',['exports', 'aurelia-pal'], function (exports, _aur
       Object.assign(feature, _FEATURE);
       Object.assign(dom, _DOM);
 
+      (function (global) {
+        global.console = global.console || {};
+        var con = global.console;
+        var prop = void 0;
+        var method = void 0;
+        var empty = {};
+        var dummy = function dummy() {};
+        var properties = 'memory'.split(',');
+        var methods = ('assert,clear,count,debug,dir,dirxml,error,exception,group,' + 'groupCollapsed,groupEnd,info,log,markTimeline,profile,profiles,profileEnd,' + 'show,table,time,timeEnd,timeline,timelineEnd,timeStamp,trace,warn').split(',');
+        while (prop = properties.pop()) {
+          if (!con[prop]) con[prop] = empty;
+        }while (method = methods.pop()) {
+          if (!con[method]) con[method] = dummy;
+        }
+      })(platform.global);
+
+      if (platform.global.console && _typeof(console.log) === 'object') {
+        ['log', 'info', 'warn', 'error', 'assert', 'dir', 'clear', 'profile', 'profileEnd'].forEach(function (method) {
+          console[method] = this.bind(console[method], console);
+        }, Function.prototype.call);
+      }
+
       Object.defineProperty(dom, 'title', {
         get: function get() {
           return document.title;
@@ -20365,6 +20812,21 @@ define('aurelia-pal-browser',['exports', 'aurelia-pal'], function (exports, _aur
     return
   }
 
+  var support = {
+    searchParams: 'URLSearchParams' in self,
+    iterable: 'Symbol' in self && 'iterator' in Symbol,
+    blob: 'FileReader' in self && 'Blob' in self && (function() {
+      try {
+        new Blob()
+        return true
+      } catch(e) {
+        return false
+      }
+    })(),
+    formData: 'FormData' in self,
+    arrayBuffer: 'ArrayBuffer' in self
+  }
+
   function normalizeName(name) {
     if (typeof name !== 'string') {
       name = String(name)
@@ -20380,6 +20842,24 @@ define('aurelia-pal-browser',['exports', 'aurelia-pal'], function (exports, _aur
       value = String(value)
     }
     return value
+  }
+
+  // Build a destructive iterator for the value list
+  function iteratorFor(items) {
+    var iterator = {
+      next: function() {
+        var value = items.shift()
+        return {done: value === undefined, value: value}
+      }
+    }
+
+    if (support.iterable) {
+      iterator[Symbol.iterator] = function() {
+        return iterator
+      }
+    }
+
+    return iterator
   }
 
   function Headers(headers) {
@@ -20437,6 +20917,28 @@ define('aurelia-pal-browser',['exports', 'aurelia-pal'], function (exports, _aur
     }, this)
   }
 
+  Headers.prototype.keys = function() {
+    var items = []
+    this.forEach(function(value, name) { items.push(name) })
+    return iteratorFor(items)
+  }
+
+  Headers.prototype.values = function() {
+    var items = []
+    this.forEach(function(value) { items.push(value) })
+    return iteratorFor(items)
+  }
+
+  Headers.prototype.entries = function() {
+    var items = []
+    this.forEach(function(value, name) { items.push([name, value]) })
+    return iteratorFor(items)
+  }
+
+  if (support.iterable) {
+    Headers.prototype[Symbol.iterator] = Headers.prototype.entries
+  }
+
   function consumed(body) {
     if (body.bodyUsed) {
       return Promise.reject(new TypeError('Already read'))
@@ -20467,22 +20969,8 @@ define('aurelia-pal-browser',['exports', 'aurelia-pal'], function (exports, _aur
     return fileReaderReady(reader)
   }
 
-  var support = {
-    blob: 'FileReader' in self && 'Blob' in self && (function() {
-      try {
-        new Blob();
-        return true
-      } catch(e) {
-        return false
-      }
-    })(),
-    formData: 'FormData' in self,
-    arrayBuffer: 'ArrayBuffer' in self
-  }
-
   function Body() {
     this.bodyUsed = false
-
 
     this._initBody = function(body) {
       this._bodyInit = body
@@ -20492,6 +20980,8 @@ define('aurelia-pal-browser',['exports', 'aurelia-pal'], function (exports, _aur
         this._bodyBlob = body
       } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {
         this._bodyFormData = body
+      } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
+        this._bodyText = body.toString()
       } else if (!body) {
         this._bodyText = ''
       } else if (support.arrayBuffer && ArrayBuffer.prototype.isPrototypeOf(body)) {
@@ -20506,6 +20996,8 @@ define('aurelia-pal-browser',['exports', 'aurelia-pal'], function (exports, _aur
           this.headers.set('content-type', 'text/plain;charset=UTF-8')
         } else if (this._bodyBlob && this._bodyBlob.type) {
           this.headers.set('content-type', this._bodyBlob.type)
+        } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
+          this.headers.set('content-type', 'application/x-www-form-urlencoded;charset=UTF-8')
         }
       }
     }
@@ -20627,7 +21119,7 @@ define('aurelia-pal-browser',['exports', 'aurelia-pal'], function (exports, _aur
 
   function headers(xhr) {
     var head = new Headers()
-    var pairs = xhr.getAllResponseHeaders().trim().split('\n')
+    var pairs = (xhr.getAllResponseHeaders() || '').trim().split('\n')
     pairs.forEach(function(header) {
       var split = header.trim().split(':')
       var key = split.shift().trim()
@@ -20680,9 +21172,9 @@ define('aurelia-pal-browser',['exports', 'aurelia-pal'], function (exports, _aur
     return new Response(null, {status: status, headers: {location: url}})
   }
 
-  self.Headers = Headers;
-  self.Request = Request;
-  self.Response = Response;
+  self.Headers = Headers
+  self.Request = Request
+  self.Response = Response
 
   self.fetch = function(input, init) {
     return new Promise(function(resolve, reject) {
@@ -20705,26 +21197,25 @@ define('aurelia-pal-browser',['exports', 'aurelia-pal'], function (exports, _aur
           return xhr.getResponseHeader('X-Request-URL')
         }
 
-        return;
+        return
       }
 
       xhr.onload = function() {
-        var status = (xhr.status === 1223) ? 204 : xhr.status
-        if (status < 100 || status > 599) {
-          reject(new TypeError('Network request failed'))
-          return
-        }
         var options = {
-          status: status,
+          status: xhr.status,
           statusText: xhr.statusText,
           headers: headers(xhr),
           url: responseURL()
         }
-        var body = 'response' in xhr ? xhr.response : xhr.responseText;
+        var body = 'response' in xhr ? xhr.response : xhr.responseText
         resolve(new Response(body, options))
       }
 
       xhr.onerror = function() {
+        reject(new TypeError('Network request failed'))
+      }
+
+      xhr.ontimeout = function() {
         reject(new TypeError('Network request failed'))
       }
 
@@ -20893,7 +21384,7 @@ define('aurelia-bootstrapper',['exports', 'aurelia-pal', 'aurelia-pal-browser', 
 
   run();
 });
-define('aurelia-validation/utilities',['exports'], function (exports) {
+define('aurelia-validation/validator',['exports'], function (exports) {
   
 
   Object.defineProperty(exports, "__esModule", {
@@ -20906,151 +21397,23 @@ define('aurelia-validation/utilities',['exports'], function (exports) {
     }
   }
 
-  var Utilities = exports.Utilities = function () {
-    function Utilities() {
-      _classCallCheck(this, Utilities);
+  var Validator = exports.Validator = function () {
+    function Validator() {
+      _classCallCheck(this, Validator);
     }
 
-    Utilities.getValue = function getValue(val) {
-      if (val !== undefined && typeof val === 'function') {
-        return val();
-      }
-      return val;
+    Validator.prototype.validate = function validate(object, prop) {
+      throw new Error('A Validator must implement validate(...)');
     };
 
-    Utilities.isEmptyValue = function isEmptyValue(val) {
-      if (val === undefined) {
-        return true;
-      }
-      if (val === null) {
-        return true;
-      }
-      if (val === '') {
-        return true;
-      }
-      if (typeof val === 'string') {
-        if (String.prototype.trim) {
-          val = val.trim();
-        } else {
-          val = val.replace(/^\s+|\s+$/g, '');
-        }
-      }
-      if (val.length !== undefined) {
-        return val.length === 0;
-      }
-      return false;
+    Validator.prototype.getProperties = function getProperties() {
+      throw new Error('A Validator must implement getProperties(...)');
     };
 
-    return Utilities;
+    return Validator;
   }();
 });
-define('aurelia-validation/validation-locale',['exports', 'aurelia-dependency-injection', 'aurelia-loader'], function (exports, _aureliaDependencyInjection, _aureliaLoader) {
-  
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.ValidationLocale = undefined;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var ValidationLocale = exports.ValidationLocale = function () {
-    function ValidationLocale(defaults, data) {
-      _classCallCheck(this, ValidationLocale);
-
-      this.defaults = defaults;
-      this.currentLocale = data;
-    }
-
-    ValidationLocale.prototype.getValueFor = function getValueFor(identifier, category) {
-      var currentLocaleSetting = void 0;
-      var defaultSetting = void 0;
-      if (this.currentLocale && this.currentLocale[category]) {
-        currentLocaleSetting = this.currentLocale[category][identifier];
-        if (currentLocaleSetting !== undefined && currentLocaleSetting !== null) {
-          return currentLocaleSetting;
-        }
-      }
-      if (this.defaults[category]) {
-        defaultSetting = this.defaults[category][identifier];
-        if (defaultSetting !== undefined && defaultSetting !== null) {
-          return defaultSetting;
-        }
-      }
-      throw new Error('validation: I18N: Could not find: ' + identifier + ' in category: ' + category);
-    };
-
-    ValidationLocale.prototype.setting = function setting(settingIdentifier) {
-      return this.getValueFor(settingIdentifier, 'settings');
-    };
-
-    ValidationLocale.prototype.translate = function translate(translationIdentifier, newValue, threshold) {
-      var translation = this.getValueFor(translationIdentifier, 'messages');
-      if (typeof translation === 'function') {
-        return translation(newValue, threshold);
-      }
-      if (typeof translation === 'string') {
-        return translation;
-      }
-      throw new Error('Validation message for ' + translationIdentifier + 'was in an unsupported format');
-    };
-
-    return ValidationLocale;
-  }();
-
-  var ValidationLocaleRepository = function () {
-    function ValidationLocaleRepository() {
-      _classCallCheck(this, ValidationLocaleRepository);
-
-      this.default = null;
-      this.instances = new Map();
-      this.defaults = {
-        settings: {
-          'numericRegex': /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/
-        },
-        messages: {}
-      };
-    }
-
-    ValidationLocaleRepository.prototype.load = function load(localeIdentifier, basePath) {
-      var _this = this;
-
-      if (!basePath) {
-        basePath = 'aurelia-validation/resources/';
-      }
-      return new Promise(function (resolve, reject) {
-        if (_this.instances.has(localeIdentifier)) {
-          var locale = _this.instances.get(localeIdentifier);
-          resolve(locale);
-        } else {
-          var loader = _aureliaDependencyInjection.Container.instance.get(_aureliaLoader.Loader);
-          loader.loadModule(basePath + localeIdentifier).then(function (resource) {
-            var locale = _this.addLocale(localeIdentifier, resource.data);
-            resolve(locale);
-          });
-        }
-      });
-    };
-
-    ValidationLocaleRepository.prototype.addLocale = function addLocale(localeIdentifier, data) {
-      var instance = new ValidationLocale(this.defaults, data);
-      this.instances.set(localeIdentifier, instance);
-      if (this.default === null) {
-        this.default = instance;
-      }
-      return instance;
-    };
-
-    return ValidationLocaleRepository;
-  }();
-
-  ValidationLocale.Repository = new ValidationLocaleRepository();
-});
-define('aurelia-validation/validation-view-strategy',['exports'], function (exports) {
+define('aurelia-validation/validation-reporter',['exports'], function (exports) {
   
 
   Object.defineProperty(exports, "__esModule", {
@@ -21063,55 +21426,41 @@ define('aurelia-validation/validation-view-strategy',['exports'], function (expo
     }
   }
 
-  var ValidationViewStrategy = exports.ValidationViewStrategy = function () {
-    function ValidationViewStrategy() {
-      _classCallCheck(this, ValidationViewStrategy);
-
-      this.bindingPathAttributes = ['validate', 'value.bind', 'value.two-way'];
+  var ValidationReporter = exports.ValidationReporter = function () {
+    function ValidationReporter() {
+      _classCallCheck(this, ValidationReporter);
     }
 
-    ValidationViewStrategy.prototype.getValidationProperty = function getValidationProperty(validation, element) {
-      var atts = element.attributes;
-      for (var i = 0; i < this.bindingPathAttributes.length; i++) {
-        var attributeName = this.bindingPathAttributes[i];
-        var bindingPath = void 0;
-        var validationProperty = void 0;
-        if (atts[attributeName]) {
-          bindingPath = atts[attributeName].value.trim();
-          if (bindingPath.indexOf('|') !== -1) {
-            bindingPath = bindingPath.split('|')[0].trim();
-          }
-
-          validationProperty = validation.result.properties[bindingPath];
-          if (attributeName === 'validate' && (validationProperty === null || validationProperty === undefined)) {
-            validation.ensure(bindingPath);
-            validationProperty = validation.result.properties[bindingPath];
-          }
-          return validationProperty;
-        }
-      }
-
-      return null;
+    ValidationReporter.prototype.add = function add(object) {
+      throw new Error('A ValidationReporter must implement add(...)');
     };
 
-    ValidationViewStrategy.prototype.prepareElement = function prepareElement(validationProperty, element) {
-      throw Error('View strategy must implement prepareElement(validationProperty, element)');
+    ValidationReporter.prototype.remove = function remove(object) {
+      throw new Error('A ValidationReporter must implement remove(...)');
     };
 
-    ValidationViewStrategy.prototype.updateElement = function updateElement(validationProperty, element) {
-      throw Error('View strategy must implement updateElement(validationProperty, element)');
+    ValidationReporter.prototype.subscribe = function subscribe(callback) {
+      throw new Error('A ValidationReporter must implement subscribe(...)');
     };
 
-    return ValidationViewStrategy;
+    ValidationReporter.prototype.publish = function publish(errors) {
+      throw new Error('A ValidationReporter must implement publish(...)');
+    };
+
+    ValidationReporter.prototype.destroyObserver = function destroyObserver(observer) {
+      throw new Error('A ValidationReporter must implement destroyObserver(...)');
+    };
+
+    return ValidationReporter;
   }();
 });
-define('aurelia-validation/strategies/twbootstrap-view-strategy',['exports', '../validation-view-strategy'], function (exports, _validationViewStrategy) {
+define('aurelia-validation/validation-engine',['exports', './validation-reporter'], function (exports, _validationReporter) {
   
 
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.TWBootstrapViewStrategy = exports.TWBootstrapViewStrategyBase = undefined;
+  exports.ValidationEngine = undefined;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -21119,2424 +21468,72 @@ define('aurelia-validation/strategies/twbootstrap-view-strategy',['exports', '..
     }
   }
 
-  function _possibleConstructorReturn(self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  var ValidationEngine = exports.ValidationEngine = function () {
+    function ValidationEngine() {
+      _classCallCheck(this, ValidationEngine);
     }
 
-    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+    ValidationEngine.getValidationReporter = function getValidationReporter(instance) {
+      return instance.__validationReporter__ || (instance.__validationReporter__ = new _validationReporter.ValidationReporter());
+    };
+
+    return ValidationEngine;
+  }();
+});
+define('aurelia-validation/validation-error',['exports'], function (exports) {
+  
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
   }
 
-  function _inherits(subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
+  var ValidationError = exports.ValidationError = function ValidationError(data) {
+    _classCallCheck(this, ValidationError);
 
-    subClass.prototype = Object.create(superClass && superClass.prototype, {
-      constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }
+    this.message = '';
+    this.propertyName = '';
 
-  var TWBootstrapViewStrategyBase = exports.TWBootstrapViewStrategyBase = function (_ValidationViewStrate) {
-    _inherits(TWBootstrapViewStrategyBase, _ValidationViewStrate);
-
-    function TWBootstrapViewStrategyBase(appendMessageToInput, appendMessageToLabel, helpBlockClass) {
-      _classCallCheck(this, TWBootstrapViewStrategyBase);
-
-      var _this = _possibleConstructorReturn(this, _ValidationViewStrate.call(this));
-
-      _this.appendMessageToInput = appendMessageToInput;
-      _this.appendMessageToLabel = appendMessageToLabel;
-      _this.helpBlockClass = helpBlockClass;
-      return _this;
-    }
-
-    TWBootstrapViewStrategyBase.prototype.searchFormGroup = function searchFormGroup(currentElement, currentDepth) {
-      if (currentDepth === 5) {
-        return null;
-      }
-
-      if (currentElement.classList && currentElement.classList.contains('form-group')) {
-        return currentElement;
-      }
-
-      return this.searchFormGroup(currentElement.parentNode, 1 + currentDepth);
-    };
-
-    TWBootstrapViewStrategyBase.prototype.findLabels = function findLabels(formGroup, inputId) {
-      var labels = [];
-      this.findLabelsRecursively(formGroup, inputId, labels, 0);
-      return labels;
-    };
-
-    TWBootstrapViewStrategyBase.prototype.findLabelsRecursively = function findLabelsRecursively(currentElement, inputId, currentLabels, currentDepth) {
-      if (currentDepth === 5) {
-        return;
-      }
-      if (currentElement.nodeName === 'LABEL' && (currentElement.attributes.for && currentElement.attributes.for.value === inputId || !currentElement.attributes.for)) {
-        currentLabels.push(currentElement);
-      }
-      for (var i = 0; i < currentElement.children.length; i++) {
-        this.findLabelsRecursively(currentElement.children[i], inputId, currentLabels, 1 + currentDepth);
-      }
-    };
-
-    TWBootstrapViewStrategyBase.prototype.appendMessageToElement = function appendMessageToElement(element, validationProperty) {
-      var helpBlock = element.nextSibling;
-      if (helpBlock) {
-        if (!helpBlock.classList) {
-          helpBlock = null;
-        } else if (!helpBlock.classList.contains(this.helpBlockClass)) {
-          helpBlock = null;
-        }
-      }
-
-      if (!helpBlock) {
-        helpBlock = document.createElement('p');
-        helpBlock.classList.add('help-block');
-        helpBlock.classList.add(this.helpBlockClass);
-        if (element.nextSibling) {
-          element.parentNode.insertBefore(helpBlock, element.nextSibling);
-        } else {
-          element.parentNode.appendChild(helpBlock);
-        }
-      }
-
-      helpBlock.textContent = validationProperty ? validationProperty.message : '';
-    };
-
-    TWBootstrapViewStrategyBase.prototype.appendUIVisuals = function appendUIVisuals(validationProperty, currentElement) {
-      var formGroup = this.searchFormGroup(currentElement, 0);
-      if (formGroup === null) {
-        return;
-      }
-
-      if (validationProperty && validationProperty.isDirty) {
-        if (validationProperty.isValid) {
-          formGroup.classList.remove('has-warning');
-          formGroup.classList.add('has-success');
-        } else {
-          formGroup.classList.remove('has-success');
-          formGroup.classList.add('has-warning');
-        }
-      } else {
-        formGroup.classList.remove('has-warning');
-        formGroup.classList.remove('has-success');
-      }
-
-      if (this.appendMessageToInput) {
-        this.appendMessageToElement(currentElement, validationProperty);
-      }
-
-      if (this.appendMessageToLabel) {
-        var labels = this.findLabels(formGroup, currentElement.id);
-        for (var ii = 0; ii < labels.length; ii++) {
-          var label = labels[ii];
-          this.appendMessageToElement(label, validationProperty);
-        }
-      }
-    };
-
-    TWBootstrapViewStrategyBase.prototype.prepareElement = function prepareElement(validationProperty, element) {
-      this.appendUIVisuals(null, element);
-    };
-
-    TWBootstrapViewStrategyBase.prototype.updateElement = function updateElement(validationProperty, element) {
-      this.appendUIVisuals(validationProperty, element);
-    };
-
-    return TWBootstrapViewStrategyBase;
-  }(_validationViewStrategy.ValidationViewStrategy);
-
-  var TWBootstrapViewStrategy = exports.TWBootstrapViewStrategy = function TWBootstrapViewStrategy() {
-    _classCallCheck(this, TWBootstrapViewStrategy);
+    Object.assign(this, data);
   };
-
-  TWBootstrapViewStrategy.AppendToInput = new TWBootstrapViewStrategyBase(true, false, 'aurelia-validation-message');
-  TWBootstrapViewStrategy.AppendToMessage = new TWBootstrapViewStrategyBase(false, true, 'aurelia-validation-message');
 });
-define('aurelia-validation/validation-config',['exports', './validation-locale', './strategies/twbootstrap-view-strategy'], function (exports, _validationLocale, _twbootstrapViewStrategy) {
+define('aurelia-validation/index',['exports', './validator', './validation-reporter', './validation-engine', './validation-error'], function (exports, _validator, _validationReporter, _validationEngine, _validationError) {
   
 
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.ValidationConfig = exports.ValidationConfigDefaults = undefined;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var ValidationConfigDefaults = exports.ValidationConfigDefaults = function ValidationConfigDefaults() {
-    _classCallCheck(this, ValidationConfigDefaults);
-  };
-
-  ValidationConfigDefaults._defaults = {
-    debounceTimeout: 0,
-    dependencies: [],
-    locale: 'en-US',
-    localeResources: 'aurelia-validation/resources/',
-    viewStrategy: _twbootstrapViewStrategy.TWBootstrapViewStrategy.AppendToMessage,
-    allPropertiesAreMandatory: false
-  };
-  ValidationConfigDefaults.defaults = function () {
-    var defaults = {};
-    Object.assign(defaults, ValidationConfigDefaults._defaults);
-    return defaults;
-  };
-
-  var ValidationConfig = exports.ValidationConfig = function () {
-    function ValidationConfig(innerConfig) {
-      _classCallCheck(this, ValidationConfig);
-
-      this.innerConfig = innerConfig;
-      this.values = this.innerConfig ? {} : ValidationConfigDefaults.defaults();
-      this.changedHandlers = new Map();
-    }
-
-    ValidationConfig.prototype.getValue = function getValue(identifier) {
-      if (this.values.hasOwnProperty(identifier) !== null && this.values[identifier] !== undefined) {
-        return this.values[identifier];
-      }
-      if (this.innerConfig !== null) {
-        return this.innerConfig.getValue(identifier);
-      }
-      throw Error('Config not found: ' + identifier);
-    };
-
-    ValidationConfig.prototype.setValue = function setValue(identifier, value) {
-      this.values[identifier] = value;
-      return this;
-    };
-
-    ValidationConfig.prototype.onLocaleChanged = function onLocaleChanged(callback) {
-      var _this = this;
-
-      if (this.innerConfig !== undefined) {
-        return this.innerConfig.onLocaleChanged(callback);
-      }
-      var id = ++ValidationConfig.uniqueListenerId;
-      this.changedHandlers.set(id, callback);
-      return function () {
-        _this.changedHandlers.delete(id);
-      };
-    };
-
-    ValidationConfig.prototype.getDebounceTimeout = function getDebounceTimeout() {
-      return this.getValue('debounceTimeout');
-    };
-
-    ValidationConfig.prototype.useDebounceTimeout = function useDebounceTimeout(value) {
-      return this.setValue('debounceTimeout', value);
-    };
-
-    ValidationConfig.prototype.getDependencies = function getDependencies() {
-      return this.getValue('dependencies');
-    };
-
-    ValidationConfig.prototype.computedFrom = function computedFrom(dependencies) {
-      var deps = dependencies;
-      if (typeof dependencies === 'string') {
-        deps = [];
-        deps.push(dependencies);
-      }
-      return this.setValue('dependencies', deps);
-    };
-
-    ValidationConfig.prototype.useLocale = function useLocale(localeIdentifier) {
-      this.setValue('locale', localeIdentifier);
-      var callbacks = Array.from(this.changedHandlers.values());
-      for (var i = 0; i < callbacks.length; i++) {
-        callbacks[i]();
-      }
-      return this;
-    };
-
-    ValidationConfig.prototype.locale = function locale() {
-      return _validationLocale.ValidationLocale.Repository.load(this.getValue('locale'), this.getValue('localeResources'));
-    };
-
-    ValidationConfig.prototype.useViewStrategy = function useViewStrategy(viewStrategy) {
-      return this.setValue('viewStrategy', viewStrategy);
-    };
-
-    ValidationConfig.prototype.getViewStrategy = function getViewStrategy() {
-      return this.getValue('viewStrategy');
-    };
-
-    ValidationConfig.prototype.treatAllPropertiesAsMandatory = function treatAllPropertiesAsMandatory() {
-      this.setValue('allPropertiesAreMandatory', true);
-      return this;
-    };
-
-    ValidationConfig.prototype.treatAllPropertiesAsOptional = function treatAllPropertiesAsOptional() {
-      this.setValue('allPropertiesAreMandatory', false);
-      return this;
-    };
-
-    return ValidationConfig;
-  }();
-
-  ValidationConfig.uniqueListenerId = 0;
-});
-define('aurelia-validation/validation-result',['exports'], function (exports) {
-  
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var ValidationResult = exports.ValidationResult = function () {
-    function ValidationResult() {
-      _classCallCheck(this, ValidationResult);
-
-      this.isValid = true;
-      this.properties = {};
-    }
-
-    ValidationResult.prototype.addProperty = function addProperty(name) {
-      if (!this.properties[name]) {
-        this.properties[name] = new ValidationResultProperty(this);
-      }
-      return this.properties[name];
-    };
-
-    ValidationResult.prototype.checkValidity = function checkValidity() {
-      for (var propertyName in this.properties) {
-        if (!this.properties[propertyName].isValid) {
-          this.isValid = false;
-          return;
-        }
-      }
-      this.isValid = true;
-    };
-
-    ValidationResult.prototype.clear = function clear() {
-      this.isValid = true;
-    };
-
-    return ValidationResult;
-  }();
-
-  var ValidationResultProperty = exports.ValidationResultProperty = function () {
-    function ValidationResultProperty(group) {
-      _classCallCheck(this, ValidationResultProperty);
-
-      this.group = group;
-      this.onValidateCallbacks = [];
-      this.clear();
-    }
-
-    ValidationResultProperty.prototype.clear = function clear() {
-      this.isValid = true;
-      this.isDirty = false;
-      this.message = '';
-      this.failingRule = null;
-      this.latestValue = null;
-      this.notifyObserversOfChange();
-    };
-
-    ValidationResultProperty.prototype.onValidate = function onValidate(onValidateCallback) {
-      this.onValidateCallbacks.push(onValidateCallback);
-    };
-
-    ValidationResultProperty.prototype.notifyObserversOfChange = function notifyObserversOfChange() {
-      for (var i = 0; i < this.onValidateCallbacks.length; i++) {
-        var callback = this.onValidateCallbacks[i];
-        callback(this);
-      }
-    };
-
-    ValidationResultProperty.prototype.setValidity = function setValidity(validationResponse, shouldBeDirty) {
-      var notifyObservers = !this.isDirty && shouldBeDirty || this.isValid !== validationResponse.isValid || this.message !== validationResponse.message;
-
-      if (shouldBeDirty) {
-        this.isDirty = true;
-      }
-      this.message = validationResponse.message;
-      this.failingRule = validationResponse.failingRule;
-      this.isValid = validationResponse.isValid;
-      this.latestValue = validationResponse.latestValue;
-      if (this.isValid !== this.group.isValid) {
-        this.group.checkValidity();
-      }
-      if (notifyObservers) {
-        this.notifyObserversOfChange();
-      }
-    };
-
-    return ValidationResultProperty;
-  }();
-});
-define('aurelia-validation/validation-rules',['exports', './utilities', './validation-locale'], function (exports, _utilities, _validationLocale) {
-  
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.InCollectionValidationRule = exports.InEqualityWithOtherLabelValidationRule = exports.InEqualityValidationRule = exports.EqualityWithOtherLabelValidationRule = exports.EqualityValidationRule = exports.EqualityValidationRuleBase = exports.StrongPasswordValidationRule = exports.MediumPasswordValidationRule = exports.AlphaNumericOrWhitespaceValidationRule = exports.AlphaOrWhitespaceValidationRule = exports.AlphaValidationRule = exports.AlphaNumericValidationRule = exports.NoSpacesValidationRule = exports.DigitValidationRule = exports.BetweenValueValidationRule = exports.MaximumInclusiveValueValidationRule = exports.MaximumValueValidationRule = exports.MinimumInclusiveValueValidationRule = exports.MinimumValueValidationRule = exports.ContainsOnlyValidationRule = exports.RegexValidationRule = exports.NumericValidationRule = exports.CustomFunctionValidationRule = exports.BetweenLengthValidationRule = exports.MaximumLengthValidationRule = exports.MinimumLengthValidationRule = exports.EmailValidationRule = exports.URLValidationRule = exports.ValidationRule = undefined;
-
-  function _possibleConstructorReturn(self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }
-
-    return call && (typeof call === "object" || typeof call === "function") ? call : self;
-  }
-
-  function _inherits(subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
-
-    subClass.prototype = Object.create(superClass && superClass.prototype, {
-      constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var ValidationRule = exports.ValidationRule = function () {
-    function ValidationRule(threshold, onValidate, message, ruleName) {
-      _classCallCheck(this, ValidationRule);
-
-      this.onValidate = onValidate;
-      this.threshold = threshold;
-      this.message = message;
-      this.errorMessage = null;
-      this.ruleName = ruleName;
-    }
-
-    ValidationRule.prototype.withMessage = function withMessage(message) {
-      this.message = message;
-    };
-
-    ValidationRule.prototype.explain = function explain() {
-      return this.errorMessage;
-    };
-
-    ValidationRule.prototype.setResult = function setResult(result, currentValue, locale) {
-      if (result === true || result === undefined || result === null || result === '') {
-        this.errorMessage = null;
-        return true;
-      }
-      if (typeof result === 'string') {
-        this.errorMessage = result;
-      } else {
-        if (this.message) {
-          if (typeof this.message === 'function') {
-            this.errorMessage = this.message(currentValue, this.threshold);
-          } else if (typeof this.message === 'string') {
-            this.errorMessage = this.message;
-          } else {
-            throw Error('Unable to handle the error message:' + this.message);
-          }
-        } else {
-          this.errorMessage = locale.translate(this.ruleName, currentValue, this.threshold);
-        }
-      }
-      return false;
-    };
-
-    ValidationRule.prototype.validate = function validate(currentValue, locale) {
-      var _this = this;
-
-      if (locale === undefined) {
-        locale = _validationLocale.ValidationLocale.Repository.default;
-      }
-      currentValue = _utilities.Utilities.getValue(currentValue);
-      var result = this.onValidate(currentValue, this.threshold, locale);
-      var promise = Promise.resolve(result);
-
-      var nextPromise = promise.then(function (promiseResult) {
-        return _this.setResult(promiseResult, currentValue, locale);
-      }, function (promiseFailure) {
-        if (typeof promiseFailure === 'string' && promiseFailure !== '') {
-          return _this.setResult(promiseFailure, currentValue, locale);
-        }
-        return _this.setResult(false, currentValue, locale);
-      });
-      return nextPromise;
-    };
-
-    return ValidationRule;
-  }();
-
-  var URLValidationRule = exports.URLValidationRule = function (_ValidationRule) {
-    _inherits(URLValidationRule, _ValidationRule);
-
-    URLValidationRule.isIP = function isIP(str, version) {
-      var ipv4Maybe = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/;
-      var ipv6Block = /^[0-9A-F]{1,4}$/i;
-      if (!version) {
-        return this.isIP(str, 4) || this.isIP(str, 6);
-      } else if (version === 4) {
-        if (!ipv4Maybe.test(str)) {
-          return false;
-        }
-        var parts = str.split('.').sort(function (a, b) {
-          return a - b;
-        });
-        return parts[3] <= 255;
-      } else if (version === 6) {
-        var blocks = str.split(':');
-        var foundOmissionBlock = false;
-        if (blocks.length > 8) {
-          return false;
-        }
-
-        if (str === '::') {
-          return true;
-        } else if (str.substr(0, 2) === '::') {
-          blocks.shift();
-          blocks.shift();
-          foundOmissionBlock = true;
-        } else if (str.substr(str.length - 2) === '::') {
-          blocks.pop();
-          blocks.pop();
-          foundOmissionBlock = true;
-        }
-        for (var i = 0; i < blocks.length; ++i) {
-          if (blocks[i] === '' && i > 0 && i < blocks.length - 1) {
-            if (foundOmissionBlock) {
-              return false;
-            }
-            foundOmissionBlock = true;
-          } else if (!ipv6Block.test(blocks[i])) {
-            return false;
-          }
-        }
-        if (foundOmissionBlock) {
-          return blocks.length >= 1;
-        }
-        return blocks.length === 8;
-      }
-      return false;
-    };
-
-    URLValidationRule.isFQDN = function isFQDN(str, options) {
-      if (options.allow_trailing_dot && str[str.length - 1] === '.') {
-        str = str.substring(0, str.length - 1);
-      }
-      var parts = str.split('.');
-      if (options.require_tld) {
-        var tld = parts.pop();
-        if (!parts.length || !/^([a-z\u00a1-\uffff]{2,}|xn[a-z0-9-]{2,})$/i.test(tld)) {
-          return false;
-        }
-      }
-      for (var part, i = 0; i < parts.length; i++) {
-        part = parts[i];
-        if (options.allow_underscores) {
-          if (part.indexOf('__') >= 0) {
-            return false;
-          }
-          part = part.replace(/_/g, '');
-        }
-        if (!/^[a-z\u00a1-\uffff0-9-]+$/i.test(part)) {
-          return false;
-        }
-        if (part[0] === '-' || part[part.length - 1] === '-' || part.indexOf('---') >= 0) {
-          return false;
-        }
-      }
-      return true;
-    };
-
-    function URLValidationRule(startingThreshold) {
-      _classCallCheck(this, URLValidationRule);
-
-      var defaultUrlOptions = {
-        protocols: ['http', 'https', 'ftp'],
-        require_tld: true,
-        require_protocol: false,
-        allow_underscores: true,
-        allow_trailing_dot: false,
-        allow_protocol_relative_urls: true
-      };
-      if (startingThreshold === undefined) {
-        startingThreshold = defaultUrlOptions;
-      }
-      return _possibleConstructorReturn(this, _ValidationRule.call(this, startingThreshold, function (newValue, threshold) {
-        var url = newValue;
-        var protocol = void 0;
-        var auth = void 0;
-        var host = void 0;
-        var hostname = void 0;
-        var port = void 0;
-        var portStr = void 0;
-        var split = void 0;
-        if (!url || url.length >= 2083 || /\s/.test(url)) {
-          return false;
-        }
-        if (url.indexOf('mailto:') === 0) {
-          return false;
-        }
-        split = url.split('://');
-        if (split.length > 1) {
-          protocol = split.shift();
-          if (threshold.protocols.indexOf(protocol) === -1) {
-            return false;
-          }
-        } else if (threshold.require_protocol) {
-          return false;
-        } else if (threshold.allow_protocol_relative_urls && url.substr(0, 2) === '//') {
-          split[0] = url.substr(2);
-        }
-        url = split.join('://');
-        split = url.split('#');
-        url = split.shift();
-        split = url.split('?');
-        url = split.shift();
-        split = url.split('/');
-        url = split.shift();
-        split = url.split('@');
-        if (split.length > 1) {
-          auth = split.shift();
-          if (auth.indexOf(':') >= 0 && auth.split(':').length > 2) {
-            return false;
-          }
-        }
-        hostname = split.join('@');
-        split = hostname.split(':');
-        host = split.shift();
-        if (split.length) {
-          portStr = split.join(':');
-          port = parseInt(portStr, 10);
-          if (!/^[0-9]+$/.test(portStr) || port <= 0 || port > 65535) {
-            return false;
-          }
-        }
-        if (!URLValidationRule.isIP(host) && !URLValidationRule.isFQDN(host, threshold) && host !== 'localhost') {
-          return false;
-        }
-        if (threshold.host_whitelist && threshold.host_whitelist.indexOf(host) === -1) {
-          return false;
-        }
-        if (threshold.host_blacklist && threshold.host_blacklist.indexOf(host) !== -1) {
-          return false;
-        }
-        return true;
-      }, null, 'URLValidationRule'));
-    }
-
-    return URLValidationRule;
-  }(ValidationRule);
-
-  var EmailValidationRule = exports.EmailValidationRule = function (_ValidationRule2) {
-    _inherits(EmailValidationRule, _ValidationRule2);
-
-    EmailValidationRule.testEmailUserUtf8Regex = function testEmailUserUtf8Regex(user) {
-      var emailUserUtf8Regex = /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))$/i;
-      return emailUserUtf8Regex.test(user);
-    };
-
-    EmailValidationRule.isFQDN = function isFQDN(str) {
-      var parts = str.split('.');
-      for (var part, i = 0; i < parts.length; i++) {
-        part = parts[i];
-        if (part.indexOf('__') >= 0) {
-          return false;
-        }
-        part = part.replace(/_/g, '');
-        if (!/^[a-z\u00a1-\uffff0-9-]+$/i.test(part)) {
-          return false;
-        }
-        if (part[0] === '-' || part[part.length - 1] === '-' || part.indexOf('---') >= 0) {
-          return false;
-        }
-      }
-      return true;
-    };
-
-    function EmailValidationRule() {
-      _classCallCheck(this, EmailValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule2.call(this, null, function (newValue, threshold) {
-        if (/\s/.test(newValue)) {
-          return false;
-        }
-        var parts = newValue.split('@');
-        var domain = parts.pop();
-        var user = parts.join('@');
-
-        if (!EmailValidationRule.isFQDN(domain)) {
-          return false;
-        }
-        return EmailValidationRule.testEmailUserUtf8Regex(user);
-      }, null, 'EmailValidationRule'));
-    }
-
-    return EmailValidationRule;
-  }(ValidationRule);
-
-  var MinimumLengthValidationRule = exports.MinimumLengthValidationRule = function (_ValidationRule3) {
-    _inherits(MinimumLengthValidationRule, _ValidationRule3);
-
-    function MinimumLengthValidationRule(minimumLength) {
-      _classCallCheck(this, MinimumLengthValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule3.call(this, minimumLength, function (newValue, minLength) {
-        newValue = typeof newValue === 'number' ? newValue.toString() : newValue;
-        return newValue.length !== undefined && newValue.length >= minLength;
-      }, null, 'MinimumLengthValidationRule'));
-    }
-
-    return MinimumLengthValidationRule;
-  }(ValidationRule);
-
-  var MaximumLengthValidationRule = exports.MaximumLengthValidationRule = function (_ValidationRule4) {
-    _inherits(MaximumLengthValidationRule, _ValidationRule4);
-
-    function MaximumLengthValidationRule(maximumLength) {
-      _classCallCheck(this, MaximumLengthValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule4.call(this, maximumLength, function (newValue, maxLength) {
-        newValue = typeof newValue === 'number' ? newValue.toString() : newValue;
-        return newValue.length !== undefined && newValue.length <= maxLength;
-      }, null, 'MaximumLengthValidationRule'));
-    }
-
-    return MaximumLengthValidationRule;
-  }(ValidationRule);
-
-  var BetweenLengthValidationRule = exports.BetweenLengthValidationRule = function (_ValidationRule5) {
-    _inherits(BetweenLengthValidationRule, _ValidationRule5);
-
-    function BetweenLengthValidationRule(minimumLength, maximumLength) {
-      _classCallCheck(this, BetweenLengthValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule5.call(this, { minimumLength: minimumLength, maximumLength: maximumLength }, function (newValue, threshold) {
-        newValue = typeof newValue === 'number' ? newValue.toString() : newValue;
-        return newValue.length !== undefined && newValue.length >= threshold.minimumLength && newValue.length <= threshold.maximumLength;
-      }, null, 'BetweenLengthValidationRule'));
-    }
-
-    return BetweenLengthValidationRule;
-  }(ValidationRule);
-
-  var CustomFunctionValidationRule = exports.CustomFunctionValidationRule = function (_ValidationRule6) {
-    _inherits(CustomFunctionValidationRule, _ValidationRule6);
-
-    function CustomFunctionValidationRule(customFunction, threshold) {
-      _classCallCheck(this, CustomFunctionValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule6.call(this, threshold, customFunction, null, 'CustomFunctionValidationRule'));
-    }
-
-    return CustomFunctionValidationRule;
-  }(ValidationRule);
-
-  var NumericValidationRule = exports.NumericValidationRule = function (_ValidationRule7) {
-    _inherits(NumericValidationRule, _ValidationRule7);
-
-    function NumericValidationRule() {
-      _classCallCheck(this, NumericValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule7.call(this, null, function (newValue, threshold, locale) {
-        var numericRegex = locale.setting('numericRegex');
-        var floatValue = parseFloat(newValue);
-        return !Number.isNaN(parseFloat(newValue)) && Number.isFinite(floatValue) && numericRegex.test(newValue);
-      }, null, 'NumericValidationRule'));
-    }
-
-    return NumericValidationRule;
-  }(ValidationRule);
-
-  var RegexValidationRule = exports.RegexValidationRule = function (_ValidationRule8) {
-    _inherits(RegexValidationRule, _ValidationRule8);
-
-    function RegexValidationRule(startingRegex, ruleName) {
-      _classCallCheck(this, RegexValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule8.call(this, startingRegex, function (newValue, regex) {
-        return regex.test(newValue);
-      }, null, ruleName || 'RegexValidationRule'));
-    }
-
-    return RegexValidationRule;
-  }(ValidationRule);
-
-  var ContainsOnlyValidationRule = exports.ContainsOnlyValidationRule = function (_RegexValidationRule) {
-    _inherits(ContainsOnlyValidationRule, _RegexValidationRule);
-
-    function ContainsOnlyValidationRule(regex) {
-      _classCallCheck(this, ContainsOnlyValidationRule);
-
-      return _possibleConstructorReturn(this, _RegexValidationRule.call(this, regex, 'ContainsOnlyValidationRule'));
-    }
-
-    return ContainsOnlyValidationRule;
-  }(RegexValidationRule);
-
-  var MinimumValueValidationRule = exports.MinimumValueValidationRule = function (_ValidationRule9) {
-    _inherits(MinimumValueValidationRule, _ValidationRule9);
-
-    function MinimumValueValidationRule(minimumValue) {
-      _classCallCheck(this, MinimumValueValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule9.call(this, minimumValue, function (newValue, minValue) {
-        return _utilities.Utilities.getValue(minValue) < newValue;
-      }, null, 'MinimumValueValidationRule'));
-    }
-
-    return MinimumValueValidationRule;
-  }(ValidationRule);
-
-  var MinimumInclusiveValueValidationRule = exports.MinimumInclusiveValueValidationRule = function (_ValidationRule10) {
-    _inherits(MinimumInclusiveValueValidationRule, _ValidationRule10);
-
-    function MinimumInclusiveValueValidationRule(minimumValue) {
-      _classCallCheck(this, MinimumInclusiveValueValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule10.call(this, minimumValue, function (newValue, minValue) {
-        return _utilities.Utilities.getValue(minValue) <= newValue;
-      }, null, 'MinimumInclusiveValueValidationRule'));
-    }
-
-    return MinimumInclusiveValueValidationRule;
-  }(ValidationRule);
-
-  var MaximumValueValidationRule = exports.MaximumValueValidationRule = function (_ValidationRule11) {
-    _inherits(MaximumValueValidationRule, _ValidationRule11);
-
-    function MaximumValueValidationRule(maximumValue) {
-      _classCallCheck(this, MaximumValueValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule11.call(this, maximumValue, function (newValue, maxValue) {
-        return newValue < _utilities.Utilities.getValue(maxValue);
-      }, null, 'MaximumValueValidationRule'));
-    }
-
-    return MaximumValueValidationRule;
-  }(ValidationRule);
-
-  var MaximumInclusiveValueValidationRule = exports.MaximumInclusiveValueValidationRule = function (_ValidationRule12) {
-    _inherits(MaximumInclusiveValueValidationRule, _ValidationRule12);
-
-    function MaximumInclusiveValueValidationRule(maximumValue) {
-      _classCallCheck(this, MaximumInclusiveValueValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule12.call(this, maximumValue, function (newValue, maxValue) {
-        return newValue <= _utilities.Utilities.getValue(maxValue);
-      }, null, 'MaximumInclusiveValueValidationRule'));
-    }
-
-    return MaximumInclusiveValueValidationRule;
-  }(ValidationRule);
-
-  var BetweenValueValidationRule = exports.BetweenValueValidationRule = function (_ValidationRule13) {
-    _inherits(BetweenValueValidationRule, _ValidationRule13);
-
-    function BetweenValueValidationRule(minimumValue, maximumValue) {
-      _classCallCheck(this, BetweenValueValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule13.call(this, { minimumValue: minimumValue, maximumValue: maximumValue }, function (newValue, threshold) {
-        return _utilities.Utilities.getValue(threshold.minimumValue) <= newValue && newValue <= _utilities.Utilities.getValue(threshold.maximumValue);
-      }, null, 'BetweenValueValidationRule'));
-    }
-
-    return BetweenValueValidationRule;
-  }(ValidationRule);
-
-  var DigitValidationRule = exports.DigitValidationRule = function (_ValidationRule14) {
-    _inherits(DigitValidationRule, _ValidationRule14);
-
-    function DigitValidationRule() {
-      _classCallCheck(this, DigitValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule14.call(this, null, function (newValue, threshold) {
-        return (/^\d+$/.test(newValue)
-        );
-      }, null, 'DigitValidationRule'));
-    }
-
-    return DigitValidationRule;
-  }(ValidationRule);
-
-  var NoSpacesValidationRule = exports.NoSpacesValidationRule = function (_ValidationRule15) {
-    _inherits(NoSpacesValidationRule, _ValidationRule15);
-
-    function NoSpacesValidationRule() {
-      _classCallCheck(this, NoSpacesValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule15.call(this, null, function (newValue, threshold) {
-        return (/^\S*$/.test(newValue)
-        );
-      }, null, 'NoSpacesValidationRule'));
-    }
-
-    return NoSpacesValidationRule;
-  }(ValidationRule);
-
-  var AlphaNumericValidationRule = exports.AlphaNumericValidationRule = function (_ValidationRule16) {
-    _inherits(AlphaNumericValidationRule, _ValidationRule16);
-
-    function AlphaNumericValidationRule() {
-      _classCallCheck(this, AlphaNumericValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule16.call(this, null, function (newValue, threshold) {
-        return (/^[a-z0-9]+$/i.test(newValue)
-        );
-      }, null, 'AlphaNumericValidationRule'));
-    }
-
-    return AlphaNumericValidationRule;
-  }(ValidationRule);
-
-  var AlphaValidationRule = exports.AlphaValidationRule = function (_ValidationRule17) {
-    _inherits(AlphaValidationRule, _ValidationRule17);
-
-    function AlphaValidationRule() {
-      _classCallCheck(this, AlphaValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule17.call(this, null, function (newValue, threshold) {
-        return (/^[a-z]+$/i.test(newValue)
-        );
-      }, null, 'AlphaValidationRule'));
-    }
-
-    return AlphaValidationRule;
-  }(ValidationRule);
-
-  var AlphaOrWhitespaceValidationRule = exports.AlphaOrWhitespaceValidationRule = function (_ValidationRule18) {
-    _inherits(AlphaOrWhitespaceValidationRule, _ValidationRule18);
-
-    function AlphaOrWhitespaceValidationRule() {
-      _classCallCheck(this, AlphaOrWhitespaceValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule18.call(this, null, function (newValue, threshold) {
-        return (/^[a-z\s]+$/i.test(newValue)
-        );
-      }, null, 'AlphaOrWhitespaceValidationRule'));
-    }
-
-    return AlphaOrWhitespaceValidationRule;
-  }(ValidationRule);
-
-  var AlphaNumericOrWhitespaceValidationRule = exports.AlphaNumericOrWhitespaceValidationRule = function (_ValidationRule19) {
-    _inherits(AlphaNumericOrWhitespaceValidationRule, _ValidationRule19);
-
-    function AlphaNumericOrWhitespaceValidationRule() {
-      _classCallCheck(this, AlphaNumericOrWhitespaceValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule19.call(this, null, function (newValue, threshold) {
-        return (/^[a-z0-9\s]+$/i.test(newValue)
-        );
-      }, null, 'AlphaNumericOrWhitespaceValidationRule'));
-    }
-
-    return AlphaNumericOrWhitespaceValidationRule;
-  }(ValidationRule);
-
-  var MediumPasswordValidationRule = exports.MediumPasswordValidationRule = function (_ValidationRule20) {
-    _inherits(MediumPasswordValidationRule, _ValidationRule20);
-
-    function MediumPasswordValidationRule(minimumComplexityLevel, ruleName) {
-      _classCallCheck(this, MediumPasswordValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule20.call(this, minimumComplexityLevel ? minimumComplexityLevel : 3, function (newValue, threshold) {
-        if (typeof newValue !== 'string') {
-          return false;
-        }
-        var strength = 0;
-        strength += /[A-Z]+/.test(newValue) ? 1 : 0;
-        strength += /[a-z]+/.test(newValue) ? 1 : 0;
-        strength += /[0-9]+/.test(newValue) ? 1 : 0;
-        strength += /[\W]+/.test(newValue) ? 1 : 0;
-        return strength >= threshold;
-      }, null, ruleName || 'MediumPasswordValidationRule'));
-    }
-
-    return MediumPasswordValidationRule;
-  }(ValidationRule);
-
-  var StrongPasswordValidationRule = exports.StrongPasswordValidationRule = function (_MediumPasswordValida) {
-    _inherits(StrongPasswordValidationRule, _MediumPasswordValida);
-
-    function StrongPasswordValidationRule() {
-      _classCallCheck(this, StrongPasswordValidationRule);
-
-      return _possibleConstructorReturn(this, _MediumPasswordValida.call(this, 4, 'StrongPasswordValidationRule'));
-    }
-
-    return StrongPasswordValidationRule;
-  }(MediumPasswordValidationRule);
-
-  var EqualityValidationRuleBase = exports.EqualityValidationRuleBase = function (_ValidationRule21) {
-    _inherits(EqualityValidationRuleBase, _ValidationRule21);
-
-    function EqualityValidationRuleBase(startingOtherValue, equality, otherValueLabel, ruleName) {
-      _classCallCheck(this, EqualityValidationRuleBase);
-
-      return _possibleConstructorReturn(this, _ValidationRule21.call(this, {
-        otherValue: startingOtherValue,
-        equality: equality,
-        otherValueLabel: otherValueLabel
-      }, function (newValue, threshold) {
-        var otherValue = _utilities.Utilities.getValue(threshold.otherValue);
-        if (newValue instanceof Date && otherValue instanceof Date) {
-          return threshold.equality === (newValue.getTime() === otherValue.getTime());
-        }
-        return threshold.equality === (newValue === otherValue);
-      }, null, ruleName || 'EqualityValidationRuleBase'));
-    }
-
-    return EqualityValidationRuleBase;
-  }(ValidationRule);
-
-  var EqualityValidationRule = exports.EqualityValidationRule = function (_EqualityValidationRu) {
-    _inherits(EqualityValidationRule, _EqualityValidationRu);
-
-    function EqualityValidationRule(otherValue) {
-      _classCallCheck(this, EqualityValidationRule);
-
-      return _possibleConstructorReturn(this, _EqualityValidationRu.call(this, otherValue, true, null, 'EqualityValidationRule'));
-    }
-
-    return EqualityValidationRule;
-  }(EqualityValidationRuleBase);
-
-  var EqualityWithOtherLabelValidationRule = exports.EqualityWithOtherLabelValidationRule = function (_EqualityValidationRu2) {
-    _inherits(EqualityWithOtherLabelValidationRule, _EqualityValidationRu2);
-
-    function EqualityWithOtherLabelValidationRule(otherValue, otherLabel) {
-      _classCallCheck(this, EqualityWithOtherLabelValidationRule);
-
-      return _possibleConstructorReturn(this, _EqualityValidationRu2.call(this, otherValue, true, otherLabel, 'EqualityWithOtherLabelValidationRule'));
-    }
-
-    return EqualityWithOtherLabelValidationRule;
-  }(EqualityValidationRuleBase);
-
-  var InEqualityValidationRule = exports.InEqualityValidationRule = function (_EqualityValidationRu3) {
-    _inherits(InEqualityValidationRule, _EqualityValidationRu3);
-
-    function InEqualityValidationRule(otherValue) {
-      _classCallCheck(this, InEqualityValidationRule);
-
-      return _possibleConstructorReturn(this, _EqualityValidationRu3.call(this, otherValue, false, null, 'InEqualityValidationRule'));
-    }
-
-    return InEqualityValidationRule;
-  }(EqualityValidationRuleBase);
-
-  var InEqualityWithOtherLabelValidationRule = exports.InEqualityWithOtherLabelValidationRule = function (_EqualityValidationRu4) {
-    _inherits(InEqualityWithOtherLabelValidationRule, _EqualityValidationRu4);
-
-    function InEqualityWithOtherLabelValidationRule(otherValue, otherLabel) {
-      _classCallCheck(this, InEqualityWithOtherLabelValidationRule);
-
-      return _possibleConstructorReturn(this, _EqualityValidationRu4.call(this, otherValue, false, otherLabel, 'InEqualityWithOtherLabelValidationRule'));
-    }
-
-    return InEqualityWithOtherLabelValidationRule;
-  }(EqualityValidationRuleBase);
-
-  var InCollectionValidationRule = exports.InCollectionValidationRule = function (_ValidationRule22) {
-    _inherits(InCollectionValidationRule, _ValidationRule22);
-
-    function InCollectionValidationRule(startingCollection) {
-      _classCallCheck(this, InCollectionValidationRule);
-
-      return _possibleConstructorReturn(this, _ValidationRule22.call(this, startingCollection, function (newValue, threshold) {
-        var collection = _utilities.Utilities.getValue(threshold);
-        for (var i = 0; i < collection.length; i++) {
-          if (newValue === collection[i]) {
-            return true;
-          }
-        }
-        return false;
-      }, null, 'InCollectionValidationRule'));
-    }
-
-    return InCollectionValidationRule;
-  }(ValidationRule);
-});
-define('aurelia-validation/validation-rules-collection',['exports', './utilities', './validation-locale'], function (exports, _utilities, _validationLocale) {
-  
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.SwitchCaseValidationRulesCollection = exports.ValidationRulesCollection = undefined;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var ValidationRulesCollection = exports.ValidationRulesCollection = function () {
-    function ValidationRulesCollection(config) {
-      _classCallCheck(this, ValidationRulesCollection);
-
-      this.isRequired = config ? config.getValue('allPropertiesAreMandatory') : false;
-      this.validationRules = [];
-      this.validationCollections = [];
-      this.isRequiredMessage = null;
-    }
-
-    ValidationRulesCollection.prototype.validate = function validate(newValue, locale) {
-      var executeRules = true;
-      var thisMessage = void 0;
-      var checks = void 0;
-      if (locale === undefined) {
-        locale = _validationLocale.ValidationLocale.Repository.default;
-      }
-      newValue = _utilities.Utilities.getValue(newValue);
-      if (this.isRequiredMessage) {
-        thisMessage = typeof this.isRequiredMessage === 'function' ? this.isRequiredMessage(newValue) : this.isRequiredMessage;
-      } else {
-        thisMessage = locale.translate('isRequired');
-      }
-      if (_utilities.Utilities.isEmptyValue(newValue)) {
-        if (this.isRequired) {
-          return Promise.resolve({
-            isValid: false,
-            message: thisMessage,
-            failingRule: 'isRequired',
-            latestValue: newValue
-          });
-        }
-        executeRules = false;
-      }
-      checks = Promise.resolve({
-        isValid: true,
-        message: '',
-        failingRule: null,
-        latestValue: newValue
-      });
-      if (executeRules) {
-        this.validationRules.forEach(function (rule) {
-          checks = checks.then(function (previousRuleResult) {
-            if (previousRuleResult.isValid === false) {
-              return previousRuleResult;
-            }
-            return rule.validate(newValue, locale).then(function (thisRuleResult) {
-              if (thisRuleResult === false) {
-                return {
-                  isValid: false,
-                  message: rule.explain(),
-                  failingRule: rule.ruleName,
-                  latestValue: newValue
-                };
-              }
-              if (!previousRuleResult.isValid) {
-                throw Error("ValidationRulesCollection.validate caught an unexpected result while validating it's chain of rules.");
-              }
-              return previousRuleResult;
-            });
-          });
-        });
-      }
-      this.validationCollections.forEach(function (validationCollection) {
-        checks = checks.then(function (previousValidationResult) {
-          if (previousValidationResult.isValid) {
-            return validationCollection.validate(newValue, locale);
-          }
-          return previousValidationResult;
-        });
-      });
-      return checks;
-    };
-
-    ValidationRulesCollection.prototype.addValidationRule = function addValidationRule(validationRule) {
-      if (validationRule.validate === undefined) {
-        throw new Error("That's not a valid validationRule");
-      }
-      this.validationRules.push(validationRule);
-    };
-
-    ValidationRulesCollection.prototype.addValidationRuleCollection = function addValidationRuleCollection(validationRulesCollection) {
-      this.validationCollections.push(validationRulesCollection);
-    };
-
-    ValidationRulesCollection.prototype.isNotEmpty = function isNotEmpty() {
-      this.isRequired = true;
-    };
-
-    ValidationRulesCollection.prototype.canBeEmpty = function canBeEmpty() {
-      this.isRequired = false;
-    };
-
-    ValidationRulesCollection.prototype.withMessage = function withMessage(message) {
-      if (this.validationRules.length === 0) {
-        this.isRequiredMessage = message;
-      } else {
-        this.validationRules[this.validationRules.length - 1].withMessage(message);
-      }
-    };
-
-    return ValidationRulesCollection;
-  }();
-
-  var SwitchCaseValidationRulesCollection = exports.SwitchCaseValidationRulesCollection = function () {
-    function SwitchCaseValidationRulesCollection(conditionExpression, config) {
-      _classCallCheck(this, SwitchCaseValidationRulesCollection);
-
-      this.conditionExpression = conditionExpression;
-      this.config = config;
-      this.innerCollections = [];
-      this.defaultCollection = new ValidationRulesCollection(this.config);
-      this.caseLabel = '';
-      this.defaultCaseLabel = { description: 'this is the case label for \'default\'' };
-    }
-
-    SwitchCaseValidationRulesCollection.prototype.case = function _case(caseLabel) {
-      this.caseLabel = caseLabel;
-      this.getCurrentCollection(caseLabel, true);
-    };
-
-    SwitchCaseValidationRulesCollection.prototype.default = function _default() {
-      this.caseLabel = this.defaultCaseLabel;
-    };
-
-    SwitchCaseValidationRulesCollection.prototype.getCurrentCollection = function getCurrentCollection(caseLabel) {
-      var createIfNotExists = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
-
-      if (caseLabel === this.defaultCaseLabel) {
-        return this.defaultCollection;
-      }
-      var currentCollection = null;
-      for (var i = 0; i < this.innerCollections.length; i++) {
-        currentCollection = this.innerCollections[i];
-        if (currentCollection.caseLabel === caseLabel) {
-          return currentCollection.collection;
-        }
-      }
-      if (createIfNotExists) {
-        currentCollection = {
-          caseLabel: caseLabel,
-          collection: new ValidationRulesCollection(this.config)
-        };
-        this.innerCollections.push(currentCollection);
-        return currentCollection.collection;
-      }
-      return null;
-    };
-
-    SwitchCaseValidationRulesCollection.prototype.validate = function validate(newValue, locale) {
-      var collection = this.getCurrentCollection(this.conditionExpression(newValue));
-      if (collection !== null) {
-        return collection.validate(newValue, locale);
-      }
-      return this.defaultCollection.validate(newValue, locale);
-    };
-
-    SwitchCaseValidationRulesCollection.prototype.addValidationRule = function addValidationRule(validationRule) {
-      var currentCollection = this.getCurrentCollection(this.caseLabel, true);
-      currentCollection.addValidationRule(validationRule);
-    };
-
-    SwitchCaseValidationRulesCollection.prototype.addValidationRuleCollection = function addValidationRuleCollection(validationRulesCollection) {
-      var currentCollection = this.getCurrentCollection(this.caseLabel, true);
-      currentCollection.addValidationRuleCollection(validationRulesCollection);
-    };
-
-    SwitchCaseValidationRulesCollection.prototype.isNotEmpty = function isNotEmpty() {
-      var collection = this.getCurrentCollection(this.caseLabel);
-      if (collection !== null) {
-        collection.isNotEmpty();
-      } else {
-        this.defaultCollection.isNotEmpty();
-      }
-    };
-
-    SwitchCaseValidationRulesCollection.prototype.canBeEmpty = function canBeEmpty() {
-      var collection = this.getCurrentCollection(this.caseLabel);
-      if (collection !== null) {
-        collection.canBeEmpty();
-      } else {
-        this.defaultCollection.canBeEmpty();
-      }
-    };
-
-    SwitchCaseValidationRulesCollection.prototype.withMessage = function withMessage(message) {
-      var collection = this.getCurrentCollection(this.caseLabel);
-      if (collection !== null) {
-        collection.withMessage(message);
-      } else {
-        this.defaultCollection.withMessage(message);
-      }
-    };
-
-    return SwitchCaseValidationRulesCollection;
-  }();
-});
-define('aurelia-validation/path-observer',['exports'], function (exports) {
-  
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var PathObserver = exports.PathObserver = function () {
-    function PathObserver(observerLocator, subject, path) {
-      _classCallCheck(this, PathObserver);
-
-      this.observerLocator = observerLocator;
-      this.path = path.split('.');
-      this.subject = subject;
-      this.observers = [];
-      this.callbacks = [];
-      if (this.path.length > 1) {
-        this.observeParts();
-      }
-    }
-
-    PathObserver.prototype.observeParts = function observeParts(propertyName) {
-      var _this = this;
-
-      var currentSubject = this.subject;
-      var observersAreComplete = void 0;
-
-      if (propertyName !== undefined && propertyName !== null) {
-        for (var i = this.observers.length - 1; i >= 0; i--) {
-          var currentObserver = this.observers[i];
-          var observer = void 0;
-          if (currentObserver.propertyName === propertyName) {
-            break;
-          }
-          observer = this.observers.pop();
-          if (observer && observer.subscription) {
-            observer.subscription();
-          }
-        }
-      }
-
-      observersAreComplete = this.observers.length === this.path.length;
-
-      var _loop = function _loop(_i) {
-        var observer = _this.observers[_i];
-        var currentPath = _this.path[_i];
-        var subscription = void 0;
-        var currentValue = void 0;
-        if (!observer) {
-          observer = _this.observerLocator.getObserver(currentSubject, currentPath);
-          _this.observers.push(observer);
-          subscription = observer.subscribe(function (newValue, oldValue) {
-            _this.observeParts(observer.propertyName);
-          });
-          observer.subscription = subscription;
-        }
-        currentValue = observer.getValue();
-        if (currentValue === undefined || currentValue === null) {
-          return 'break';
-        } else {
-          currentSubject = currentValue;
-        }
-      };
-
-      for (var _i = 0; _i < this.path.length; _i++) {
-        var _ret = _loop(_i);
-
-        if (_ret === 'break') break;
-      }
-
-      if (!observersAreComplete && this.observers.length === this.path.length) {
-        var actualObserver = this.observers[this.observers.length - 1];
-        for (var _i2 = 0; _i2 < this.callbacks.length; _i2++) {
-          actualObserver.subscribe(this.callbacks[_i2]);
-        }
-      }
-    };
-
-    PathObserver.prototype.observePart = function observePart(part) {
-      if (part !== this.path[this.path.length - 1]) {
-        this.observeParts();
-      }
-    };
-
-    PathObserver.prototype.getObserver = function getObserver() {
-      if (this.path.length === 1) {
-        this.subject[this.path[0]];
-        return this.observerLocator.getObserver(this.subject, this.path[0]);
-      }
-      return this;
-    };
-
-    PathObserver.prototype.getValue = function getValue() {
-      var expectedSubject = this.subject;
-      for (var i = 0; this.path.length; i++) {
-        var currentObserver = this.observers[i];
-        if (currentObserver === null || currentObserver === undefined) {
-          this.observeParts(this.path[i]);
-          currentObserver = this.observers[i];
-
-          if (currentObserver === null || currentObserver === undefined) {
-            break;
-          }
-        }
-
-        if (currentObserver.obj !== expectedSubject) {
-          this.observeParts(this.path[i - 1]);
-          break;
-        }
-        expectedSubject = currentObserver.getValue();
-      }
-
-      if (this.observers.length !== this.path.length) {
-        return undefined;
-      }
-      var value = this.observers[this.observers.length - 1].getValue();
-      return value;
-    };
-
-    PathObserver.prototype.subscribe = function subscribe(callback) {
-      var _this2 = this;
-
-      this.callbacks.unshift(callback);
-      if (this.observers.length === this.path.length) {
-        this.subscription = this.observers[this.observers.length - 1].subscribe(callback);
-        return function () {
-          return _this2.unsubscribe();
-        };
-      }
-    };
-
-    PathObserver.prototype.unsubscribe = function unsubscribe() {
-      this.callbacks = [];
-      if (this.subscription) {
-        this.subscription();
-      }
-      for (var i = this.observers.length - 1; i >= 0; i--) {
-        var observer = this.observers.pop();
-        if (observer && observer.subscription) {
-          observer.subscription();
-        }
-      }
-    };
-
-    return PathObserver;
-  }();
-});
-define('aurelia-validation/debouncer',["exports"], function (exports) {
-  
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var Debouncer = exports.Debouncer = function () {
-    function Debouncer(debounceTimeout) {
-      _classCallCheck(this, Debouncer);
-
-      this.currentFunction = null;
-      this.debounceTimeout = debounceTimeout;
-    }
-
-    Debouncer.prototype.debounce = function debounce(func) {
-      var _this = this;
-
-      this.currentFunction = func;
-      setTimeout(function () {
-        if (func !== null && func !== undefined) {
-          if (func === _this.currentFunction) {
-            _this.currentFunction = null;
-            func();
-          }
-        }
-      }, this.debounceTimeout);
-    };
-
-    return Debouncer;
-  }();
-});
-define('aurelia-validation/validation-property',['exports', './validation-rules-collection', './path-observer', './debouncer'], function (exports, _validationRulesCollection, _pathObserver, _debouncer) {
-  
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.ValidationProperty = undefined;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var ValidationProperty = exports.ValidationProperty = function () {
-    function ValidationProperty(observerLocator, propertyName, validationGroup, propertyResult, config) {
-      var _this = this;
-
-      _classCallCheck(this, ValidationProperty);
-
-      this.propertyResult = propertyResult;
-      this.propertyName = propertyName;
-      this.validationGroup = validationGroup;
-      this.collectionOfValidationRules = new _validationRulesCollection.ValidationRulesCollection(config);
-      this.config = config;
-      this.latestValue = undefined;
-      this.observer = new _pathObserver.PathObserver(observerLocator, validationGroup.subject, propertyName).getObserver();
-      this.debouncer = new _debouncer.Debouncer(config.getDebounceTimeout());
-      this.subscription = this.observer.subscribe(function () {
-        _this.debouncer.debounce(function () {
-          var newValue = _this.observer.getValue();
-          if (newValue !== _this.latestValue) {
-            _this.validate(newValue, true);
-          }
-        });
-      });
-      this.dependencyObservers = [];
-      var dependencies = this.config.getDependencies();
-      for (var i = 0; i < dependencies.length; i++) {
-        var dependencyObserver = new _pathObserver.PathObserver(observerLocator, validationGroup.subject, dependencies[i]).getObserver();
-        dependencyObserver.subscribe(function () {
-          _this.debouncer.debounce(function () {
-            _this.validateCurrentValue(true);
-          });
-        });
-        this.dependencyObservers.push(dependencyObserver);
-      }
-    }
-
-    ValidationProperty.prototype.addValidationRule = function addValidationRule(validationRule) {
-      if (validationRule.validate === undefined) {
-        throw new Error("That's not a valid validationRule");
-      }
-      this.collectionOfValidationRules.addValidationRule(validationRule);
-      this.validateCurrentValue(false);
-    };
-
-    ValidationProperty.prototype.validateCurrentValue = function validateCurrentValue(forceDirty, forceExecution) {
-      return this.validate(this.observer.getValue(), forceDirty, forceExecution);
-    };
-
-    ValidationProperty.prototype.clear = function clear() {
-      this.latestValue = this.observer.getValue();
-      this.propertyResult.clear();
-    };
-
-    ValidationProperty.prototype.destroy = function destroy() {
-      if (this.subscription) {
-        this.subscription();
-      }
-    };
-
-    ValidationProperty.prototype.validate = function validate(newValue, shouldBeDirty, forceExecution) {
-      var _this2 = this;
-
-      if (!this.propertyResult.isDirty && shouldBeDirty || this.latestValue !== newValue || forceExecution) {
-        this.latestValue = newValue;
-        return this.config.locale().then(function (locale) {
-          return _this2.collectionOfValidationRules.validate(newValue, locale).then(function (validationResponse) {
-            if (_this2.latestValue === validationResponse.latestValue) {
-              _this2.propertyResult.setValidity(validationResponse, shouldBeDirty);
-            }
-            return validationResponse.isValid;
-          }).catch(function (err) {
-            throw Error('Unexpected behavior: a validation-rules-collection should always fulfil');
-          });
-        }, function () {
-          throw Error('An exception occurred while trying to load the locale');
-        });
-      }
-    };
-
-    return ValidationProperty;
-  }();
-});
-define('aurelia-validation/validation-group-builder',['exports', './validation-rules-collection', './validation-property', './validation-config', './validation-rules'], function (exports, _validationRulesCollection, _validationProperty, _validationConfig, _validationRules) {
-  
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.ValidationGroupBuilder = undefined;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var ValidationGroupBuilder = exports.ValidationGroupBuilder = function () {
-    function ValidationGroupBuilder(observerLocator, validationGroup) {
-      _classCallCheck(this, ValidationGroupBuilder);
-
-      this.observerLocator = observerLocator;
-      this.validationRuleCollections = [];
-      this.validationGroup = validationGroup;
-    }
-
-    ValidationGroupBuilder.prototype.ensure = function ensure(propertyName, configurationCallback) {
-      var newValidationProperty = null;
-      this.validationRuleCollections = [];
-
-      for (var i = 0; i < this.validationGroup.validationProperties.length; i++) {
-        if (this.validationGroup.validationProperties[i].propertyName === propertyName) {
-          newValidationProperty = this.validationGroup.validationProperties[i];
-          if (configurationCallback !== undefined && typeof configurationCallback === 'function') {
-            throw Error('When creating validation rules on binding path ' + propertyName + ' a configuration callback function was provided, but validation rules have previously already been instantiated for this binding path');
-          }
-          break;
-        }
-      }
-      if (newValidationProperty === null) {
-        var propertyResult = this.validationGroup.result.addProperty(propertyName);
-        var config = new _validationConfig.ValidationConfig(this.validationGroup.config);
-        if (configurationCallback !== undefined && typeof configurationCallback === 'function') {
-          configurationCallback(config);
-        }
-        newValidationProperty = new _validationProperty.ValidationProperty(this.observerLocator, propertyName, this.validationGroup, propertyResult, config);
-        this.validationGroup.validationProperties.push(newValidationProperty);
-      }
-      this.validationRuleCollections.unshift(newValidationProperty.collectionOfValidationRules);
-      return this.validationGroup;
-    };
-
-    ValidationGroupBuilder.prototype.isNotEmpty = function isNotEmpty() {
-      this.validationRuleCollections[0].isNotEmpty();
-      this.checkLast();
-      return this.validationGroup;
-    };
-
-    ValidationGroupBuilder.prototype.canBeEmpty = function canBeEmpty() {
-      this.validationRuleCollections[0].canBeEmpty();
-      this.checkLast();
-      return this.validationGroup;
-    };
-
-    ValidationGroupBuilder.prototype.isGreaterThan = function isGreaterThan(minimumValue) {
-      return this.passesRule(new _validationRules.MinimumValueValidationRule(minimumValue));
-    };
-
-    ValidationGroupBuilder.prototype.isGreaterThanOrEqualTo = function isGreaterThanOrEqualTo(minimumValue) {
-      return this.passesRule(new _validationRules.MinimumInclusiveValueValidationRule(minimumValue));
-    };
-
-    ValidationGroupBuilder.prototype.isBetween = function isBetween(minimumValue, maximumValue) {
-      return this.passesRule(new _validationRules.BetweenValueValidationRule(minimumValue, maximumValue));
-    };
-
-    ValidationGroupBuilder.prototype.isIn = function isIn(collection) {
-      return this.passesRule(new _validationRules.InCollectionValidationRule(collection));
-    };
-
-    ValidationGroupBuilder.prototype.isLessThan = function isLessThan(maximumValue) {
-      return this.passesRule(new _validationRules.MaximumValueValidationRule(maximumValue));
-    };
-
-    ValidationGroupBuilder.prototype.isLessThanOrEqualTo = function isLessThanOrEqualTo(maximumValue) {
-      return this.passesRule(new _validationRules.MaximumInclusiveValueValidationRule(maximumValue));
-    };
-
-    ValidationGroupBuilder.prototype.isEqualTo = function isEqualTo(otherValue, otherValueLabel) {
-      if (!otherValueLabel) {
-        return this.passesRule(new _validationRules.EqualityValidationRule(otherValue));
-      }
-      return this.passesRule(new _validationRules.EqualityWithOtherLabelValidationRule(otherValue, otherValueLabel));
-    };
-
-    ValidationGroupBuilder.prototype.isNotEqualTo = function isNotEqualTo(otherValue, otherValueLabel) {
-      if (!otherValueLabel) {
-        return this.passesRule(new _validationRules.InEqualityValidationRule(otherValue));
-      }
-      return this.passesRule(new _validationRules.InEqualityWithOtherLabelValidationRule(otherValue, otherValueLabel));
-    };
-
-    ValidationGroupBuilder.prototype.isEmail = function isEmail() {
-      return this.passesRule(new _validationRules.EmailValidationRule());
-    };
-
-    ValidationGroupBuilder.prototype.isURL = function isURL() {
-      return this.passesRule(new _validationRules.URLValidationRule());
-    };
-
-    ValidationGroupBuilder.prototype.hasMinLength = function hasMinLength(minimumValue) {
-      return this.passesRule(new _validationRules.MinimumLengthValidationRule(minimumValue));
-    };
-
-    ValidationGroupBuilder.prototype.hasMaxLength = function hasMaxLength(maximumValue) {
-      return this.passesRule(new _validationRules.MaximumLengthValidationRule(maximumValue));
-    };
-
-    ValidationGroupBuilder.prototype.hasLengthBetween = function hasLengthBetween(minimumValue, maximumValue) {
-      return this.passesRule(new _validationRules.BetweenLengthValidationRule(minimumValue, maximumValue));
-    };
-
-    ValidationGroupBuilder.prototype.isNumber = function isNumber() {
-      return this.passesRule(new _validationRules.NumericValidationRule());
-    };
-
-    ValidationGroupBuilder.prototype.containsNoSpaces = function containsNoSpaces() {
-      return this.passesRule(new _validationRules.NoSpacesValidationRule());
-    };
-
-    ValidationGroupBuilder.prototype.containsOnlyDigits = function containsOnlyDigits() {
-      return this.passesRule(new _validationRules.DigitValidationRule());
-    };
-
-    ValidationGroupBuilder.prototype.containsOnlyAlpha = function containsOnlyAlpha() {
-      return this.passesRule(new _validationRules.AlphaValidationRule());
-    };
-
-    ValidationGroupBuilder.prototype.containsOnlyAlphaOrWhitespace = function containsOnlyAlphaOrWhitespace() {
-      return this.passesRule(new _validationRules.AlphaOrWhitespaceValidationRule());
-    };
-
-    ValidationGroupBuilder.prototype.containsOnlyAlphanumerics = function containsOnlyAlphanumerics() {
-      return this.passesRule(new _validationRules.AlphaNumericValidationRule());
-    };
-
-    ValidationGroupBuilder.prototype.containsOnlyAlphanumericsOrWhitespace = function containsOnlyAlphanumericsOrWhitespace() {
-      return this.passesRule(new _validationRules.AlphaNumericOrWhitespaceValidationRule());
-    };
-
-    ValidationGroupBuilder.prototype.isStrongPassword = function isStrongPassword(minimumComplexityLevel) {
-      if (minimumComplexityLevel === 4) {
-        return this.passesRule(new _validationRules.StrongPasswordValidationRule());
-      }
-      return this.passesRule(new _validationRules.MediumPasswordValidationRule(minimumComplexityLevel));
-    };
-
-    ValidationGroupBuilder.prototype.containsOnly = function containsOnly(regex) {
-      return this.passesRule(new _validationRules.ContainsOnlyValidationRule(regex));
-    };
-
-    ValidationGroupBuilder.prototype.matches = function matches(regex) {
-      return this.passesRule(new _validationRules.RegexValidationRule(regex));
-    };
-
-    ValidationGroupBuilder.prototype.passes = function passes(customFunction, threshold) {
-      return this.passesRule(new _validationRules.CustomFunctionValidationRule(customFunction, threshold));
-    };
-
-    ValidationGroupBuilder.prototype.passesRule = function passesRule(validationRule) {
-      this.validationRuleCollections[0].addValidationRule(validationRule);
-      this.checkLast();
-      return this.validationGroup;
-    };
-
-    ValidationGroupBuilder.prototype.checkLast = function checkLast() {
-      var validationProperty = this.validationGroup.validationProperties[this.validationGroup.validationProperties.length - 1];
-      validationProperty.validateCurrentValue(false);
-    };
-
-    ValidationGroupBuilder.prototype.withMessage = function withMessage(message) {
-      this.validationRuleCollections[0].withMessage(message);
-      this.checkLast();
-      return this.validationGroup;
-    };
-
-    ValidationGroupBuilder.prototype.if = function _if(conditionExpression) {
-      var conditionalCollection = new _validationRulesCollection.SwitchCaseValidationRulesCollection(conditionExpression);
-      conditionalCollection.case(true);
-      this.validationRuleCollections[0].addValidationRuleCollection(conditionalCollection);
-      this.validationRuleCollections.unshift(conditionalCollection);
-      return this.validationGroup;
-    };
-
-    ValidationGroupBuilder.prototype.else = function _else() {
-      if (!this.validationRuleCollections[0].default) {
-        throw Error('Invalid statement: \'else\'');
-      }
-      this.validationRuleCollections[0].default();
-      return this.validationGroup;
-    };
-
-    ValidationGroupBuilder.prototype.endIf = function endIf() {
-      if (!this.validationRuleCollections[0].default) {
-        throw Error('Invalid statement: \'endIf\'');
-      }
-      this.validationRuleCollections.shift();
-      this.checkLast();
-      return this.validationGroup;
-    };
-
-    ValidationGroupBuilder.prototype.switch = function _switch(conditionExpression) {
-      var _this = this;
-
-      var condition = conditionExpression;
-      if (condition === undefined) {
-        (function () {
-          var observer = _this.validationGroup.validationProperties[_this.validationGroup.validationProperties.length - 1].observer;
-          condition = function condition() {
-            return observer.getValue();
-          };
-        })();
-      }
-      var conditionalCollection = new _validationRulesCollection.SwitchCaseValidationRulesCollection(condition);
-      this.validationRuleCollections[0].addValidationRuleCollection(conditionalCollection);
-      this.validationRuleCollections.unshift(conditionalCollection);
-      return this.validationGroup;
-    };
-
-    ValidationGroupBuilder.prototype.case = function _case(caseLabel) {
-      if (!this.validationRuleCollections[0].default) {
-        throw Error('Invalid statement: \'case\'');
-      }
-      this.validationRuleCollections[0].case(caseLabel);
-      return this.validationGroup;
-    };
-
-    ValidationGroupBuilder.prototype.default = function _default() {
-      if (!this.validationRuleCollections[0].default) {
-        throw Error('Invalid statement: \'case\'');
-      }
-      this.validationRuleCollections[0].default();
-      return this.validationGroup;
-    };
-
-    ValidationGroupBuilder.prototype.endSwitch = function endSwitch() {
-      if (!this.validationRuleCollections[0].default) {
-        throw Error('Invalid statement: \'endIf\'');
-      }
-      this.validationRuleCollections.shift();
-      this.checkLast();
-      return this.validationGroup;
-    };
-
-    return ValidationGroupBuilder;
-  }();
-});
-define('aurelia-validation/decorators',['exports', 'aurelia-metadata'], function (exports, _aureliaMetadata) {
-  
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.ValidationMetadata = undefined;
-  exports.ensure = ensure;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var _class, _temp;
-
-  var ValidationMetadata = exports.ValidationMetadata = (_temp = _class = function () {
-    function ValidationMetadata() {
-      _classCallCheck(this, ValidationMetadata);
-
-      this.properties = [];
-    }
-
-    ValidationMetadata.prototype.getOrCreateProperty = function getOrCreateProperty(propertyName) {
-      var property = this.properties.find(function (x) {
-        return x.propertyName === propertyName;
-      });
-      if (property === undefined) {
-        property = new ValidationPropertyMetadata(propertyName);
-        this.properties.push(property);
-      }
-      return property;
-    };
-
-    ValidationMetadata.prototype.setup = function setup(validation) {
-      this.properties.forEach(function (property) {
-        property.setup(validation);
-      });
-    };
-
-    return ValidationMetadata;
-  }(), _class.metadataKey = 'aurelia:validation', _temp);
-
-  var ValidationPropertyMetadata = function () {
-    function ValidationPropertyMetadata(propertyName) {
-      _classCallCheck(this, ValidationPropertyMetadata);
-
-      this.propertyName = propertyName;
-      this.setupSteps = [];
-    }
-
-    ValidationPropertyMetadata.prototype.addSetupStep = function addSetupStep(setupStep) {
-      this.setupSteps.push(setupStep);
-    };
-
-    ValidationPropertyMetadata.prototype.setup = function setup(validation) {
-      validation.ensure(this.propertyName);
-      this.setupSteps.forEach(function (setupStep) {
-        setupStep(validation);
-      });
-    };
-
-    return ValidationPropertyMetadata;
-  }();
-
-  function ensure(setupStep) {
-    console.warn('The ensure decorator has been deprecated and will be removed in the next release.');
-    return function (target, propertyName) {
-      var validationMetadata = _aureliaMetadata.metadata.getOrCreateOwn(ValidationMetadata.metadataKey, ValidationMetadata, target);
-      var property = validationMetadata.getOrCreateProperty(propertyName);
-      property.addSetupStep(setupStep);
-    };
-  }
-});
-define('aurelia-validation/validation-group',['exports', 'aurelia-metadata', './validation-group-builder', './validation-result', './decorators'], function (exports, _aureliaMetadata, _validationGroupBuilder, _validationResult, _decorators) {
-  
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.ValidationGroup = undefined;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var ValidationGroup = exports.ValidationGroup = function () {
-    function ValidationGroup(subject, observerLocator, config) {
-      var _this = this;
-
-      _classCallCheck(this, ValidationGroup);
-
-      var validationMetadata = void 0;
-      this.result = new _validationResult.ValidationResult();
-      this.subject = subject;
-      this.validationProperties = [];
-      this.config = config;
-      this.builder = new _validationGroupBuilder.ValidationGroupBuilder(observerLocator, this);
-      this.onValidateCallbacks = [];
-      this.onPropertyValidationCallbacks = [];
-      this.isValidating = false;
-      this.onDestroy = config.onLocaleChanged(function () {
-        _this.validate(false, true);
-      });
-      validationMetadata = _aureliaMetadata.metadata.getOwn(_decorators.ValidationMetadata.metadataKey, Object.getPrototypeOf(this.subject));
-      if (validationMetadata) {
-        validationMetadata.setup(this);
-      }
-    }
-
-    ValidationGroup.prototype.destroy = function destroy() {
-      this.validationProperties.forEach(function (prop) {
-        prop.destroy();
-      });
-      this.onDestroy();
-    };
-
-    ValidationGroup.prototype.clear = function clear() {
-      this.validationProperties.forEach(function (prop) {
-        prop.clear();
-      });
-      this.result.clear();
-    };
-
-    ValidationGroup.prototype.onBreezeEntity = function onBreezeEntity() {
-      var _this2 = this;
-
-      var breezeEntity = this.subject;
-      var me = this;
-      var errors = void 0;
-      this.onPropertyValidate(function (propertyBindingPath) {
-        _this2.passes(function () {
-          breezeEntity.entityAspect.validateProperty(propertyBindingPath);
-          errors = breezeEntity.entityAspect.getValidationErrors(propertyBindingPath);
-          if (errors.length === 0) {
-            return true;
-          }
-          return errors[0].errorMessage;
-        });
-      });
-      this.onValidate(function () {
-        breezeEntity.entityAspect.validateEntity();
-        return {};
-      });
-      breezeEntity.entityAspect.validationErrorsChanged.subscribe(function () {
-        breezeEntity.entityAspect.getValidationErrors().forEach(function (validationError) {
-          var propertyName = validationError.propertyName;
-          var currentResultProp = void 0;
-          if (!me.result.properties[propertyName]) {
-            me.ensure(propertyName);
-          }
-          currentResultProp = me.result.addProperty(propertyName);
-          if (currentResultProp.isValid) {
-            currentResultProp.setValidity({
-              isValid: false,
-              message: validationError.errorMessage,
-              failingRule: 'breeze',
-              latestValue: currentResultProp.latestValue
-            }, true);
-          }
-        });
-      });
-    };
-
-    ValidationGroup.prototype.validate = function validate() {
-      var _this3 = this;
-
-      var forceDirty = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
-      var forceExecution = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
-
-      this.isValidating = true;
-      var promise = Promise.resolve(true);
-
-      var _loop = function _loop(i) {
-        var validatorProperty = _this3.validationProperties[i];
-        promise = promise.then(function () {
-          return validatorProperty.validateCurrentValue(forceDirty, forceExecution);
-        });
-      };
-
-      for (var i = this.validationProperties.length - 1; i >= 0; i--) {
-        _loop(i);
-      }
-
-      promise = promise.catch(function () {
-        throw Error('Should never get here: a validation property should always resolve to true/false!');
-      });
-      this.onValidateCallbacks.forEach(function (onValidateCallback) {
-        promise = promise.then(function () {
-          return _this3.config.locale();
-        }).then(function (locale) {
-          return Promise.resolve(onValidateCallback.validationFunction()).then(function (callbackResult) {
-            for (var prop in callbackResult) {
-              var resultProp = void 0;
-              var result = void 0;
-              var newPropResult = void 0;
-              if (!_this3.result.properties[prop]) {
-                _this3.ensure(prop);
-              }
-              resultProp = _this3.result.addProperty(prop);
-              result = callbackResult[prop];
-              newPropResult = {
-                latestValue: resultProp.latestValue
-              };
-              if (result === true || result === null || result === '') {
-                if (!resultProp.isValid && resultProp.failingRule === 'onValidateCallback') {
-                  newPropResult.failingRule = null;
-                  newPropResult.message = '';
-                  newPropResult.isValid = true;
-                  resultProp.setValidity(newPropResult, true);
-                }
-              } else {
-                if (resultProp.isValid) {
-                  newPropResult.failingRule = 'onValidateCallback';
-                  newPropResult.isValid = false;
-                  if (typeof result === 'string') {
-                    newPropResult.message = result;
-                  } else {
-                    newPropResult.message = locale.translate(newPropResult.failingRule);
-                  }
-                  resultProp.setValidity(newPropResult, true);
-                }
-              }
-            }
-            _this3.result.checkValidity();
-          }, function (a, b, c, d, e) {
-            _this3.result.isValid = false;
-            if (onValidateCallback.validationFunctionFailedCallback) {
-              onValidateCallback.validationFunctionFailedCallback(a, b, c, d, e);
-            }
-          });
-        });
-      });
-      promise = promise.then(function () {
-        _this3.isValidating = false;
-        if (_this3.result.isValid) {
-          return Promise.resolve(_this3.result);
-        }
-        return Promise.reject(_this3.result);
-      });
-      return promise;
-    };
-
-    ValidationGroup.prototype.onValidate = function onValidate(validationFunction, validationFunctionFailedCallback) {
-      this.onValidateCallbacks.push({ validationFunction: validationFunction, validationFunctionFailedCallback: validationFunctionFailedCallback });
-      return this;
-    };
-
-    ValidationGroup.prototype.onPropertyValidate = function onPropertyValidate(validationFunction) {
-      this.onPropertyValidationCallbacks.push(validationFunction);
-      return this;
-    };
-
-    ValidationGroup.prototype.ensure = function ensure(bindingPath, configCallback) {
-      this.builder.ensure(bindingPath, configCallback);
-      this.onPropertyValidationCallbacks.forEach(function (callback) {
-        callback(bindingPath);
-      });
-      return this;
-    };
-
-    ValidationGroup.prototype.isNotEmpty = function isNotEmpty() {
-      return this.builder.isNotEmpty();
-    };
-
-    ValidationGroup.prototype.canBeEmpty = function canBeEmpty() {
-      return this.builder.canBeEmpty();
-    };
-
-    ValidationGroup.prototype.isGreaterThanOrEqualTo = function isGreaterThanOrEqualTo(minimumValue) {
-      return this.builder.isGreaterThanOrEqualTo(minimumValue);
-    };
-
-    ValidationGroup.prototype.isGreaterThan = function isGreaterThan(minimumValue) {
-      return this.builder.isGreaterThan(minimumValue);
-    };
-
-    ValidationGroup.prototype.isBetween = function isBetween(minimumValue, maximumValue) {
-      return this.builder.isBetween(minimumValue, maximumValue);
-    };
-
-    ValidationGroup.prototype.isLessThanOrEqualTo = function isLessThanOrEqualTo(maximumValue) {
-      return this.builder.isLessThanOrEqualTo(maximumValue);
-    };
-
-    ValidationGroup.prototype.isLessThan = function isLessThan(maximumValue) {
-      return this.builder.isLessThan(maximumValue);
-    };
-
-    ValidationGroup.prototype.isEqualTo = function isEqualTo(otherValue, otherValueLabel) {
-      return this.builder.isEqualTo(otherValue, otherValueLabel);
-    };
-
-    ValidationGroup.prototype.isNotEqualTo = function isNotEqualTo(otherValue, otherValueLabel) {
-      return this.builder.isNotEqualTo(otherValue, otherValueLabel);
-    };
-
-    ValidationGroup.prototype.isEmail = function isEmail() {
-      return this.builder.isEmail();
-    };
-
-    ValidationGroup.prototype.isURL = function isURL() {
-      return this.builder.isURL();
-    };
-
-    ValidationGroup.prototype.isIn = function isIn(collection) {
-      return this.builder.isIn(collection);
-    };
-
-    ValidationGroup.prototype.hasMinLength = function hasMinLength(minimumValue) {
-      return this.builder.hasMinLength(minimumValue);
-    };
-
-    ValidationGroup.prototype.hasMaxLength = function hasMaxLength(maximumValue) {
-      return this.builder.hasMaxLength(maximumValue);
-    };
-
-    ValidationGroup.prototype.hasLengthBetween = function hasLengthBetween(minimumValue, maximumValue) {
-      return this.builder.hasLengthBetween(minimumValue, maximumValue);
-    };
-
-    ValidationGroup.prototype.isNumber = function isNumber() {
-      return this.builder.isNumber();
-    };
-
-    ValidationGroup.prototype.containsNoSpaces = function containsNoSpaces() {
-      return this.builder.containsNoSpaces();
-    };
-
-    ValidationGroup.prototype.containsOnlyDigits = function containsOnlyDigits() {
-      return this.builder.containsOnlyDigits();
-    };
-
-    ValidationGroup.prototype.containsOnly = function containsOnly(regex) {
-      return this.builder.containsOnly(regex);
-    };
-
-    ValidationGroup.prototype.containsOnlyAlpha = function containsOnlyAlpha() {
-      return this.builder.containsOnlyAlpha();
-    };
-
-    ValidationGroup.prototype.containsOnlyAlphaOrWhitespace = function containsOnlyAlphaOrWhitespace() {
-      return this.builder.containsOnlyAlphaOrWhitespace();
-    };
-
-    ValidationGroup.prototype.containsOnlyLetters = function containsOnlyLetters() {
-      return this.builder.containsOnlyAlpha();
-    };
-
-    ValidationGroup.prototype.containsOnlyLettersOrWhitespace = function containsOnlyLettersOrWhitespace() {
-      return this.builder.containsOnlyAlphaOrWhitespace();
-    };
-
-    ValidationGroup.prototype.containsOnlyAlphanumerics = function containsOnlyAlphanumerics() {
-      return this.builder.containsOnlyAlphanumerics();
-    };
-
-    ValidationGroup.prototype.containsOnlyAlphanumericsOrWhitespace = function containsOnlyAlphanumericsOrWhitespace() {
-      return this.builder.containsOnlyAlphanumericsOrWhitespace();
-    };
-
-    ValidationGroup.prototype.isStrongPassword = function isStrongPassword(minimumComplexityLevel) {
-      return this.builder.isStrongPassword(minimumComplexityLevel);
-    };
-
-    ValidationGroup.prototype.matches = function matches(regex) {
-      return this.builder.matches(regex);
-    };
-
-    ValidationGroup.prototype.passes = function passes(customFunction, threshold) {
-      return this.builder.passes(customFunction, threshold);
-    };
-
-    ValidationGroup.prototype.passesRule = function passesRule(validationRule) {
-      return this.builder.passesRule(validationRule);
-    };
-
-    ValidationGroup.prototype.if = function _if(conditionExpression, threshold) {
-      return this.builder.if(conditionExpression, threshold);
-    };
-
-    ValidationGroup.prototype.else = function _else() {
-      return this.builder.else();
-    };
-
-    ValidationGroup.prototype.endIf = function endIf() {
-      return this.builder.endIf();
-    };
-
-    ValidationGroup.prototype.switch = function _switch(conditionExpression) {
-      return this.builder.switch(conditionExpression);
-    };
-
-    ValidationGroup.prototype.case = function _case(caseLabel) {
-      return this.builder.case(caseLabel);
-    };
-
-    ValidationGroup.prototype.default = function _default() {
-      return this.builder.default();
-    };
-
-    ValidationGroup.prototype.endSwitch = function endSwitch() {
-      return this.builder.endSwitch();
-    };
-
-    ValidationGroup.prototype.withMessage = function withMessage(message) {
-      return this.builder.withMessage(message);
-    };
-
-    return ValidationGroup;
-  }();
-});
-define('aurelia-validation/validation',['exports', 'aurelia-binding', './validation-group', 'aurelia-dependency-injection', './validation-config'], function (exports, _aureliaBinding, _validationGroup, _aureliaDependencyInjection, _validationConfig) {
-  
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.Validation = undefined;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var _dec, _class;
-
-  var Validation = exports.Validation = (_dec = (0, _aureliaDependencyInjection.inject)(_aureliaBinding.ObserverLocator), _dec(_class = function () {
-    function Validation(observerLocator, validationConfig) {
-      _classCallCheck(this, Validation);
-
-      this.observerLocator = observerLocator;
-      this.config = validationConfig ? validationConfig : Validation.defaults;
-    }
-
-    Validation.prototype.on = function on(subject, configCallback) {
-      var conf = new _validationConfig.ValidationConfig(this.config);
-      if (configCallback !== null && configCallback !== undefined && typeof configCallback === 'function') {
-        configCallback(conf);
-      }
-      return new _validationGroup.ValidationGroup(subject, this.observerLocator, conf);
-    };
-
-    Validation.prototype.onBreezeEntity = function onBreezeEntity(breezeEntity, configCallback) {
-      var validation = this.on(breezeEntity, configCallback);
-      validation.onBreezeEntity();
-      return validation;
-    };
-
-    return Validation;
-  }()) || _class);
-
-  Validation.defaults = new _validationConfig.ValidationConfig();
-});
-define('aurelia-validation/validate-custom-attribute',['exports', 'aurelia-dependency-injection', 'aurelia-templating'], function (exports, _aureliaDependencyInjection, _aureliaTemplating) {
-  
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.ValidateCustomAttribute = undefined;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var _dec, _dec2, _class;
-
-  var ValidateCustomAttribute = exports.ValidateCustomAttribute = (_dec = (0, _aureliaTemplating.customAttribute)('validate'), _dec2 = (0, _aureliaDependencyInjection.inject)(Element), _dec(_class = _dec2(_class = function () {
-    function ValidateCustomAttribute(element) {
-      _classCallCheck(this, ValidateCustomAttribute);
-
-      this.element = element;
-      this.processedValidation = null;
-      this.viewStrategy = null;
-    }
-
-    ValidateCustomAttribute.prototype.valueChanged = function valueChanged(newValue) {
-      if (this.value === null || this.value === undefined) {
-        return;
-      }
-      this.processedValidation = this.value;
-      if (typeof this.value !== 'string') {
-        this.subscribeChangedHandlers(this.element);
-      }
-      return;
-    };
-
-    ValidateCustomAttribute.prototype.subscribeChangedHandlers = function subscribeChangedHandlers(currentElement) {
-      var _this = this;
-
-      var viewStrategy = this.value.config.getViewStrategy();
-      var validationProperty = viewStrategy.getValidationProperty(this.value, currentElement);
-      var children = currentElement.children;
-      this.viewStrategy = viewStrategy;
-      if (validationProperty !== null && validationProperty !== undefined) {
-        this.viewStrategy.prepareElement(validationProperty, currentElement);
-        validationProperty.onValidate(function (vp) {
-          _this.viewStrategy.updateElement(vp, currentElement);
-        });
-      }
-      for (var i = 0; i < children.length; i++) {
-        this.subscribeChangedHandlers(children[i]);
-      }
-    };
-
-    ValidateCustomAttribute.prototype.attached = function attached() {
-      if (this.processedValidation === null || this.processedValidation === undefined) {
-        this.valueChanged(this.value);
-      }
-    };
-
-    return ValidateCustomAttribute;
-  }()) || _class) || _class);
-});
-define('aurelia-validation/index',['exports', './utilities', './validation-config', './validation-locale', './validation-result', './validation-rules', './validation', './validation-group', './validate-custom-attribute', './validation-view-strategy', './strategies/twbootstrap-view-strategy', './decorators'], function (exports, _utilities, _validationConfig, _validationLocale, _validationResult, _validationRules, _validation, _validationGroup, _validateCustomAttribute, _validationViewStrategy, _twbootstrapViewStrategy, _decorators) {
-  
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.ensure = exports.TWBootstrapViewStrategy = exports.ValidationViewStrategy = exports.ValidateCustomAttribute = exports.ValidationGroup = exports.Validation = exports.ValidationLocale = exports.ValidationConfig = exports.Utilities = undefined;
-  Object.defineProperty(exports, 'Utilities', {
+  Object.defineProperty(exports, 'Validator', {
     enumerable: true,
     get: function () {
-      return _utilities.Utilities;
+      return _validator.Validator;
     }
   });
-  Object.defineProperty(exports, 'ValidationConfig', {
+  Object.defineProperty(exports, 'ValidationReporter', {
     enumerable: true,
     get: function () {
-      return _validationConfig.ValidationConfig;
+      return _validationReporter.ValidationReporter;
     }
   });
-  Object.defineProperty(exports, 'ValidationLocale', {
+  Object.defineProperty(exports, 'ValidationEngine', {
     enumerable: true,
     get: function () {
-      return _validationLocale.ValidationLocale;
+      return _validationEngine.ValidationEngine;
     }
   });
-  Object.keys(_validationResult).forEach(function (key) {
-    if (key === "default") return;
-    Object.defineProperty(exports, key, {
-      enumerable: true,
-      get: function () {
-        return _validationResult[key];
-      }
-    });
-  });
-  Object.keys(_validationRules).forEach(function (key) {
-    if (key === "default") return;
-    Object.defineProperty(exports, key, {
-      enumerable: true,
-      get: function () {
-        return _validationRules[key];
-      }
-    });
-  });
-  Object.defineProperty(exports, 'Validation', {
+  Object.defineProperty(exports, 'ValidationError', {
     enumerable: true,
     get: function () {
-      return _validation.Validation;
-    }
-  });
-  Object.defineProperty(exports, 'ValidationGroup', {
-    enumerable: true,
-    get: function () {
-      return _validationGroup.ValidationGroup;
-    }
-  });
-  Object.defineProperty(exports, 'ValidateCustomAttribute', {
-    enumerable: true,
-    get: function () {
-      return _validateCustomAttribute.ValidateCustomAttribute;
-    }
-  });
-  Object.defineProperty(exports, 'ValidationViewStrategy', {
-    enumerable: true,
-    get: function () {
-      return _validationViewStrategy.ValidationViewStrategy;
-    }
-  });
-  Object.defineProperty(exports, 'TWBootstrapViewStrategy', {
-    enumerable: true,
-    get: function () {
-      return _twbootstrapViewStrategy.TWBootstrapViewStrategy;
-    }
-  });
-  Object.defineProperty(exports, 'ensure', {
-    enumerable: true,
-    get: function () {
-      return _decorators.ensure;
+      return _validationError.ValidationError;
     }
   });
   exports.configure = configure;
-  function configure(aurelia, configCallback) {
-    aurelia.globalResources('./validate-custom-attribute');
-    if (configCallback !== undefined && typeof configCallback === 'function') {
-      configCallback(_validation.Validation.defaults);
-    }
-    aurelia.singleton(_validationConfig.ValidationConfig, _validation.Validation.defaults);
-    return _validation.Validation.defaults.locale();
-  }
+  function configure(config) {}
 });
 define('aurelia-validation', ['aurelia-validation/index'], function (main) { return main; });
 
@@ -24044,14 +22041,14 @@ define('aurelia-animator-css',['exports', 'aurelia-templating', 'aurelia-pal'], 
  * 
  */
 /**
- * bluebird build version 3.3.5
+ * bluebird build version 3.4.0
  * Features enabled: core, race, call_get, generators, map, nodeify, promisify, props, reduce, settle, some, using, timers, filter, any, each
 */
 !function(t){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=t();else if("function"==typeof define&&define.amd)define('bluebird',[],t);else{var e;"undefined"!=typeof window?e=window:"undefined"!=typeof global?e=global:"undefined"!=typeof self&&(e=self),e.Promise=t()}}(function(){var t,e,n;return function r(t,e,n){function i(s,a){if(!e[s]){if(!t[s]){var c="function"==typeof _dereq_&&_dereq_;if(!a&&c)return c(s,!0);if(o)return o(s,!0);var l=new Error("Cannot find module '"+s+"'");throw l.code="MODULE_NOT_FOUND",l}var u=e[s]={exports:{}};t[s][0].call(u.exports,function(e){var n=t[s][1][e];return i(n?n:e)},u,u.exports,r,t,e,n)}return e[s].exports}for(var o="function"==typeof _dereq_&&_dereq_,s=0;s<n.length;s++)i(n[s]);return i}({1:[function(t,e,n){e.exports=function(t){function e(t){var e=new n(t),r=e.promise();return e.setHowMany(1),e.setUnwrap(),e.init(),r}var n=t._SomePromiseArray;t.any=function(t){return e(t)},t.prototype.any=function(){return e(this)}}},{}],2:[function(t,e,n){function r(){this._customScheduler=!1,this._isTickUsed=!1,this._lateQueue=new u(16),this._normalQueue=new u(16),this._haveDrainedQueues=!1,this._trampolineEnabled=!0;var t=this;this.drainQueues=function(){t._drainQueues()},this._schedule=l}function i(t,e,n){this._lateQueue.push(t,e,n),this._queueTick()}function o(t,e,n){this._normalQueue.push(t,e,n),this._queueTick()}function s(t){this._normalQueue._pushOne(t),this._queueTick()}var a;try{throw new Error}catch(c){a=c}var l=t("./schedule"),u=t("./queue"),p=t("./util");r.prototype.setScheduler=function(t){var e=this._schedule;return this._schedule=t,this._customScheduler=!0,e},r.prototype.hasCustomScheduler=function(){return this._customScheduler},r.prototype.enableTrampoline=function(){this._trampolineEnabled=!0},r.prototype.disableTrampolineIfNecessary=function(){p.hasDevTools&&(this._trampolineEnabled=!1)},r.prototype.haveItemsQueued=function(){return this._isTickUsed||this._haveDrainedQueues},r.prototype.fatalError=function(t,e){e?(process.stderr.write("Fatal "+(t instanceof Error?t.stack:t)+"\n"),process.exit(2)):this.throwLater(t)},r.prototype.throwLater=function(t,e){if(1===arguments.length&&(e=t,t=function(){throw e}),"undefined"!=typeof setTimeout)setTimeout(function(){t(e)},0);else try{this._schedule(function(){t(e)})}catch(n){throw new Error("No async scheduler available\n\n    See http://goo.gl/MqrFmX\n")}},p.hasDevTools?(r.prototype.invokeLater=function(t,e,n){this._trampolineEnabled?i.call(this,t,e,n):this._schedule(function(){setTimeout(function(){t.call(e,n)},100)})},r.prototype.invoke=function(t,e,n){this._trampolineEnabled?o.call(this,t,e,n):this._schedule(function(){t.call(e,n)})},r.prototype.settlePromises=function(t){this._trampolineEnabled?s.call(this,t):this._schedule(function(){t._settlePromises()})}):(r.prototype.invokeLater=i,r.prototype.invoke=o,r.prototype.settlePromises=s),r.prototype.invokeFirst=function(t,e,n){this._normalQueue.unshift(t,e,n),this._queueTick()},r.prototype._drainQueue=function(t){for(;t.length()>0;){var e=t.shift();if("function"==typeof e){var n=t.shift(),r=t.shift();e.call(n,r)}else e._settlePromises()}},r.prototype._drainQueues=function(){this._drainQueue(this._normalQueue),this._reset(),this._haveDrainedQueues=!0,this._drainQueue(this._lateQueue)},r.prototype._queueTick=function(){this._isTickUsed||(this._isTickUsed=!0,this._schedule(this.drainQueues))},r.prototype._reset=function(){this._isTickUsed=!1},e.exports=r,e.exports.firstLineError=a},{"./queue":26,"./schedule":29,"./util":36}],3:[function(t,e,n){e.exports=function(t,e,n,r){var i=!1,o=function(t,e){this._reject(e)},s=function(t,e){e.promiseRejectionQueued=!0,e.bindingPromise._then(o,o,null,this,t)},a=function(t,e){0===(50397184&this._bitField)&&this._resolveCallback(e.target)},c=function(t,e){e.promiseRejectionQueued||this._reject(t)};t.prototype.bind=function(o){i||(i=!0,t.prototype._propagateFrom=r.propagateFromFunction(),t.prototype._boundValue=r.boundValueFunction());var l=n(o),u=new t(e);u._propagateFrom(this,1);var p=this._target();if(u._setBoundTo(l),l instanceof t){var h={promiseRejectionQueued:!1,promise:u,target:p,bindingPromise:l};p._then(e,s,void 0,u,h),l._then(a,c,void 0,u,h),u._setOnCancel(l)}else u._resolveCallback(p);return u},t.prototype._setBoundTo=function(t){void 0!==t?(this._bitField=2097152|this._bitField,this._boundTo=t):this._bitField=-2097153&this._bitField},t.prototype._isBound=function(){return 2097152===(2097152&this._bitField)},t.bind=function(e,n){return t.resolve(n).bind(e)}}},{}],4:[function(t,e,n){function r(){try{Promise===o&&(Promise=i)}catch(t){}return o}var i;"undefined"!=typeof Promise&&(i=Promise);var o=t("./promise")();o.noConflict=r,e.exports=o},{"./promise":22}],5:[function(t,e,n){var r=Object.create;if(r){var i=r(null),o=r(null);i[" size"]=o[" size"]=0}e.exports=function(e){function n(t,n){var r;if(null!=t&&(r=t[n]),"function"!=typeof r){var i="Object "+a.classString(t)+" has no method '"+a.toString(n)+"'";throw new e.TypeError(i)}return r}function r(t){var e=this.pop(),r=n(t,e);return r.apply(t,this)}function i(t){return t[this]}function o(t){var e=+this;return 0>e&&(e=Math.max(0,e+t.length)),t[e]}var s,a=t("./util"),c=a.canEvaluate;a.isIdentifier;e.prototype.call=function(t){var e=[].slice.call(arguments,1);return e.push(t),this._then(r,void 0,void 0,e,void 0)},e.prototype.get=function(t){var e,n="number"==typeof t;if(n)e=o;else if(c){var r=s(t);e=null!==r?r:i}else e=i;return this._then(e,void 0,void 0,t,void 0)}}},{"./util":36}],6:[function(t,e,n){e.exports=function(e,n,r,i){var o=t("./util"),s=o.tryCatch,a=o.errorObj,c=e._async;e.prototype["break"]=e.prototype.cancel=function(){if(!i.cancellation())return this._warn("cancellation is disabled");for(var t=this,e=t;t.isCancellable();){if(!t._cancelBy(e)){e._isFollowing()?e._followee().cancel():e._cancelBranched();break}var n=t._cancellationParent;if(null==n||!n.isCancellable()){t._isFollowing()?t._followee().cancel():t._cancelBranched();break}t._isFollowing()&&t._followee().cancel(),e=t,t=n}},e.prototype._branchHasCancelled=function(){this._branchesRemainingToCancel--},e.prototype._enoughBranchesHaveCancelled=function(){return void 0===this._branchesRemainingToCancel||this._branchesRemainingToCancel<=0},e.prototype._cancelBy=function(t){return t===this?(this._branchesRemainingToCancel=0,this._invokeOnCancel(),!0):(this._branchHasCancelled(),this._enoughBranchesHaveCancelled()?(this._invokeOnCancel(),!0):!1)},e.prototype._cancelBranched=function(){this._enoughBranchesHaveCancelled()&&this._cancel()},e.prototype._cancel=function(){this.isCancellable()&&(this._setCancelled(),c.invoke(this._cancelPromises,this,void 0))},e.prototype._cancelPromises=function(){this._length()>0&&this._settlePromises()},e.prototype._unsetOnCancel=function(){this._onCancelField=void 0},e.prototype.isCancellable=function(){return this.isPending()&&!this.isCancelled()},e.prototype._doInvokeOnCancel=function(t,e){if(o.isArray(t))for(var n=0;n<t.length;++n)this._doInvokeOnCancel(t[n],e);else if(void 0!==t)if("function"==typeof t){if(!e){var r=s(t).call(this._boundValue());r===a&&(this._attachExtraTrace(r.e),c.throwLater(r.e))}}else t._resultCancelled(this)},e.prototype._invokeOnCancel=function(){var t=this._onCancel();this._unsetOnCancel(),c.invoke(this._doInvokeOnCancel,this,t)},e.prototype._invokeInternalOnCancel=function(){this.isCancellable()&&(this._doInvokeOnCancel(this._onCancel(),!0),this._unsetOnCancel())},e.prototype._resultCancelled=function(){this.cancel()}}},{"./util":36}],7:[function(t,e,n){e.exports=function(e){function n(t,n,a){return function(c){var l=a._boundValue();t:for(var u=0;u<t.length;++u){var p=t[u];if(p===Error||null!=p&&p.prototype instanceof Error){if(c instanceof p)return o(n).call(l,c)}else if("function"==typeof p){var h=o(p).call(l,c);if(h===s)return h;if(h)return o(n).call(l,c)}else if(r.isObject(c)){for(var f=i(p),_=0;_<f.length;++_){var d=f[_];if(p[d]!=c[d])continue t}return o(n).call(l,c)}}return e}}var r=t("./util"),i=t("./es5").keys,o=r.tryCatch,s=r.errorObj;return n}},{"./es5":13,"./util":36}],8:[function(t,e,n){e.exports=function(t){function e(){this._trace=new e.CapturedTrace(r())}function n(){return i?new e:void 0}function r(){var t=o.length-1;return t>=0?o[t]:void 0}var i=!1,o=[];return t.prototype._promiseCreated=function(){},t.prototype._pushContext=function(){},t.prototype._popContext=function(){return null},t._peekContext=t.prototype._peekContext=function(){},e.prototype._pushContext=function(){void 0!==this._trace&&(this._trace._promiseCreated=null,o.push(this._trace))},e.prototype._popContext=function(){if(void 0!==this._trace){var t=o.pop(),e=t._promiseCreated;return t._promiseCreated=null,e}return null},e.CapturedTrace=null,e.create=n,e.deactivateLongStackTraces=function(){},e.activateLongStackTraces=function(){var n=t.prototype._pushContext,o=t.prototype._popContext,s=t._peekContext,a=t.prototype._peekContext,c=t.prototype._promiseCreated;e.deactivateLongStackTraces=function(){t.prototype._pushContext=n,t.prototype._popContext=o,t._peekContext=s,t.prototype._peekContext=a,t.prototype._promiseCreated=c,i=!1},i=!0,t.prototype._pushContext=e.prototype._pushContext,t.prototype._popContext=e.prototype._popContext,t._peekContext=t.prototype._peekContext=r,t.prototype._promiseCreated=function(){var t=this._peekContext();t&&null==t._promiseCreated&&(t._promiseCreated=this)}},e}},{}],9:[function(t,e,n){e.exports=function(e,n){function r(t,e){return{promise:e}}function i(){return!1}function o(t,e,n){var r=this;try{t(e,n,function(t){if("function"!=typeof t)throw new TypeError("onCancel must be a function, got: "+H.toString(t));r._attachCancellationCallback(t)})}catch(i){return i}}function s(t){if(!this.isCancellable())return this;var e=this._onCancel();void 0!==e?H.isArray(e)?e.push(t):this._setOnCancel([e,t]):this._setOnCancel(t)}function a(){return this._onCancelField}function c(t){this._onCancelField=t}function l(){this._cancellationParent=void 0,this._onCancelField=void 0}function u(t,e){if(0!==(1&e)){this._cancellationParent=t;var n=t._branchesRemainingToCancel;void 0===n&&(n=0),t._branchesRemainingToCancel=n+1}0!==(2&e)&&t._isBound()&&this._setBoundTo(t._boundTo)}function p(t,e){0!==(2&e)&&t._isBound()&&this._setBoundTo(t._boundTo)}function h(){var t=this._boundTo;return void 0!==t&&t instanceof e?t.isFulfilled()?t.value():void 0:t}function f(){this._trace=new S(this._peekContext())}function _(t,e){if(N(t)){var n=this._trace;if(void 0!==n&&e&&(n=n._parent),void 0!==n)n.attachExtraTrace(t);else if(!t.__stackCleaned__){var r=j(t);H.notEnumerableProp(t,"stack",r.message+"\n"+r.stack.join("\n")),H.notEnumerableProp(t,"__stackCleaned__",!0)}}}function d(t,e,n,r,i){if(void 0===t&&null!==e&&z){if(void 0!==i&&i._returnedNonUndefined())return;if(0===(65535&r._bitField))return;n&&(n+=" ");var o="a promise was created in a "+n+"handler but was not returned from it";r._warn(o,!0,e)}}function v(t,e){var n=t+" is deprecated and will be removed in a future version.";return e&&(n+=" Use "+e+" instead."),y(n)}function y(t,n,r){if(rt.warnings){var i,o=new L(t);if(n)r._attachExtraTrace(o);else if(rt.longStackTraces&&(i=e._peekContext()))i.attachExtraTrace(o);else{var s=j(o);o.stack=s.message+"\n"+s.stack.join("\n")}Y("warning",o)||k(o,"",!0)}}function m(t,e){for(var n=0;n<e.length-1;++n)e[n].push("From previous event:"),e[n]=e[n].join("\n");return n<e.length&&(e[n]=e[n].join("\n")),t+"\n"+e.join("\n")}function g(t){for(var e=0;e<t.length;++e)(0===t[e].length||e+1<t.length&&t[e][0]===t[e+1][0])&&(t.splice(e,1),e--)}function b(t){for(var e=t[0],n=1;n<t.length;++n){for(var r=t[n],i=e.length-1,o=e[i],s=-1,a=r.length-1;a>=0;--a)if(r[a]===o){s=a;break}for(var a=s;a>=0;--a){var c=r[a];if(e[i]!==c)break;e.pop(),i--}e=r}}function w(t){for(var e=[],n=0;n<t.length;++n){var r=t[n],i="    (No stack trace)"===r||B.test(r),o=i&&tt(r);i&&!o&&(q&&" "!==r.charAt(0)&&(r="    "+r),e.push(r))}return e}function C(t){for(var e=t.stack.replace(/\s+$/g,"").split("\n"),n=0;n<e.length;++n){var r=e[n];if("    (No stack trace)"===r||B.test(r))break}return n>0&&(e=e.slice(n)),e}function j(t){var e=t.stack,n=t.toString();return e="string"==typeof e&&e.length>0?C(t):["    (No stack trace)"],{message:n,stack:w(e)}}function k(t,e,n){if("undefined"!=typeof console){var r;if(H.isObject(t)){var i=t.stack;r=e+M(i,t)}else r=e+String(t);"function"==typeof D?D(r,n):("function"==typeof console.log||"object"==typeof console.log)&&console.log(r)}}function E(t,e,n,r){var i=!1;try{"function"==typeof e&&(i=!0,"rejectionHandled"===t?e(r):e(n,r))}catch(o){I.throwLater(o)}"unhandledRejection"===t?Y(t,n,r)||i||k(n,"Unhandled rejection "):Y(t,r)}function F(t){var e;if("function"==typeof t)e="[function "+(t.name||"anonymous")+"]";else{e=t&&"function"==typeof t.toString?t.toString():H.toString(t);var n=/\[object [a-zA-Z0-9$_]+\]/;if(n.test(e))try{var r=JSON.stringify(t);e=r}catch(i){}0===e.length&&(e="(empty array)")}return"(<"+x(e)+">, no stack trace)"}function x(t){var e=41;return t.length<e?t:t.substr(0,e-3)+"..."}function T(){return"function"==typeof nt}function P(t){var e=t.match(et);return e?{fileName:e[1],line:parseInt(e[2],10)}:void 0}function R(t,e){if(T()){for(var n,r,i=t.stack.split("\n"),o=e.stack.split("\n"),s=-1,a=-1,c=0;c<i.length;++c){var l=P(i[c]);if(l){n=l.fileName,s=l.line;break}}for(var c=0;c<o.length;++c){var l=P(o[c]);if(l){r=l.fileName,a=l.line;break}}0>s||0>a||!n||!r||n!==r||s>=a||(tt=function(t){if(U.test(t))return!0;var e=P(t);return e&&e.fileName===n&&s<=e.line&&e.line<=a?!0:!1})}}function S(t){this._parent=t,this._promisesCreated=0;var e=this._length=1+(void 0===t?0:t._length);nt(this,S),e>32&&this.uncycle()}var O,A,D,V=e._getDomain,I=e._async,L=t("./errors").Warning,H=t("./util"),N=H.canAttachTrace,U=/[\\\/]bluebird[\\\/]js[\\\/](release|debug|instrumented)/,B=null,M=null,q=!1,Q=!(0==H.env("BLUEBIRD_DEBUG")||!H.env("BLUEBIRD_DEBUG")&&"development"!==H.env("NODE_ENV")),$=!(0==H.env("BLUEBIRD_WARNINGS")||!Q&&!H.env("BLUEBIRD_WARNINGS")),G=!(0==H.env("BLUEBIRD_LONG_STACK_TRACES")||!Q&&!H.env("BLUEBIRD_LONG_STACK_TRACES")),z=0!=H.env("BLUEBIRD_W_FORGOTTEN_RETURN")&&($||!!H.env("BLUEBIRD_W_FORGOTTEN_RETURN"));e.prototype.suppressUnhandledRejections=function(){var t=this._target();t._bitField=-1048577&t._bitField|524288},e.prototype._ensurePossibleRejectionHandled=function(){0===(524288&this._bitField)&&(this._setRejectionIsUnhandled(),I.invokeLater(this._notifyUnhandledRejection,this,void 0))},e.prototype._notifyUnhandledRejectionIsHandled=function(){E("rejectionHandled",O,void 0,this)},e.prototype._setReturnedNonUndefined=function(){this._bitField=268435456|this._bitField},e.prototype._returnedNonUndefined=function(){return 0!==(268435456&this._bitField)},e.prototype._notifyUnhandledRejection=function(){if(this._isRejectionUnhandled()){var t=this._settledValue();this._setUnhandledRejectionIsNotified(),E("unhandledRejection",A,t,this)}},e.prototype._setUnhandledRejectionIsNotified=function(){this._bitField=262144|this._bitField},e.prototype._unsetUnhandledRejectionIsNotified=function(){this._bitField=-262145&this._bitField},e.prototype._isUnhandledRejectionNotified=function(){return(262144&this._bitField)>0},e.prototype._setRejectionIsUnhandled=function(){this._bitField=1048576|this._bitField},e.prototype._unsetRejectionIsUnhandled=function(){this._bitField=-1048577&this._bitField,this._isUnhandledRejectionNotified()&&(this._unsetUnhandledRejectionIsNotified(),this._notifyUnhandledRejectionIsHandled())},e.prototype._isRejectionUnhandled=function(){return(1048576&this._bitField)>0},e.prototype._warn=function(t,e,n){return y(t,e,n||this)},e.onPossiblyUnhandledRejection=function(t){var e=V();A="function"==typeof t?null===e?t:e.bind(t):void 0},e.onUnhandledRejectionHandled=function(t){var e=V();O="function"==typeof t?null===e?t:e.bind(t):void 0};var X=function(){};e.longStackTraces=function(){if(I.haveItemsQueued()&&!rt.longStackTraces)throw new Error("cannot enable long stack traces after promises have been created\n\n    See http://goo.gl/MqrFmX\n");if(!rt.longStackTraces&&T()){var t=e.prototype._captureStackTrace,r=e.prototype._attachExtraTrace;rt.longStackTraces=!0,X=function(){if(I.haveItemsQueued()&&!rt.longStackTraces)throw new Error("cannot enable long stack traces after promises have been created\n\n    See http://goo.gl/MqrFmX\n");e.prototype._captureStackTrace=t,e.prototype._attachExtraTrace=r,n.deactivateLongStackTraces(),I.enableTrampoline(),rt.longStackTraces=!1},e.prototype._captureStackTrace=f,e.prototype._attachExtraTrace=_,n.activateLongStackTraces(),I.disableTrampolineIfNecessary()}},e.hasLongStackTraces=function(){return rt.longStackTraces&&T()};var W=function(){try{var t=document.createEvent("CustomEvent");return t.initCustomEvent("testingtheevent",!1,!0,{}),H.global.dispatchEvent(t),function(t,e){var n=document.createEvent("CustomEvent");return n.initCustomEvent(t.toLowerCase(),!1,!0,e),!H.global.dispatchEvent(n)}}catch(e){}return function(){return!1}}(),K=function(){return H.isNode?function(){return process.emit.apply(process,arguments)}:H.global?function(t){var e="on"+t.toLowerCase(),n=H.global[e];return n?(n.apply(H.global,[].slice.call(arguments,1)),!0):!1}:function(){return!1}}(),J={promiseCreated:r,promiseFulfilled:r,promiseRejected:r,promiseResolved:r,promiseCancelled:r,promiseChained:function(t,e,n){return{promise:e,child:n}},warning:function(t,e){return{warning:e}},unhandledRejection:function(t,e,n){return{reason:e,promise:n}},rejectionHandled:r},Y=function(t){var e=!1;try{e=K.apply(null,arguments)}catch(n){I.throwLater(n),e=!0}var r=!1;try{r=W(t,J[t].apply(null,arguments))}catch(n){I.throwLater(n),r=!0}return r||e};e.config=function(t){if(t=Object(t),"longStackTraces"in t&&(t.longStackTraces?e.longStackTraces():!t.longStackTraces&&e.hasLongStackTraces()&&X()),"warnings"in t){var n=t.warnings;rt.warnings=!!n,z=rt.warnings,H.isObject(n)&&"wForgottenReturn"in n&&(z=!!n.wForgottenReturn)}if("cancellation"in t&&t.cancellation&&!rt.cancellation){if(I.haveItemsQueued())throw new Error("cannot enable cancellation after promises are in use");e.prototype._clearCancellationData=l,e.prototype._propagateFrom=u,e.prototype._onCancel=a,e.prototype._setOnCancel=c,e.prototype._attachCancellationCallback=s,e.prototype._execute=o,Z=u,rt.cancellation=!0}"monitoring"in t&&(t.monitoring&&!rt.monitoring?(rt.monitoring=!0,e.prototype._fireEvent=Y):!t.monitoring&&rt.monitoring&&(rt.monitoring=!1,e.prototype._fireEvent=i))},e.prototype._fireEvent=i,e.prototype._execute=function(t,e,n){try{t(e,n)}catch(r){return r}},e.prototype._onCancel=function(){},e.prototype._setOnCancel=function(t){},e.prototype._attachCancellationCallback=function(t){},e.prototype._captureStackTrace=function(){},e.prototype._attachExtraTrace=function(){},e.prototype._clearCancellationData=function(){},e.prototype._propagateFrom=function(t,e){};var Z=p,tt=function(){return!1},et=/[\/<\(]([^:\/]+):(\d+):(?:\d+)\)?\s*$/;H.inherits(S,Error),n.CapturedTrace=S,S.prototype.uncycle=function(){var t=this._length;if(!(2>t)){for(var e=[],n={},r=0,i=this;void 0!==i;++r)e.push(i),i=i._parent;t=this._length=r;for(var r=t-1;r>=0;--r){var o=e[r].stack;void 0===n[o]&&(n[o]=r)}for(var r=0;t>r;++r){var s=e[r].stack,a=n[s];if(void 0!==a&&a!==r){a>0&&(e[a-1]._parent=void 0,e[a-1]._length=1),e[r]._parent=void 0,e[r]._length=1;var c=r>0?e[r-1]:this;t-1>a?(c._parent=e[a+1],c._parent.uncycle(),c._length=c._parent._length+1):(c._parent=void 0,c._length=1);for(var l=c._length+1,u=r-2;u>=0;--u)e[u]._length=l,l++;return}}}},S.prototype.attachExtraTrace=function(t){if(!t.__stackCleaned__){this.uncycle();for(var e=j(t),n=e.message,r=[e.stack],i=this;void 0!==i;)r.push(w(i.stack.split("\n"))),i=i._parent;b(r),g(r),H.notEnumerableProp(t,"stack",m(n,r)),H.notEnumerableProp(t,"__stackCleaned__",!0)}};var nt=function(){var t=/^\s*at\s*/,e=function(t,e){return"string"==typeof t?t:void 0!==e.name&&void 0!==e.message?e.toString():F(e)};if("number"==typeof Error.stackTraceLimit&&"function"==typeof Error.captureStackTrace){Error.stackTraceLimit+=6,B=t,M=e;var n=Error.captureStackTrace;return tt=function(t){return U.test(t)},function(t,e){Error.stackTraceLimit+=6,n(t,e),Error.stackTraceLimit-=6}}var r=new Error;if("string"==typeof r.stack&&r.stack.split("\n")[0].indexOf("stackDetection@")>=0)return B=/@/,M=e,q=!0,function(t){t.stack=(new Error).stack};var i;try{throw new Error}catch(o){i="stack"in o}return"stack"in r||!i||"number"!=typeof Error.stackTraceLimit?(M=function(t,e){return"string"==typeof t?t:"object"!=typeof e&&"function"!=typeof e||void 0===e.name||void 0===e.message?F(e):e.toString()},null):(B=t,M=e,function(t){Error.stackTraceLimit+=6;try{throw new Error}catch(e){t.stack=e.stack}Error.stackTraceLimit-=6})}([]);"undefined"!=typeof console&&"undefined"!=typeof console.warn&&(D=function(t){console.warn(t)},H.isNode&&process.stderr.isTTY?D=function(t,e){var n=e?"[33m":"[31m";console.warn(n+t+"[0m\n")}:H.isNode||"string"!=typeof(new Error).stack||(D=function(t,e){console.warn("%c"+t,e?"color: darkorange":"color: red")}));var rt={warnings:$,longStackTraces:!1,cancellation:!1,monitoring:!1};return G&&e.longStackTraces(),{longStackTraces:function(){return rt.longStackTraces},warnings:function(){return rt.warnings},cancellation:function(){return rt.cancellation},monitoring:function(){return rt.monitoring},propagateFromFunction:function(){return Z},boundValueFunction:function(){return h},checkForgottenReturns:d,setBounds:R,warn:y,deprecated:v,CapturedTrace:S,fireDomEvent:W,fireGlobalEvent:K}}},{"./errors":12,"./util":36}],10:[function(t,e,n){e.exports=function(t){function e(){return this.value}function n(){throw this.reason}t.prototype["return"]=t.prototype.thenReturn=function(n){return n instanceof t&&n.suppressUnhandledRejections(),this._then(e,void 0,void 0,{value:n},void 0)},t.prototype["throw"]=t.prototype.thenThrow=function(t){return this._then(n,void 0,void 0,{reason:t},void 0)},t.prototype.catchThrow=function(t){if(arguments.length<=1)return this._then(void 0,n,void 0,{reason:t},void 0);var e=arguments[1],r=function(){throw e};return this.caught(t,r)},t.prototype.catchReturn=function(n){if(arguments.length<=1)return n instanceof t&&n.suppressUnhandledRejections(),this._then(void 0,e,void 0,{value:n},void 0);var r=arguments[1];r instanceof t&&r.suppressUnhandledRejections();var i=function(){return r};return this.caught(n,i)}}},{}],11:[function(t,e,n){e.exports=function(t,e){function n(){return o(this)}function r(t,n){return i(t,n,e,e)}var i=t.reduce,o=t.all;t.prototype.each=function(t){return this.mapSeries(t)._then(n,void 0,void 0,this,void 0)},t.prototype.mapSeries=function(t){return i(this,t,e,e)},t.each=function(t,e){return r(t,e)._then(n,void 0,void 0,t,void 0)},t.mapSeries=r}},{}],12:[function(t,e,n){function r(t,e){function n(r){return this instanceof n?(p(this,"message","string"==typeof r?r:e),p(this,"name",t),void(Error.captureStackTrace?Error.captureStackTrace(this,this.constructor):Error.call(this))):new n(r)}return u(n,Error),n}function i(t){return this instanceof i?(p(this,"name","OperationalError"),p(this,"message",t),this.cause=t,this.isOperational=!0,void(t instanceof Error?(p(this,"message",t.message),p(this,"stack",t.stack)):Error.captureStackTrace&&Error.captureStackTrace(this,this.constructor))):new i(t)}var o,s,a=t("./es5"),c=a.freeze,l=t("./util"),u=l.inherits,p=l.notEnumerableProp,h=r("Warning","warning"),f=r("CancellationError","cancellation error"),_=r("TimeoutError","timeout error"),d=r("AggregateError","aggregate error");try{o=TypeError,s=RangeError}catch(v){o=r("TypeError","type error"),s=r("RangeError","range error")}for(var y="join pop push shift unshift slice filter forEach some every map indexOf lastIndexOf reduce reduceRight sort reverse".split(" "),m=0;m<y.length;++m)"function"==typeof Array.prototype[y[m]]&&(d.prototype[y[m]]=Array.prototype[y[m]]);a.defineProperty(d.prototype,"length",{value:0,configurable:!1,writable:!0,enumerable:!0}),d.prototype.isOperational=!0;var g=0;d.prototype.toString=function(){var t=Array(4*g+1).join(" "),e="\n"+t+"AggregateError of:\n";g++,t=Array(4*g+1).join(" ");for(var n=0;n<this.length;++n){for(var r=this[n]===this?"[Circular AggregateError]":this[n]+"",i=r.split("\n"),o=0;o<i.length;++o)i[o]=t+i[o];r=i.join("\n"),e+=r+"\n"}return g--,e},u(i,Error);var b=Error.__BluebirdErrorTypes__;b||(b=c({CancellationError:f,TimeoutError:_,OperationalError:i,RejectionError:i,AggregateError:d}),a.defineProperty(Error,"__BluebirdErrorTypes__",{value:b,writable:!1,enumerable:!1,configurable:!1})),e.exports={Error:Error,TypeError:o,RangeError:s,CancellationError:b.CancellationError,OperationalError:b.OperationalError,TimeoutError:b.TimeoutError,AggregateError:b.AggregateError,Warning:h}},{"./es5":13,"./util":36}],13:[function(t,e,n){var r=function(){return void 0===this}();if(r)e.exports={freeze:Object.freeze,defineProperty:Object.defineProperty,getDescriptor:Object.getOwnPropertyDescriptor,keys:Object.keys,names:Object.getOwnPropertyNames,getPrototypeOf:Object.getPrototypeOf,isArray:Array.isArray,isES5:r,propertyIsWritable:function(t,e){var n=Object.getOwnPropertyDescriptor(t,e);return!(n&&!n.writable&&!n.set)}};else{var i={}.hasOwnProperty,o={}.toString,s={}.constructor.prototype,a=function(t){var e=[];for(var n in t)i.call(t,n)&&e.push(n);return e},c=function(t,e){return{value:t[e]}},l=function(t,e,n){return t[e]=n.value,t},u=function(t){return t},p=function(t){try{return Object(t).constructor.prototype}catch(e){return s}},h=function(t){try{return"[object Array]"===o.call(t)}catch(e){return!1}};e.exports={isArray:h,keys:a,names:a,defineProperty:l,getDescriptor:c,freeze:u,getPrototypeOf:p,isES5:r,propertyIsWritable:function(){return!0}}}},{}],14:[function(t,e,n){e.exports=function(t,e){var n=t.map;t.prototype.filter=function(t,r){return n(this,t,r,e)},t.filter=function(t,r,i){return n(t,r,i,e)}}},{}],15:[function(t,e,n){e.exports=function(e,n){function r(t,e,n){this.promise=t,this.type=e,this.handler=n,this.called=!1,this.cancelPromise=null}function i(t){this.finallyHandler=t}function o(t,e){return null!=t.cancelPromise?(arguments.length>1?t.cancelPromise._reject(e):t.cancelPromise._cancel(),t.cancelPromise=null,!0):!1}function s(){return c.call(this,this.promise._target()._settledValue())}function a(t){return o(this,t)?void 0:(p.e=t,p)}function c(t){var r=this.promise,c=this.handler;if(!this.called){this.called=!0;var l=this.isFinallyHandler()?c.call(r._boundValue()):c.call(r._boundValue(),t);if(void 0!==l){r._setReturnedNonUndefined();var h=n(l,r);if(h instanceof e){if(null!=this.cancelPromise){if(h.isCancelled()){var f=new u("late cancellation observer");return r._attachExtraTrace(f),p.e=f,p}h.isPending()&&h._attachCancellationCallback(new i(this))}return h._then(s,a,void 0,this,void 0)}}}return r.isRejected()?(o(this),p.e=t,p):(o(this),t)}var l=t("./util"),u=e.CancellationError,p=l.errorObj;return r.prototype.isFinallyHandler=function(){return 0===this.type},i.prototype._resultCancelled=function(){o(this.finallyHandler)},e.prototype._passThrough=function(t,e,n,i){return"function"!=typeof t?this.then():this._then(n,i,void 0,new r(this,e,t),void 0)},e.prototype.lastly=e.prototype["finally"]=function(t){return this._passThrough(t,0,c,c)},e.prototype.tap=function(t){return this._passThrough(t,1,c)},r}},{"./util":36}],16:[function(t,e,n){e.exports=function(e,n,r,i,o,s){function a(t,n,r){for(var o=0;o<n.length;++o){r._pushContext();var s=f(n[o])(t);if(r._popContext(),s===h){r._pushContext();var a=e.reject(h.e);return r._popContext(),a}var c=i(s,r);if(c instanceof e)return c}return null}function c(t,n,i,o){if(s.cancellation()){var a=new e(r),c=this._finallyPromise=new e(r);this._promise=a.lastly(function(){return c}),a._captureStackTrace(),a._setOnCancel(this)}else{var l=this._promise=new e(r);l._captureStackTrace()}this._stack=o,this._generatorFunction=t,this._receiver=n,this._generator=void 0,this._yieldHandlers="function"==typeof i?[i].concat(_):_,this._yieldedPromise=null,this._cancellationPhase=!1}var l=t("./errors"),u=l.TypeError,p=t("./util"),h=p.errorObj,f=p.tryCatch,_=[];p.inherits(c,o),c.prototype._isResolved=function(){return null===this._promise},c.prototype._cleanup=function(){this._promise=this._generator=null,s.cancellation()&&null!==this._finallyPromise&&(this._finallyPromise._fulfill(),this._finallyPromise=null)},c.prototype._promiseCancelled=function(){if(!this._isResolved()){var t,n="undefined"!=typeof this._generator["return"];if(n)this._promise._pushContext(),t=f(this._generator["return"]).call(this._generator,void 0),this._promise._popContext();else{var r=new e.CancellationError("generator .return() sentinel");e.coroutine.returnSentinel=r,this._promise._attachExtraTrace(r),this._promise._pushContext(),t=f(this._generator["throw"]).call(this._generator,r),this._promise._popContext()}this._cancellationPhase=!0,this._yieldedPromise=null,this._continue(t)}},c.prototype._promiseFulfilled=function(t){this._yieldedPromise=null,this._promise._pushContext();var e=f(this._generator.next).call(this._generator,t);this._promise._popContext(),this._continue(e)},c.prototype._promiseRejected=function(t){this._yieldedPromise=null,this._promise._attachExtraTrace(t),this._promise._pushContext();var e=f(this._generator["throw"]).call(this._generator,t);this._promise._popContext(),this._continue(e)},c.prototype._resultCancelled=function(){if(this._yieldedPromise instanceof e){var t=this._yieldedPromise;this._yieldedPromise=null,t.cancel()}},c.prototype.promise=function(){return this._promise},c.prototype._run=function(){this._generator=this._generatorFunction.call(this._receiver),this._receiver=this._generatorFunction=void 0,this._promiseFulfilled(void 0)},c.prototype._continue=function(t){var n=this._promise;if(t===h)return this._cleanup(),this._cancellationPhase?n.cancel():n._rejectCallback(t.e,!1);var r=t.value;if(t.done===!0)return this._cleanup(),this._cancellationPhase?n.cancel():n._resolveCallback(r);var o=i(r,this._promise);if(!(o instanceof e)&&(o=a(o,this._yieldHandlers,this._promise),null===o))return void this._promiseRejected(new u("A value %s was yielded that could not be treated as a promise\n\n    See http://goo.gl/MqrFmX\n\n".replace("%s",r)+"From coroutine:\n"+this._stack.split("\n").slice(1,-7).join("\n")));o=o._target();var s=o._bitField;0===(50397184&s)?(this._yieldedPromise=o,o._proxy(this,null)):0!==(33554432&s)?this._promiseFulfilled(o._value()):0!==(16777216&s)?this._promiseRejected(o._reason()):this._promiseCancelled()},e.coroutine=function(t,e){if("function"!=typeof t)throw new u("generatorFunction must be a function\n\n    See http://goo.gl/MqrFmX\n");var n=Object(e).yieldHandler,r=c,i=(new Error).stack;return function(){var e=t.apply(this,arguments),o=new r(void 0,void 0,n,i),s=o.promise();return o._generator=e,o._promiseFulfilled(void 0),s}},e.coroutine.addYieldHandler=function(t){if("function"!=typeof t)throw new u("expecting a function but got "+p.classString(t));_.push(t)},e.spawn=function(t){if(s.deprecated("Promise.spawn()","Promise.coroutine()"),"function"!=typeof t)return n("generatorFunction must be a function\n\n    See http://goo.gl/MqrFmX\n");var r=new c(t,this),i=r.promise();return r._run(e.spawn),i}}},{"./errors":12,"./util":36}],17:[function(t,e,n){e.exports=function(e,n,r,i){var o=t("./util");o.canEvaluate,o.tryCatch,o.errorObj;e.join=function(){var t,e=arguments.length-1;if(e>0&&"function"==typeof arguments[e]){t=arguments[e];var r}var i=[].slice.call(arguments);t&&i.pop();var r=new n(i).promise();return void 0!==t?r.spread(t):r}}},{"./util":36}],18:[function(t,e,n){e.exports=function(e,n,r,i,o,s){function a(t,e,n,r){this.constructor$(t),this._promise._captureStackTrace();var i=l();this._callback=null===i?e:i.bind(e),
-this._preservedValues=r===o?new Array(this.length()):null,this._limit=n,this._inFlight=0,this._queue=n>=1?[]:f,this._init$(void 0,-2)}function c(t,e,n,i){if("function"!=typeof e)return r("expecting a function but got "+u.classString(e));var o="object"==typeof n&&null!==n?n.concurrency:0;return o="number"==typeof o&&isFinite(o)&&o>=1?o:0,new a(t,e,o,i).promise()}var l=e._getDomain,u=t("./util"),p=u.tryCatch,h=u.errorObj,f=[];u.inherits(a,n),a.prototype._init=function(){},a.prototype._promiseFulfilled=function(t,n){var r=this._values,o=this.length(),a=this._preservedValues,c=this._limit;if(0>n){if(n=-1*n-1,r[n]=t,c>=1&&(this._inFlight--,this._drainQueue(),this._isResolved()))return!0}else{if(c>=1&&this._inFlight>=c)return r[n]=t,this._queue.push(n),!1;null!==a&&(a[n]=t);var l=this._promise,u=this._callback,f=l._boundValue();l._pushContext();var _=p(u).call(f,t,n,o),d=l._popContext();if(s.checkForgottenReturns(_,d,null!==a?"Promise.filter":"Promise.map",l),_===h)return this._reject(_.e),!0;var v=i(_,this._promise);if(v instanceof e){v=v._target();var y=v._bitField;if(0===(50397184&y))return c>=1&&this._inFlight++,r[n]=v,v._proxy(this,-1*(n+1)),!1;if(0===(33554432&y))return 0!==(16777216&y)?(this._reject(v._reason()),!0):(this._cancel(),!0);_=v._value()}r[n]=_}var m=++this._totalResolved;return m>=o?(null!==a?this._filter(r,a):this._resolve(r),!0):!1},a.prototype._drainQueue=function(){for(var t=this._queue,e=this._limit,n=this._values;t.length>0&&this._inFlight<e;){if(this._isResolved())return;var r=t.pop();this._promiseFulfilled(n[r],r)}},a.prototype._filter=function(t,e){for(var n=e.length,r=new Array(n),i=0,o=0;n>o;++o)t[o]&&(r[i++]=e[o]);r.length=i,this._resolve(r)},a.prototype.preservedValues=function(){return this._preservedValues},e.prototype.map=function(t,e){return c(this,t,e,null)},e.map=function(t,e,n,r){return c(t,e,n,r)}}},{"./util":36}],19:[function(t,e,n){e.exports=function(e,n,r,i,o){var s=t("./util"),a=s.tryCatch;e.method=function(t){if("function"!=typeof t)throw new e.TypeError("expecting a function but got "+s.classString(t));return function(){var r=new e(n);r._captureStackTrace(),r._pushContext();var i=a(t).apply(this,arguments),s=r._popContext();return o.checkForgottenReturns(i,s,"Promise.method",r),r._resolveFromSyncValue(i),r}},e.attempt=e["try"]=function(t){if("function"!=typeof t)return i("expecting a function but got "+s.classString(t));var r=new e(n);r._captureStackTrace(),r._pushContext();var c;if(arguments.length>1){o.deprecated("calling Promise.try with more than 1 argument");var l=arguments[1],u=arguments[2];c=s.isArray(l)?a(t).apply(u,l):a(t).call(u,l)}else c=a(t)();var p=r._popContext();return o.checkForgottenReturns(c,p,"Promise.try",r),r._resolveFromSyncValue(c),r},e.prototype._resolveFromSyncValue=function(t){t===s.errorObj?this._rejectCallback(t.e,!1):this._resolveCallback(t,!0)}}},{"./util":36}],20:[function(t,e,n){function r(t){return t instanceof Error&&u.getPrototypeOf(t)===Error.prototype}function i(t){var e;if(r(t)){e=new l(t),e.name=t.name,e.message=t.message,e.stack=t.stack;for(var n=u.keys(t),i=0;i<n.length;++i){var o=n[i];p.test(o)||(e[o]=t[o])}return e}return s.markAsOriginatingFromRejection(t),t}function o(t,e){return function(n,r){if(null!==t){if(n){var o=i(a(n));t._attachExtraTrace(o),t._reject(o)}else if(e){var s=[].slice.call(arguments,1);t._fulfill(s)}else t._fulfill(r);t=null}}}var s=t("./util"),a=s.maybeWrapAsError,c=t("./errors"),l=c.OperationalError,u=t("./es5"),p=/^(?:name|message|stack|cause)$/;e.exports=o},{"./errors":12,"./es5":13,"./util":36}],21:[function(t,e,n){e.exports=function(e){function n(t,e){var n=this;if(!o.isArray(t))return r.call(n,t,e);var i=a(e).apply(n._boundValue(),[null].concat(t));i===c&&s.throwLater(i.e)}function r(t,e){var n=this,r=n._boundValue(),i=void 0===t?a(e).call(r,null):a(e).call(r,null,t);i===c&&s.throwLater(i.e)}function i(t,e){var n=this;if(!t){var r=new Error(t+"");r.cause=t,t=r}var i=a(e).call(n._boundValue(),t);i===c&&s.throwLater(i.e)}var o=t("./util"),s=e._async,a=o.tryCatch,c=o.errorObj;e.prototype.asCallback=e.prototype.nodeify=function(t,e){if("function"==typeof t){var o=r;void 0!==e&&Object(e).spread&&(o=n),this._then(o,i,void 0,this,t)}return this}}},{"./util":36}],22:[function(t,e,n){e.exports=function(){function e(){}function n(t,e){if("function"!=typeof e)throw new y("expecting a function but got "+h.classString(e));if(t.constructor!==r)throw new y("the promise constructor cannot be invoked directly\n\n    See http://goo.gl/MqrFmX\n")}function r(t){this._bitField=0,this._fulfillmentHandler0=void 0,this._rejectionHandler0=void 0,this._promise0=void 0,this._receiver0=void 0,t!==g&&(n(this,t),this._resolveFromExecutor(t)),this._promiseCreated(),this._fireEvent("promiseCreated",this)}function i(t){this.promise._resolveCallback(t)}function o(t){this.promise._rejectCallback(t,!1)}function s(t){var e=new r(g);e._fulfillmentHandler0=t,e._rejectionHandler0=t,e._promise0=t,e._receiver0=t}var a,c=function(){return new y("circular promise resolution chain\n\n    See http://goo.gl/MqrFmX\n")},l=function(){return new r.PromiseInspection(this._target())},u=function(t){return r.reject(new y(t))},p={},h=t("./util");a=h.isNode?function(){var t=process.domain;return void 0===t&&(t=null),t}:function(){return null},h.notEnumerableProp(r,"_getDomain",a);var f=t("./es5"),_=t("./async"),d=new _;f.defineProperty(r,"_async",{value:d});var v=t("./errors"),y=r.TypeError=v.TypeError;r.RangeError=v.RangeError;var m=r.CancellationError=v.CancellationError;r.TimeoutError=v.TimeoutError,r.OperationalError=v.OperationalError,r.RejectionError=v.OperationalError,r.AggregateError=v.AggregateError;var g=function(){},b={},w={},C=t("./thenables")(r,g),j=t("./promise_array")(r,g,C,u,e),k=t("./context")(r),E=k.create,F=t("./debuggability")(r,k),x=(F.CapturedTrace,t("./finally")(r,C)),T=t("./catch_filter")(w),P=t("./nodeback"),R=h.errorObj,S=h.tryCatch;return r.prototype.toString=function(){return"[object Promise]"},r.prototype.caught=r.prototype["catch"]=function(t){var e=arguments.length;if(e>1){var n,r=new Array(e-1),i=0;for(n=0;e-1>n;++n){var o=arguments[n];if(!h.isObject(o))return u("expecting an object but got "+h.classString(o));r[i++]=o}return r.length=i,t=arguments[n],this.then(void 0,T(r,t,this))}return this.then(void 0,t)},r.prototype.reflect=function(){return this._then(l,l,void 0,this,void 0)},r.prototype.then=function(t,e){if(F.warnings()&&arguments.length>0&&"function"!=typeof t&&"function"!=typeof e){var n=".then() only accepts functions but was passed: "+h.classString(t);arguments.length>1&&(n+=", "+h.classString(e)),this._warn(n)}return this._then(t,e,void 0,void 0,void 0)},r.prototype.done=function(t,e){var n=this._then(t,e,void 0,void 0,void 0);n._setIsFinal()},r.prototype.spread=function(t){return"function"!=typeof t?u("expecting a function but got "+h.classString(t)):this.all()._then(t,void 0,void 0,b,void 0)},r.prototype.toJSON=function(){var t={isFulfilled:!1,isRejected:!1,fulfillmentValue:void 0,rejectionReason:void 0};return this.isFulfilled()?(t.fulfillmentValue=this.value(),t.isFulfilled=!0):this.isRejected()&&(t.rejectionReason=this.reason(),t.isRejected=!0),t},r.prototype.all=function(){return arguments.length>0&&this._warn(".all() was passed arguments but it does not take any"),new j(this).promise()},r.prototype.error=function(t){return this.caught(h.originatesFromRejection,t)},r.is=function(t){return t instanceof r},r.fromNode=r.fromCallback=function(t){var e=new r(g);e._captureStackTrace();var n=arguments.length>1?!!Object(arguments[1]).multiArgs:!1,i=S(t)(P(e,n));return i===R&&e._rejectCallback(i.e,!0),e._isFateSealed()||e._setAsyncGuaranteed(),e},r.all=function(t){return new j(t).promise()},r.cast=function(t){var e=C(t);return e instanceof r||(e=new r(g),e._captureStackTrace(),e._setFulfilled(),e._rejectionHandler0=t),e},r.resolve=r.fulfilled=r.cast,r.reject=r.rejected=function(t){var e=new r(g);return e._captureStackTrace(),e._rejectCallback(t,!0),e},r.setScheduler=function(t){if("function"!=typeof t)throw new y("expecting a function but got "+h.classString(t));return d.setScheduler(t)},r.prototype._then=function(t,e,n,i,o){var s=void 0!==o,c=s?o:new r(g),l=this._target(),u=l._bitField;s||(c._propagateFrom(this,3),c._captureStackTrace(),void 0===i&&0!==(2097152&this._bitField)&&(i=0!==(50397184&u)?this._boundValue():l===this?void 0:this._boundTo),this._fireEvent("promiseChained",this,c));var p=a();if(0!==(50397184&u)){var h,f,_=l._settlePromiseCtx;0!==(33554432&u)?(f=l._rejectionHandler0,h=t):0!==(16777216&u)?(f=l._fulfillmentHandler0,h=e,l._unsetRejectionIsUnhandled()):(_=l._settlePromiseLateCancellationObserver,f=new m("late cancellation observer"),l._attachExtraTrace(f),h=e),d.invoke(_,l,{handler:null===p?h:"function"==typeof h&&p.bind(h),promise:c,receiver:i,value:f})}else l._addCallbacks(t,e,c,i,p);return c},r.prototype._length=function(){return 65535&this._bitField},r.prototype._isFateSealed=function(){return 0!==(117506048&this._bitField)},r.prototype._isFollowing=function(){return 67108864===(67108864&this._bitField)},r.prototype._setLength=function(t){this._bitField=-65536&this._bitField|65535&t},r.prototype._setFulfilled=function(){this._bitField=33554432|this._bitField,this._fireEvent("promiseFulfilled",this)},r.prototype._setRejected=function(){this._bitField=16777216|this._bitField,this._fireEvent("promiseRejected",this)},r.prototype._setFollowing=function(){this._bitField=67108864|this._bitField,this._fireEvent("promiseResolved",this)},r.prototype._setIsFinal=function(){this._bitField=4194304|this._bitField},r.prototype._isFinal=function(){return(4194304&this._bitField)>0},r.prototype._unsetCancelled=function(){this._bitField=-65537&this._bitField},r.prototype._setCancelled=function(){this._bitField=65536|this._bitField,this._fireEvent("promiseCancelled",this)},r.prototype._setAsyncGuaranteed=function(){d.hasCustomScheduler()||(this._bitField=134217728|this._bitField)},r.prototype._receiverAt=function(t){var e=0===t?this._receiver0:this[4*t-4+3];return e===p?void 0:void 0===e&&this._isBound()?this._boundValue():e},r.prototype._promiseAt=function(t){return this[4*t-4+2]},r.prototype._fulfillmentHandlerAt=function(t){return this[4*t-4+0]},r.prototype._rejectionHandlerAt=function(t){return this[4*t-4+1]},r.prototype._boundValue=function(){},r.prototype._migrateCallback0=function(t){var e=(t._bitField,t._fulfillmentHandler0),n=t._rejectionHandler0,r=t._promise0,i=t._receiverAt(0);void 0===i&&(i=p),this._addCallbacks(e,n,r,i,null)},r.prototype._migrateCallbackAt=function(t,e){var n=t._fulfillmentHandlerAt(e),r=t._rejectionHandlerAt(e),i=t._promiseAt(e),o=t._receiverAt(e);void 0===o&&(o=p),this._addCallbacks(n,r,i,o,null)},r.prototype._addCallbacks=function(t,e,n,r,i){var o=this._length();if(o>=65531&&(o=0,this._setLength(0)),0===o)this._promise0=n,this._receiver0=r,"function"==typeof t&&(this._fulfillmentHandler0=null===i?t:i.bind(t)),"function"==typeof e&&(this._rejectionHandler0=null===i?e:i.bind(e));else{var s=4*o-4;this[s+2]=n,this[s+3]=r,"function"==typeof t&&(this[s+0]=null===i?t:i.bind(t)),"function"==typeof e&&(this[s+1]=null===i?e:i.bind(e))}return this._setLength(o+1),o},r.prototype._proxy=function(t,e){this._addCallbacks(void 0,void 0,e,t,null)},r.prototype._resolveCallback=function(t,e){if(0===(117506048&this._bitField)){if(t===this)return this._rejectCallback(c(),!1);var n=C(t,this);if(!(n instanceof r))return this._fulfill(t);e&&this._propagateFrom(n,2);var i=n._target();if(i===this)return void this._reject(c());var o=i._bitField;if(0===(50397184&o)){var s=this._length();s>0&&i._migrateCallback0(this);for(var a=1;s>a;++a)i._migrateCallbackAt(this,a);this._setFollowing(),this._setLength(0),this._setFollowee(i)}else if(0!==(33554432&o))this._fulfill(i._value());else if(0!==(16777216&o))this._reject(i._reason());else{var l=new m("late cancellation observer");i._attachExtraTrace(l),this._reject(l)}}},r.prototype._rejectCallback=function(t,e,n){var r=h.ensureErrorObject(t),i=r===t;if(!i&&!n&&F.warnings()){var o="a promise was rejected with a non-error: "+h.classString(t);this._warn(o,!0)}this._attachExtraTrace(r,e?i:!1),this._reject(t)},r.prototype._resolveFromExecutor=function(t){var e=this;this._captureStackTrace(),this._pushContext();var n=!0,r=this._execute(t,function(t){e._resolveCallback(t)},function(t){e._rejectCallback(t,n)});n=!1,this._popContext(),void 0!==r&&e._rejectCallback(r,!0)},r.prototype._settlePromiseFromHandler=function(t,e,n,r){var i=r._bitField;if(0===(65536&i)){r._pushContext();var o;e===b?n&&"number"==typeof n.length?o=S(t).apply(this._boundValue(),n):(o=R,o.e=new y("cannot .spread() a non-array: "+h.classString(n))):o=S(t).call(e,n);var s=r._popContext();i=r._bitField,0===(65536&i)&&(o===w?r._reject(n):o===R?r._rejectCallback(o.e,!1):(F.checkForgottenReturns(o,s,"",r,this),r._resolveCallback(o)))}},r.prototype._target=function(){for(var t=this;t._isFollowing();)t=t._followee();return t},r.prototype._followee=function(){return this._rejectionHandler0},r.prototype._setFollowee=function(t){this._rejectionHandler0=t},r.prototype._settlePromise=function(t,n,i,o){var s=t instanceof r,a=this._bitField,c=0!==(134217728&a);0!==(65536&a)?(s&&t._invokeInternalOnCancel(),i instanceof x&&i.isFinallyHandler()?(i.cancelPromise=t,S(n).call(i,o)===R&&t._reject(R.e)):n===l?t._fulfill(l.call(i)):i instanceof e?i._promiseCancelled(t):s||t instanceof j?t._cancel():i.cancel()):"function"==typeof n?s?(c&&t._setAsyncGuaranteed(),this._settlePromiseFromHandler(n,i,o,t)):n.call(i,o,t):i instanceof e?i._isResolved()||(0!==(33554432&a)?i._promiseFulfilled(o,t):i._promiseRejected(o,t)):s&&(c&&t._setAsyncGuaranteed(),0!==(33554432&a)?t._fulfill(o):t._reject(o))},r.prototype._settlePromiseLateCancellationObserver=function(t){var e=t.handler,n=t.promise,i=t.receiver,o=t.value;"function"==typeof e?n instanceof r?this._settlePromiseFromHandler(e,i,o,n):e.call(i,o,n):n instanceof r&&n._reject(o)},r.prototype._settlePromiseCtx=function(t){this._settlePromise(t.promise,t.handler,t.receiver,t.value)},r.prototype._settlePromise0=function(t,e,n){var r=this._promise0,i=this._receiverAt(0);this._promise0=void 0,this._receiver0=void 0,this._settlePromise(r,t,i,e)},r.prototype._clearCallbackDataAtIndex=function(t){var e=4*t-4;this[e+2]=this[e+3]=this[e+0]=this[e+1]=void 0},r.prototype._fulfill=function(t){var e=this._bitField;if(!((117506048&e)>>>16)){if(t===this){var n=c();return this._attachExtraTrace(n),this._reject(n)}this._setFulfilled(),this._rejectionHandler0=t,(65535&e)>0&&(0!==(134217728&e)?this._settlePromises():d.settlePromises(this))}},r.prototype._reject=function(t){var e=this._bitField;if(!((117506048&e)>>>16))return this._setRejected(),this._fulfillmentHandler0=t,this._isFinal()?d.fatalError(t,h.isNode):void((65535&e)>0?d.settlePromises(this):this._ensurePossibleRejectionHandled())},r.prototype._fulfillPromises=function(t,e){for(var n=1;t>n;n++){var r=this._fulfillmentHandlerAt(n),i=this._promiseAt(n),o=this._receiverAt(n);this._clearCallbackDataAtIndex(n),this._settlePromise(i,r,o,e)}},r.prototype._rejectPromises=function(t,e){for(var n=1;t>n;n++){var r=this._rejectionHandlerAt(n),i=this._promiseAt(n),o=this._receiverAt(n);this._clearCallbackDataAtIndex(n),this._settlePromise(i,r,o,e)}},r.prototype._settlePromises=function(){var t=this._bitField,e=65535&t;if(e>0){if(0!==(16842752&t)){var n=this._fulfillmentHandler0;this._settlePromise0(this._rejectionHandler0,n,t),this._rejectPromises(e,n)}else{var r=this._rejectionHandler0;this._settlePromise0(this._fulfillmentHandler0,r,t),this._fulfillPromises(e,r)}this._setLength(0)}this._clearCancellationData()},r.prototype._settledValue=function(){var t=this._bitField;return 0!==(33554432&t)?this._rejectionHandler0:0!==(16777216&t)?this._fulfillmentHandler0:void 0},r.defer=r.pending=function(){F.deprecated("Promise.defer","new Promise");var t=new r(g);return{promise:t,resolve:i,reject:o}},h.notEnumerableProp(r,"_makeSelfResolutionError",c),t("./method")(r,g,C,u,F),t("./bind")(r,g,C,F),t("./cancel")(r,j,u,F),t("./direct_resolve")(r),t("./synchronous_inspection")(r),t("./join")(r,j,C,g,F),r.Promise=r,t("./map.js")(r,j,u,C,g,F),t("./call_get.js")(r),t("./using.js")(r,u,C,E,g,F),t("./timers.js")(r,g,F),t("./generators.js")(r,u,g,C,e,F),t("./nodeify.js")(r),t("./promisify.js")(r,g),t("./props.js")(r,j,C,u),t("./race.js")(r,g,C,u),t("./reduce.js")(r,j,u,C,g,F),t("./settle.js")(r,j,F),t("./some.js")(r,j,u),t("./filter.js")(r,g),t("./each.js")(r,g),t("./any.js")(r),h.toFastProperties(r),h.toFastProperties(r.prototype),s({a:1}),s({b:2}),s({c:3}),s(1),s(function(){}),s(void 0),s(!1),s(new r(g)),F.setBounds(_.firstLineError,h.lastLineError),r}},{"./any.js":1,"./async":2,"./bind":3,"./call_get.js":5,"./cancel":6,"./catch_filter":7,"./context":8,"./debuggability":9,"./direct_resolve":10,"./each.js":11,"./errors":12,"./es5":13,"./filter.js":14,"./finally":15,"./generators.js":16,"./join":17,"./map.js":18,"./method":19,"./nodeback":20,"./nodeify.js":21,"./promise_array":23,"./promisify.js":24,"./props.js":25,"./race.js":27,"./reduce.js":28,"./settle.js":30,"./some.js":31,"./synchronous_inspection":32,"./thenables":33,"./timers.js":34,"./using.js":35,"./util":36}],23:[function(t,e,n){e.exports=function(e,n,r,i,o){function s(t){switch(t){case-2:return[];case-3:return{}}}function a(t){var r=this._promise=new e(n);t instanceof e&&r._propagateFrom(t,3),r._setOnCancel(this),this._values=t,this._length=0,this._totalResolved=0,this._init(void 0,-2)}var c=t("./util");c.isArray;return c.inherits(a,o),a.prototype.length=function(){return this._length},a.prototype.promise=function(){return this._promise},a.prototype._init=function l(t,n){var o=r(this._values,this._promise);if(o instanceof e){o=o._target();var a=o._bitField;if(this._values=o,0===(50397184&a))return this._promise._setAsyncGuaranteed(),o._then(l,this._reject,void 0,this,n);if(0===(33554432&a))return 0!==(16777216&a)?this._reject(o._reason()):this._cancel();o=o._value()}if(o=c.asArray(o),null===o){var u=i("expecting an array or an iterable object but got "+c.classString(o)).reason();return void this._promise._rejectCallback(u,!1)}return 0===o.length?void(-5===n?this._resolveEmptyArray():this._resolve(s(n))):void this._iterate(o)},a.prototype._iterate=function(t){var n=this.getActualLength(t.length);this._length=n,this._values=this.shouldCopyValues()?new Array(n):this._values;for(var i=this._promise,o=!1,s=null,a=0;n>a;++a){var c=r(t[a],i);c instanceof e?(c=c._target(),s=c._bitField):s=null,o?null!==s&&c.suppressUnhandledRejections():null!==s?0===(50397184&s)?(c._proxy(this,a),this._values[a]=c):o=0!==(33554432&s)?this._promiseFulfilled(c._value(),a):0!==(16777216&s)?this._promiseRejected(c._reason(),a):this._promiseCancelled(a):o=this._promiseFulfilled(c,a)}o||i._setAsyncGuaranteed()},a.prototype._isResolved=function(){return null===this._values},a.prototype._resolve=function(t){this._values=null,this._promise._fulfill(t)},a.prototype._cancel=function(){!this._isResolved()&&this._promise.isCancellable()&&(this._values=null,this._promise._cancel())},a.prototype._reject=function(t){this._values=null,this._promise._rejectCallback(t,!1)},a.prototype._promiseFulfilled=function(t,e){this._values[e]=t;var n=++this._totalResolved;return n>=this._length?(this._resolve(this._values),!0):!1},a.prototype._promiseCancelled=function(){return this._cancel(),!0},a.prototype._promiseRejected=function(t){return this._totalResolved++,this._reject(t),!0},a.prototype._resultCancelled=function(){if(!this._isResolved()){var t=this._values;if(this._cancel(),t instanceof e)t.cancel();else for(var n=0;n<t.length;++n)t[n]instanceof e&&t[n].cancel()}},a.prototype.shouldCopyValues=function(){return!0},a.prototype.getActualLength=function(t){return t},a}},{"./util":36}],24:[function(t,e,n){e.exports=function(e,n){function r(t){return!C.test(t)}function i(t){try{return t.__isPromisified__===!0}catch(e){return!1}}function o(t,e,n){var r=f.getDataPropertyOrDefault(t,e+n,b);return r?i(r):!1}function s(t,e,n){for(var r=0;r<t.length;r+=2){var i=t[r];if(n.test(i))for(var o=i.replace(n,""),s=0;s<t.length;s+=2)if(t[s]===o)throw new m("Cannot promisify an API that has normal methods with '%s'-suffix\n\n    See http://goo.gl/MqrFmX\n".replace("%s",e))}}function a(t,e,n,r){for(var a=f.inheritedDataKeys(t),c=[],l=0;l<a.length;++l){var u=a[l],p=t[u],h=r===j?!0:j(u,p,t);"function"!=typeof p||i(p)||o(t,u,e)||!r(u,p,t,h)||c.push(u,p)}return s(c,e,n),c}function c(t,r,i,o,s,a){function c(){var i=r;r===h&&(i=this);var o=new e(n);o._captureStackTrace();var s="string"==typeof u&&this!==l?this[u]:t,c=_(o,a);try{s.apply(i,d(arguments,c))}catch(p){o._rejectCallback(v(p),!0,!0)}return o._isFateSealed()||o._setAsyncGuaranteed(),o}var l=function(){return this}(),u=t;return"string"==typeof u&&(t=o),f.notEnumerableProp(c,"__isPromisified__",!0),c}function l(t,e,n,r,i){for(var o=new RegExp(k(e)+"$"),s=a(t,e,o,n),c=0,l=s.length;l>c;c+=2){var u=s[c],p=s[c+1],_=u+e;if(r===E)t[_]=E(u,h,u,p,e,i);else{var d=r(p,function(){return E(u,h,u,p,e,i)});f.notEnumerableProp(d,"__isPromisified__",!0),t[_]=d}}return f.toFastProperties(t),t}function u(t,e,n){return E(t,e,void 0,t,null,n)}var p,h={},f=t("./util"),_=t("./nodeback"),d=f.withAppended,v=f.maybeWrapAsError,y=f.canEvaluate,m=t("./errors").TypeError,g="Async",b={__isPromisified__:!0},w=["arity","length","name","arguments","caller","callee","prototype","__isPromisified__"],C=new RegExp("^(?:"+w.join("|")+")$"),j=function(t){return f.isIdentifier(t)&&"_"!==t.charAt(0)&&"constructor"!==t},k=function(t){return t.replace(/([$])/,"\\$")},E=y?p:c;e.promisify=function(t,e){if("function"!=typeof t)throw new m("expecting a function but got "+f.classString(t));if(i(t))return t;e=Object(e);var n=void 0===e.context?h:e.context,o=!!e.multiArgs,s=u(t,n,o);return f.copyDescriptors(t,s,r),s},e.promisifyAll=function(t,e){if("function"!=typeof t&&"object"!=typeof t)throw new m("the target of promisifyAll must be an object or a function\n\n    See http://goo.gl/MqrFmX\n");e=Object(e);var n=!!e.multiArgs,r=e.suffix;"string"!=typeof r&&(r=g);var i=e.filter;"function"!=typeof i&&(i=j);var o=e.promisifier;if("function"!=typeof o&&(o=E),!f.isIdentifier(r))throw new RangeError("suffix must be a valid identifier\n\n    See http://goo.gl/MqrFmX\n");for(var s=f.inheritedDataKeys(t),a=0;a<s.length;++a){var c=t[s[a]];"constructor"!==s[a]&&f.isClass(c)&&(l(c.prototype,r,i,o,n),l(c,r,i,o,n))}return l(t,r,i,o,n)}}},{"./errors":12,"./nodeback":20,"./util":36}],25:[function(t,e,n){e.exports=function(e,n,r,i){function o(t){var e,n=!1;if(void 0!==a&&t instanceof a)e=p(t),n=!0;else{var r=u.keys(t),i=r.length;e=new Array(2*i);for(var o=0;i>o;++o){var s=r[o];e[o]=t[s],e[o+i]=s}}this.constructor$(e),this._isMap=n,this._init$(void 0,-3)}function s(t){var n,s=r(t);return l(s)?(n=s instanceof e?s._then(e.props,void 0,void 0,void 0,void 0):new o(s).promise(),s instanceof e&&n._propagateFrom(s,2),n):i("cannot await properties of a non-object\n\n    See http://goo.gl/MqrFmX\n")}var a,c=t("./util"),l=c.isObject,u=t("./es5");"function"==typeof Map&&(a=Map);var p=function(){function t(t,r){this[e]=t,this[e+n]=r,e++}var e=0,n=0;return function(r){n=r.size,e=0;var i=new Array(2*r.size);return r.forEach(t,i),i}}(),h=function(t){for(var e=new a,n=t.length/2|0,r=0;n>r;++r){var i=t[n+r],o=t[r];e.set(i,o)}return e};c.inherits(o,n),o.prototype._init=function(){},o.prototype._promiseFulfilled=function(t,e){this._values[e]=t;var n=++this._totalResolved;if(n>=this._length){var r;if(this._isMap)r=h(this._values);else{r={};for(var i=this.length(),o=0,s=this.length();s>o;++o)r[this._values[o+i]]=this._values[o]}return this._resolve(r),!0}return!1},o.prototype.shouldCopyValues=function(){return!1},o.prototype.getActualLength=function(t){return t>>1},e.prototype.props=function(){return s(this)},e.props=function(t){return s(t)}}},{"./es5":13,"./util":36}],26:[function(t,e,n){function r(t,e,n,r,i){for(var o=0;i>o;++o)n[o+r]=t[o+e],t[o+e]=void 0}function i(t){this._capacity=t,this._length=0,this._front=0}i.prototype._willBeOverCapacity=function(t){return this._capacity<t},i.prototype._pushOne=function(t){var e=this.length();this._checkCapacity(e+1);var n=this._front+e&this._capacity-1;this[n]=t,this._length=e+1},i.prototype._unshiftOne=function(t){var e=this._capacity;this._checkCapacity(this.length()+1);var n=this._front,r=(n-1&e-1^e)-e;this[r]=t,this._front=r,this._length=this.length()+1},i.prototype.unshift=function(t,e,n){this._unshiftOne(n),this._unshiftOne(e),this._unshiftOne(t)},i.prototype.push=function(t,e,n){var r=this.length()+3;if(this._willBeOverCapacity(r))return this._pushOne(t),this._pushOne(e),void this._pushOne(n);var i=this._front+r-3;this._checkCapacity(r);var o=this._capacity-1;this[i+0&o]=t,this[i+1&o]=e,this[i+2&o]=n,this._length=r},i.prototype.shift=function(){var t=this._front,e=this[t];return this[t]=void 0,this._front=t+1&this._capacity-1,this._length--,e},i.prototype.length=function(){return this._length},i.prototype._checkCapacity=function(t){this._capacity<t&&this._resizeTo(this._capacity<<1)},i.prototype._resizeTo=function(t){var e=this._capacity;this._capacity=t;var n=this._front,i=this._length,o=n+i&e-1;r(this,0,this,e,o)},e.exports=i},{}],27:[function(t,e,n){e.exports=function(e,n,r,i){function o(t,o){var c=r(t);if(c instanceof e)return a(c);if(t=s.asArray(t),null===t)return i("expecting an array or an iterable object but got "+s.classString(t));var l=new e(n);void 0!==o&&l._propagateFrom(o,3);for(var u=l._fulfill,p=l._reject,h=0,f=t.length;f>h;++h){var _=t[h];(void 0!==_||h in t)&&e.cast(_)._then(u,p,void 0,l,null)}return l}var s=t("./util"),a=function(t){return t.then(function(e){return o(e,t)})};e.race=function(t){return o(t,void 0)},e.prototype.race=function(){return o(this,void 0)}}},{"./util":36}],28:[function(t,e,n){e.exports=function(e,n,r,i,o,s){function a(t,n,r,i){this.constructor$(t);var s=h();this._fn=null===s?n:s.bind(n),void 0!==r&&(r=e.resolve(r),r._attachCancellationCallback(this)),this._initialValue=r,this._currentCancellable=null,this._eachValues=i===o?[]:void 0,this._promise._captureStackTrace(),this._init$(void 0,-5)}function c(t,e){this.isFulfilled()?e._resolve(t):e._reject(t)}function l(t,e,n,i){if("function"!=typeof e)return r("expecting a function but got "+f.classString(e));var o=new a(t,e,n,i);return o.promise()}function u(t){this.accum=t,this.array._gotAccum(t);var n=i(this.value,this.array._promise);return n instanceof e?(this.array._currentCancellable=n,n._then(p,void 0,void 0,this,void 0)):p.call(this,n)}function p(t){var n=this.array,r=n._promise,i=_(n._fn);r._pushContext();var o;o=void 0!==n._eachValues?i.call(r._boundValue(),t,this.index,this.length):i.call(r._boundValue(),this.accum,t,this.index,this.length),o instanceof e&&(n._currentCancellable=o);var a=r._popContext();return s.checkForgottenReturns(o,a,void 0!==n._eachValues?"Promise.each":"Promise.reduce",r),o}var h=e._getDomain,f=t("./util"),_=f.tryCatch;f.inherits(a,n),a.prototype._gotAccum=function(t){void 0!==this._eachValues&&t!==o&&this._eachValues.push(t)},a.prototype._eachComplete=function(t){return this._eachValues.push(t),this._eachValues},a.prototype._init=function(){},a.prototype._resolveEmptyArray=function(){this._resolve(void 0!==this._eachValues?this._eachValues:this._initialValue)},a.prototype.shouldCopyValues=function(){return!1},a.prototype._resolve=function(t){this._promise._resolveCallback(t),this._values=null},a.prototype._resultCancelled=function(t){return t===this._initialValue?this._cancel():void(this._isResolved()||(this._resultCancelled$(),this._currentCancellable instanceof e&&this._currentCancellable.cancel(),this._initialValue instanceof e&&this._initialValue.cancel()))},a.prototype._iterate=function(t){this._values=t;var n,r,i=t.length;if(void 0!==this._initialValue?(n=this._initialValue,r=0):(n=e.resolve(t[0]),r=1),this._currentCancellable=n,!n.isRejected())for(;i>r;++r){var o={accum:null,value:t[r],index:r,length:i,array:this};n=n._then(u,void 0,void 0,o,void 0)}void 0!==this._eachValues&&(n=n._then(this._eachComplete,void 0,void 0,this,void 0)),n._then(c,c,void 0,n,this)},e.prototype.reduce=function(t,e){return l(this,t,e,null)},e.reduce=function(t,e,n,r){return l(t,e,n,r)}}},{"./util":36}],29:[function(t,e,n){var r,i=t("./util"),o=function(){throw new Error("No async scheduler available\n\n    See http://goo.gl/MqrFmX\n")},s=i.getNativePromise();if(i.isNode&&"undefined"==typeof MutationObserver){var a=global.setImmediate,c=process.nextTick;r=i.isRecentNode?function(t){a.call(global,t)}:function(t){c.call(process,t)}}else if("function"==typeof s){var l=s.resolve();r=function(t){l.then(t)}}else r="undefined"==typeof MutationObserver||"undefined"!=typeof window&&window.navigator&&window.navigator.standalone?"undefined"!=typeof setImmediate?function(t){setImmediate(t)}:"undefined"!=typeof setTimeout?function(t){setTimeout(t,0)}:o:function(){var t=document.createElement("div"),e={attributes:!0},n=!1,r=document.createElement("div"),i=new MutationObserver(function(){t.classList.toggle("foo"),n=!1});i.observe(r,e);var o=function(){n||(n=!0,r.classList.toggle("foo"))};return function(n){var r=new MutationObserver(function(){r.disconnect(),n()});r.observe(t,e),o()}}();e.exports=r},{"./util":36}],30:[function(t,e,n){e.exports=function(e,n,r){function i(t){this.constructor$(t)}var o=e.PromiseInspection,s=t("./util");s.inherits(i,n),i.prototype._promiseResolved=function(t,e){this._values[t]=e;var n=++this._totalResolved;return n>=this._length?(this._resolve(this._values),!0):!1},i.prototype._promiseFulfilled=function(t,e){var n=new o;return n._bitField=33554432,n._settledValueField=t,this._promiseResolved(e,n)},i.prototype._promiseRejected=function(t,e){var n=new o;return n._bitField=16777216,n._settledValueField=t,this._promiseResolved(e,n)},e.settle=function(t){return r.deprecated(".settle()",".reflect()"),new i(t).promise()},e.prototype.settle=function(){return e.settle(this)}}},{"./util":36}],31:[function(t,e,n){e.exports=function(e,n,r){function i(t){this.constructor$(t),this._howMany=0,this._unwrap=!1,this._initialized=!1}function o(t,e){if((0|e)!==e||0>e)return r("expecting a positive integer\n\n    See http://goo.gl/MqrFmX\n");var n=new i(t),o=n.promise();return n.setHowMany(e),n.init(),o}var s=t("./util"),a=t("./errors").RangeError,c=t("./errors").AggregateError,l=s.isArray,u={};s.inherits(i,n),i.prototype._init=function(){if(this._initialized){if(0===this._howMany)return void this._resolve([]);this._init$(void 0,-5);var t=l(this._values);!this._isResolved()&&t&&this._howMany>this._canPossiblyFulfill()&&this._reject(this._getRangeError(this.length()))}},i.prototype.init=function(){this._initialized=!0,this._init()},i.prototype.setUnwrap=function(){this._unwrap=!0},i.prototype.howMany=function(){return this._howMany},i.prototype.setHowMany=function(t){this._howMany=t},i.prototype._promiseFulfilled=function(t){return this._addFulfilled(t),this._fulfilled()===this.howMany()?(this._values.length=this.howMany(),1===this.howMany()&&this._unwrap?this._resolve(this._values[0]):this._resolve(this._values),!0):!1},i.prototype._promiseRejected=function(t){return this._addRejected(t),this._checkOutcome()},i.prototype._promiseCancelled=function(){return this._values instanceof e||null==this._values?this._cancel():(this._addRejected(u),this._checkOutcome())},i.prototype._checkOutcome=function(){if(this.howMany()>this._canPossiblyFulfill()){for(var t=new c,e=this.length();e<this._values.length;++e)this._values[e]!==u&&t.push(this._values[e]);return t.length>0?this._reject(t):this._cancel(),!0}return!1},i.prototype._fulfilled=function(){return this._totalResolved},i.prototype._rejected=function(){return this._values.length-this.length()},i.prototype._addRejected=function(t){this._values.push(t);
-},i.prototype._addFulfilled=function(t){this._values[this._totalResolved++]=t},i.prototype._canPossiblyFulfill=function(){return this.length()-this._rejected()},i.prototype._getRangeError=function(t){var e="Input array must contain at least "+this._howMany+" items but contains only "+t+" items";return new a(e)},i.prototype._resolveEmptyArray=function(){this._reject(this._getRangeError(0))},e.some=function(t,e){return o(t,e)},e.prototype.some=function(t){return o(this,t)},e._SomePromiseArray=i}},{"./errors":12,"./util":36}],32:[function(t,e,n){e.exports=function(t){function e(t){void 0!==t?(t=t._target(),this._bitField=t._bitField,this._settledValueField=t._isFateSealed()?t._settledValue():void 0):(this._bitField=0,this._settledValueField=void 0)}e.prototype._settledValue=function(){return this._settledValueField};var n=e.prototype.value=function(){if(!this.isFulfilled())throw new TypeError("cannot get fulfillment value of a non-fulfilled promise\n\n    See http://goo.gl/MqrFmX\n");return this._settledValue()},r=e.prototype.error=e.prototype.reason=function(){if(!this.isRejected())throw new TypeError("cannot get rejection reason of a non-rejected promise\n\n    See http://goo.gl/MqrFmX\n");return this._settledValue()},i=e.prototype.isFulfilled=function(){return 0!==(33554432&this._bitField)},o=e.prototype.isRejected=function(){return 0!==(16777216&this._bitField)},s=e.prototype.isPending=function(){return 0===(50397184&this._bitField)},a=e.prototype.isResolved=function(){return 0!==(50331648&this._bitField)};e.prototype.isCancelled=t.prototype._isCancelled=function(){return 65536===(65536&this._bitField)},t.prototype.isCancelled=function(){return this._target()._isCancelled()},t.prototype.isPending=function(){return s.call(this._target())},t.prototype.isRejected=function(){return o.call(this._target())},t.prototype.isFulfilled=function(){return i.call(this._target())},t.prototype.isResolved=function(){return a.call(this._target())},t.prototype.value=function(){return n.call(this._target())},t.prototype.reason=function(){var t=this._target();return t._unsetRejectionIsUnhandled(),r.call(t)},t.prototype._value=function(){return this._settledValue()},t.prototype._reason=function(){return this._unsetRejectionIsUnhandled(),this._settledValue()},t.PromiseInspection=e}},{}],33:[function(t,e,n){e.exports=function(e,n){function r(t,r){if(u(t)){if(t instanceof e)return t;var i=o(t);if(i===l){r&&r._pushContext();var c=e.reject(i.e);return r&&r._popContext(),c}if("function"==typeof i){if(s(t)){var c=new e(n);return t._then(c._fulfill,c._reject,void 0,c,null),c}return a(t,i,r)}}return t}function i(t){return t.then}function o(t){try{return i(t)}catch(e){return l.e=e,l}}function s(t){return p.call(t,"_promise0")}function a(t,r,i){function o(t){a&&(a._resolveCallback(t),a=null)}function s(t){a&&(a._rejectCallback(t,p,!0),a=null)}var a=new e(n),u=a;i&&i._pushContext(),a._captureStackTrace(),i&&i._popContext();var p=!0,h=c.tryCatch(r).call(t,o,s);return p=!1,a&&h===l&&(a._rejectCallback(h.e,!0,!0),a=null),u}var c=t("./util"),l=c.errorObj,u=c.isObject,p={}.hasOwnProperty;return r}},{"./util":36}],34:[function(t,e,n){e.exports=function(e,n,r){function i(t){this.handle=t}function o(t){return clearTimeout(this.handle),t}function s(t){throw clearTimeout(this.handle),t}var a=t("./util"),c=e.TimeoutError;i.prototype._resultCancelled=function(){clearTimeout(this.handle)};var l=function(t){return u(+this).thenReturn(t)},u=e.delay=function(t,o){var s,a;return void 0!==o?(s=e.resolve(o)._then(l,null,null,t,void 0),r.cancellation()&&o instanceof e&&s._setOnCancel(o)):(s=new e(n),a=setTimeout(function(){s._fulfill()},+t),r.cancellation()&&s._setOnCancel(new i(a))),s._setAsyncGuaranteed(),s};e.prototype.delay=function(t){return u(t,this)};var p=function(t,e,n){var r;r="string"!=typeof e?e instanceof Error?e:new c("operation timed out"):new c(e),a.markAsOriginatingFromRejection(r),t._attachExtraTrace(r),t._reject(r),null!=n&&n.cancel()};e.prototype.timeout=function(t,e){t=+t;var n,a,c=new i(setTimeout(function(){n.isPending()&&p(n,e,a)},t));return r.cancellation()?(a=this.then(),n=a._then(o,s,void 0,c,void 0),n._setOnCancel(c)):n=this._then(o,s,void 0,c,void 0),n}}},{"./util":36}],35:[function(t,e,n){e.exports=function(e,n,r,i,o,s){function a(t){setTimeout(function(){throw t},0)}function c(t){var e=r(t);return e!==t&&"function"==typeof t._isDisposable&&"function"==typeof t._getDisposer&&t._isDisposable()&&e._setDisposable(t._getDisposer()),e}function l(t,n){function i(){if(s>=l)return u._fulfill();var o=c(t[s++]);if(o instanceof e&&o._isDisposable()){try{o=r(o._getDisposer().tryDispose(n),t.promise)}catch(p){return a(p)}if(o instanceof e)return o._then(i,a,null,null,null)}i()}var s=0,l=t.length,u=new e(o);return i(),u}function u(t,e,n){this._data=t,this._promise=e,this._context=n}function p(t,e,n){this.constructor$(t,e,n)}function h(t){return u.isDisposer(t)?(this.resources[this.index]._setDisposable(t),t.promise()):t}function f(t){this.length=t,this.promise=null,this[t-1]=null}var _=t("./util"),d=t("./errors").TypeError,v=t("./util").inherits,y=_.errorObj,m=_.tryCatch;u.prototype.data=function(){return this._data},u.prototype.promise=function(){return this._promise},u.prototype.resource=function(){return this.promise().isFulfilled()?this.promise().value():null},u.prototype.tryDispose=function(t){var e=this.resource(),n=this._context;void 0!==n&&n._pushContext();var r=null!==e?this.doDispose(e,t):null;return void 0!==n&&n._popContext(),this._promise._unsetDisposable(),this._data=null,r},u.isDisposer=function(t){return null!=t&&"function"==typeof t.resource&&"function"==typeof t.tryDispose},v(p,u),p.prototype.doDispose=function(t,e){var n=this.data();return n.call(t,t,e)},f.prototype._resultCancelled=function(){for(var t=this.length,n=0;t>n;++n){var r=this[n];r instanceof e&&r.cancel()}},e.using=function(){var t=arguments.length;if(2>t)return n("you must pass at least 2 arguments to Promise.using");var i=arguments[t-1];if("function"!=typeof i)return n("expecting a function but got "+_.classString(i));var o,a=!0;2===t&&Array.isArray(arguments[0])?(o=arguments[0],t=o.length,a=!1):(o=arguments,t--);for(var c=new f(t),p=0;t>p;++p){var d=o[p];if(u.isDisposer(d)){var v=d;d=d.promise(),d._setDisposable(v)}else{var g=r(d);g instanceof e&&(d=g._then(h,null,null,{resources:c,index:p},void 0))}c[p]=d}for(var b=new Array(c.length),p=0;p<b.length;++p)b[p]=e.resolve(c[p]).reflect();var w=e.all(b).then(function(t){for(var e=0;e<t.length;++e){var n=t[e];if(n.isRejected())return y.e=n.error(),y;if(!n.isFulfilled())return void w.cancel();t[e]=n.value()}C._pushContext(),i=m(i);var r=a?i.apply(void 0,t):i(t),o=C._popContext();return s.checkForgottenReturns(r,o,"Promise.using",C),r}),C=w.lastly(function(){var t=new e.PromiseInspection(w);return l(c,t)});return c.promise=C,C._setOnCancel(c),C},e.prototype._setDisposable=function(t){this._bitField=131072|this._bitField,this._disposer=t},e.prototype._isDisposable=function(){return(131072&this._bitField)>0},e.prototype._getDisposer=function(){return this._disposer},e.prototype._unsetDisposable=function(){this._bitField=-131073&this._bitField,this._disposer=void 0},e.prototype.disposer=function(t){if("function"==typeof t)return new p(t,this,i());throw new d}}},{"./errors":12,"./util":36}],36:[function(t,e,n){function r(){try{var t=T;return T=null,t.apply(this,arguments)}catch(e){return x.e=e,x}}function i(t){return T=t,r}function o(t){return null==t||t===!0||t===!1||"string"==typeof t||"number"==typeof t}function s(t){return"function"==typeof t||"object"==typeof t&&null!==t}function a(t){return o(t)?new Error(v(t)):t}function c(t,e){var n,r=t.length,i=new Array(r+1);for(n=0;r>n;++n)i[n]=t[n];return i[n]=e,i}function l(t,e,n){if(!E.isES5)return{}.hasOwnProperty.call(t,e)?t[e]:void 0;var r=Object.getOwnPropertyDescriptor(t,e);return null!=r?null==r.get&&null==r.set?r.value:n:void 0}function u(t,e,n){if(o(t))return t;var r={value:n,configurable:!0,enumerable:!1,writable:!0};return E.defineProperty(t,e,r),t}function p(t){throw t}function h(t){try{if("function"==typeof t){var e=E.names(t.prototype),n=E.isES5&&e.length>1,r=e.length>0&&!(1===e.length&&"constructor"===e[0]),i=O.test(t+"")&&E.names(t).length>0;if(n||r||i)return!0}return!1}catch(o){return!1}}function f(t){function e(){}e.prototype=t;for(var n=8;n--;)new e;return t}function _(t){return A.test(t)}function d(t,e,n){for(var r=new Array(t),i=0;t>i;++i)r[i]=e+i+n;return r}function v(t){try{return t+""}catch(e){return"[no string representation]"}}function y(t){return null!==t&&"object"==typeof t&&"string"==typeof t.message&&"string"==typeof t.name}function m(t){try{u(t,"isOperational",!0)}catch(e){}}function g(t){return null==t?!1:t instanceof Error.__BluebirdErrorTypes__.OperationalError||t.isOperational===!0}function b(t){return y(t)&&E.propertyIsWritable(t,"stack")}function w(t){return{}.toString.call(t)}function C(t,e,n){for(var r=E.names(t),i=0;i<r.length;++i){var o=r[i];if(n(o))try{E.defineProperty(e,o,E.getDescriptor(t,o))}catch(s){}}}function j(t,e){return L?process.env[t]:e}function k(){if("function"==typeof Promise)try{var t=new Promise(function(){});if("[object Promise]"==={}.toString.call(t))return Promise}catch(e){}}var E=t("./es5"),F="undefined"==typeof navigator,x={e:{}},T,P="undefined"!=typeof self?self:"undefined"!=typeof window?window:"undefined"!=typeof global?global:void 0!==this?this:null,R=function(t,e){function n(){this.constructor=t,this.constructor$=e;for(var n in e.prototype)r.call(e.prototype,n)&&"$"!==n.charAt(n.length-1)&&(this[n+"$"]=e.prototype[n])}var r={}.hasOwnProperty;return n.prototype=e.prototype,t.prototype=new n,t.prototype},S=function(){var t=[Array.prototype,Object.prototype,Function.prototype],e=function(e){for(var n=0;n<t.length;++n)if(t[n]===e)return!0;return!1};if(E.isES5){var n=Object.getOwnPropertyNames;return function(t){for(var r=[],i=Object.create(null);null!=t&&!e(t);){var o;try{o=n(t)}catch(s){return r}for(var a=0;a<o.length;++a){var c=o[a];if(!i[c]){i[c]=!0;var l=Object.getOwnPropertyDescriptor(t,c);null!=l&&null==l.get&&null==l.set&&r.push(c)}}t=E.getPrototypeOf(t)}return r}}var r={}.hasOwnProperty;return function(n){if(e(n))return[];var i=[];t:for(var o in n)if(r.call(n,o))i.push(o);else{for(var s=0;s<t.length;++s)if(r.call(t[s],o))continue t;i.push(o)}return i}}(),O=/this\s*\.\s*\S+\s*=/,A=/^[a-z$_][a-z$_0-9]*$/i,D=function(){return"stack"in new Error?function(t){return b(t)?t:new Error(v(t))}:function(t){if(b(t))return t;try{throw new Error(v(t))}catch(e){return e}}}(),V=function(t){return E.isArray(t)?t:null};if("undefined"!=typeof Symbol&&Symbol.iterator){var I="function"==typeof Array.from?function(t){return Array.from(t)}:function(t){for(var e,n=[],r=t[Symbol.iterator]();!(e=r.next()).done;)n.push(e.value);return n};V=function(t){return E.isArray(t)?t:null!=t&&"function"==typeof t[Symbol.iterator]?I(t):null}}var L="undefined"!=typeof process&&"[object process]"===w(process).toLowerCase(),H={isClass:h,isIdentifier:_,inheritedDataKeys:S,getDataPropertyOrDefault:l,thrower:p,isArray:E.isArray,asArray:V,notEnumerableProp:u,isPrimitive:o,isObject:s,isError:y,canEvaluate:F,errorObj:x,tryCatch:i,inherits:R,withAppended:c,maybeWrapAsError:a,toFastProperties:f,filledRange:d,toString:v,canAttachTrace:b,ensureErrorObject:D,originatesFromRejection:g,markAsOriginatingFromRejection:m,classString:w,copyDescriptors:C,hasDevTools:"undefined"!=typeof chrome&&chrome&&"function"==typeof chrome.loadTimes,isNode:L,env:j,global:P,getNativePromise:k};H.isRecentNode=H.isNode&&function(){var t=process.versions.node.split(".").map(Number);return 0===t[0]&&t[1]>10||t[0]>0}(),H.isNode&&H.toFastProperties(process);try{throw new Error}catch(N){H.lastLineError=N}e.exports=H},{"./es5":13}]},{},[4])(4)}),"undefined"!=typeof window&&null!==window?window.P=window.Promise:"undefined"!=typeof self&&null!==self&&(self.P=self.Promise);
+this._preservedValues=r===o?new Array(this.length()):null,this._limit=n,this._inFlight=0,this._queue=n>=1?[]:f,this._init$(void 0,-2)}function c(t,n,i,o){if("function"!=typeof n)return r("expecting a function but got "+u.classString(n));var s=0;if(void 0!==i){if("object"!=typeof i||null===i)return e.reject(new TypeError("options argument must be an object but it is "+u.classString(i)));if("number"!=typeof i.concurrency)return e.reject(new TypeError("'concurrency' must be a number but it is "+u.classString(i.concurrency)));s=i.concurrency}return s="number"==typeof s&&isFinite(s)&&s>=1?s:0,new a(t,n,s,o).promise()}var l=e._getDomain,u=t("./util"),p=u.tryCatch,h=u.errorObj,f=[];u.inherits(a,n),a.prototype._init=function(){},a.prototype._promiseFulfilled=function(t,n){var r=this._values,o=this.length(),a=this._preservedValues,c=this._limit;if(0>n){if(n=-1*n-1,r[n]=t,c>=1&&(this._inFlight--,this._drainQueue(),this._isResolved()))return!0}else{if(c>=1&&this._inFlight>=c)return r[n]=t,this._queue.push(n),!1;null!==a&&(a[n]=t);var l=this._promise,u=this._callback,f=l._boundValue();l._pushContext();var _=p(u).call(f,t,n,o),d=l._popContext();if(s.checkForgottenReturns(_,d,null!==a?"Promise.filter":"Promise.map",l),_===h)return this._reject(_.e),!0;var v=i(_,this._promise);if(v instanceof e){v=v._target();var y=v._bitField;if(0===(50397184&y))return c>=1&&this._inFlight++,r[n]=v,v._proxy(this,-1*(n+1)),!1;if(0===(33554432&y))return 0!==(16777216&y)?(this._reject(v._reason()),!0):(this._cancel(),!0);_=v._value()}r[n]=_}var m=++this._totalResolved;return m>=o?(null!==a?this._filter(r,a):this._resolve(r),!0):!1},a.prototype._drainQueue=function(){for(var t=this._queue,e=this._limit,n=this._values;t.length>0&&this._inFlight<e;){if(this._isResolved())return;var r=t.pop();this._promiseFulfilled(n[r],r)}},a.prototype._filter=function(t,e){for(var n=e.length,r=new Array(n),i=0,o=0;n>o;++o)t[o]&&(r[i++]=e[o]);r.length=i,this._resolve(r)},a.prototype.preservedValues=function(){return this._preservedValues},e.prototype.map=function(t,e){return c(this,t,e,null)},e.map=function(t,e,n,r){return c(t,e,n,r)}}},{"./util":36}],19:[function(t,e,n){e.exports=function(e,n,r,i,o){var s=t("./util"),a=s.tryCatch;e.method=function(t){if("function"!=typeof t)throw new e.TypeError("expecting a function but got "+s.classString(t));return function(){var r=new e(n);r._captureStackTrace(),r._pushContext();var i=a(t).apply(this,arguments),s=r._popContext();return o.checkForgottenReturns(i,s,"Promise.method",r),r._resolveFromSyncValue(i),r}},e.attempt=e["try"]=function(t){if("function"!=typeof t)return i("expecting a function but got "+s.classString(t));var r=new e(n);r._captureStackTrace(),r._pushContext();var c;if(arguments.length>1){o.deprecated("calling Promise.try with more than 1 argument");var l=arguments[1],u=arguments[2];c=s.isArray(l)?a(t).apply(u,l):a(t).call(u,l)}else c=a(t)();var p=r._popContext();return o.checkForgottenReturns(c,p,"Promise.try",r),r._resolveFromSyncValue(c),r},e.prototype._resolveFromSyncValue=function(t){t===s.errorObj?this._rejectCallback(t.e,!1):this._resolveCallback(t,!0)}}},{"./util":36}],20:[function(t,e,n){function r(t){return t instanceof Error&&u.getPrototypeOf(t)===Error.prototype}function i(t){var e;if(r(t)){e=new l(t),e.name=t.name,e.message=t.message,e.stack=t.stack;for(var n=u.keys(t),i=0;i<n.length;++i){var o=n[i];p.test(o)||(e[o]=t[o])}return e}return s.markAsOriginatingFromRejection(t),t}function o(t,e){return function(n,r){if(null!==t){if(n){var o=i(a(n));t._attachExtraTrace(o),t._reject(o)}else if(e){var s=[].slice.call(arguments,1);t._fulfill(s)}else t._fulfill(r);t=null}}}var s=t("./util"),a=s.maybeWrapAsError,c=t("./errors"),l=c.OperationalError,u=t("./es5"),p=/^(?:name|message|stack|cause)$/;e.exports=o},{"./errors":12,"./es5":13,"./util":36}],21:[function(t,e,n){e.exports=function(e){function n(t,e){var n=this;if(!o.isArray(t))return r.call(n,t,e);var i=a(e).apply(n._boundValue(),[null].concat(t));i===c&&s.throwLater(i.e)}function r(t,e){var n=this,r=n._boundValue(),i=void 0===t?a(e).call(r,null):a(e).call(r,null,t);i===c&&s.throwLater(i.e)}function i(t,e){var n=this;if(!t){var r=new Error(t+"");r.cause=t,t=r}var i=a(e).call(n._boundValue(),t);i===c&&s.throwLater(i.e)}var o=t("./util"),s=e._async,a=o.tryCatch,c=o.errorObj;e.prototype.asCallback=e.prototype.nodeify=function(t,e){if("function"==typeof t){var o=r;void 0!==e&&Object(e).spread&&(o=n),this._then(o,i,void 0,this,t)}return this}}},{"./util":36}],22:[function(t,e,n){e.exports=function(){function e(){}function n(t,e){if("function"!=typeof e)throw new y("expecting a function but got "+h.classString(e));if(t.constructor!==r)throw new y("the promise constructor cannot be invoked directly\n\n    See http://goo.gl/MqrFmX\n")}function r(t){this._bitField=0,this._fulfillmentHandler0=void 0,this._rejectionHandler0=void 0,this._promise0=void 0,this._receiver0=void 0,t!==g&&(n(this,t),this._resolveFromExecutor(t)),this._promiseCreated(),this._fireEvent("promiseCreated",this)}function i(t){this.promise._resolveCallback(t)}function o(t){this.promise._rejectCallback(t,!1)}function s(t){var e=new r(g);e._fulfillmentHandler0=t,e._rejectionHandler0=t,e._promise0=t,e._receiver0=t}var a,c=function(){return new y("circular promise resolution chain\n\n    See http://goo.gl/MqrFmX\n")},l=function(){return new r.PromiseInspection(this._target())},u=function(t){return r.reject(new y(t))},p={},h=t("./util");a=h.isNode?function(){var t=process.domain;return void 0===t&&(t=null),t}:function(){return null},h.notEnumerableProp(r,"_getDomain",a);var f=t("./es5"),_=t("./async"),d=new _;f.defineProperty(r,"_async",{value:d});var v=t("./errors"),y=r.TypeError=v.TypeError;r.RangeError=v.RangeError;var m=r.CancellationError=v.CancellationError;r.TimeoutError=v.TimeoutError,r.OperationalError=v.OperationalError,r.RejectionError=v.OperationalError,r.AggregateError=v.AggregateError;var g=function(){},b={},w={},C=t("./thenables")(r,g),j=t("./promise_array")(r,g,C,u,e),k=t("./context")(r),E=k.create,F=t("./debuggability")(r,k),x=(F.CapturedTrace,t("./finally")(r,C)),T=t("./catch_filter")(w),P=t("./nodeback"),R=h.errorObj,S=h.tryCatch;return r.prototype.toString=function(){return"[object Promise]"},r.prototype.caught=r.prototype["catch"]=function(t){var e=arguments.length;if(e>1){var n,r=new Array(e-1),i=0;for(n=0;e-1>n;++n){var o=arguments[n];if(!h.isObject(o))return u("expecting an object but got "+h.classString(o));r[i++]=o}return r.length=i,t=arguments[n],this.then(void 0,T(r,t,this))}return this.then(void 0,t)},r.prototype.reflect=function(){return this._then(l,l,void 0,this,void 0)},r.prototype.then=function(t,e){if(F.warnings()&&arguments.length>0&&"function"!=typeof t&&"function"!=typeof e){var n=".then() only accepts functions but was passed: "+h.classString(t);arguments.length>1&&(n+=", "+h.classString(e)),this._warn(n)}return this._then(t,e,void 0,void 0,void 0)},r.prototype.done=function(t,e){var n=this._then(t,e,void 0,void 0,void 0);n._setIsFinal()},r.prototype.spread=function(t){return"function"!=typeof t?u("expecting a function but got "+h.classString(t)):this.all()._then(t,void 0,void 0,b,void 0)},r.prototype.toJSON=function(){var t={isFulfilled:!1,isRejected:!1,fulfillmentValue:void 0,rejectionReason:void 0};return this.isFulfilled()?(t.fulfillmentValue=this.value(),t.isFulfilled=!0):this.isRejected()&&(t.rejectionReason=this.reason(),t.isRejected=!0),t},r.prototype.all=function(){return arguments.length>0&&this._warn(".all() was passed arguments but it does not take any"),new j(this).promise()},r.prototype.error=function(t){return this.caught(h.originatesFromRejection,t)},r.is=function(t){return t instanceof r},r.fromNode=r.fromCallback=function(t){var e=new r(g);e._captureStackTrace();var n=arguments.length>1?!!Object(arguments[1]).multiArgs:!1,i=S(t)(P(e,n));return i===R&&e._rejectCallback(i.e,!0),e._isFateSealed()||e._setAsyncGuaranteed(),e},r.all=function(t){return new j(t).promise()},r.cast=function(t){var e=C(t);return e instanceof r||(e=new r(g),e._captureStackTrace(),e._setFulfilled(),e._rejectionHandler0=t),e},r.resolve=r.fulfilled=r.cast,r.reject=r.rejected=function(t){var e=new r(g);return e._captureStackTrace(),e._rejectCallback(t,!0),e},r.setScheduler=function(t){if("function"!=typeof t)throw new y("expecting a function but got "+h.classString(t));return d.setScheduler(t)},r.prototype._then=function(t,e,n,i,o){var s=void 0!==o,c=s?o:new r(g),l=this._target(),u=l._bitField;s||(c._propagateFrom(this,3),c._captureStackTrace(),void 0===i&&0!==(2097152&this._bitField)&&(i=0!==(50397184&u)?this._boundValue():l===this?void 0:this._boundTo),this._fireEvent("promiseChained",this,c));var p=a();if(0!==(50397184&u)){var h,f,_=l._settlePromiseCtx;0!==(33554432&u)?(f=l._rejectionHandler0,h=t):0!==(16777216&u)?(f=l._fulfillmentHandler0,h=e,l._unsetRejectionIsUnhandled()):(_=l._settlePromiseLateCancellationObserver,f=new m("late cancellation observer"),l._attachExtraTrace(f),h=e),d.invoke(_,l,{handler:null===p?h:"function"==typeof h&&p.bind(h),promise:c,receiver:i,value:f})}else l._addCallbacks(t,e,c,i,p);return c},r.prototype._length=function(){return 65535&this._bitField},r.prototype._isFateSealed=function(){return 0!==(117506048&this._bitField)},r.prototype._isFollowing=function(){return 67108864===(67108864&this._bitField)},r.prototype._setLength=function(t){this._bitField=-65536&this._bitField|65535&t},r.prototype._setFulfilled=function(){this._bitField=33554432|this._bitField,this._fireEvent("promiseFulfilled",this)},r.prototype._setRejected=function(){this._bitField=16777216|this._bitField,this._fireEvent("promiseRejected",this)},r.prototype._setFollowing=function(){this._bitField=67108864|this._bitField,this._fireEvent("promiseResolved",this)},r.prototype._setIsFinal=function(){this._bitField=4194304|this._bitField},r.prototype._isFinal=function(){return(4194304&this._bitField)>0},r.prototype._unsetCancelled=function(){this._bitField=-65537&this._bitField},r.prototype._setCancelled=function(){this._bitField=65536|this._bitField,this._fireEvent("promiseCancelled",this)},r.prototype._setAsyncGuaranteed=function(){d.hasCustomScheduler()||(this._bitField=134217728|this._bitField)},r.prototype._receiverAt=function(t){var e=0===t?this._receiver0:this[4*t-4+3];return e===p?void 0:void 0===e&&this._isBound()?this._boundValue():e},r.prototype._promiseAt=function(t){return this[4*t-4+2]},r.prototype._fulfillmentHandlerAt=function(t){return this[4*t-4+0]},r.prototype._rejectionHandlerAt=function(t){return this[4*t-4+1]},r.prototype._boundValue=function(){},r.prototype._migrateCallback0=function(t){var e=(t._bitField,t._fulfillmentHandler0),n=t._rejectionHandler0,r=t._promise0,i=t._receiverAt(0);void 0===i&&(i=p),this._addCallbacks(e,n,r,i,null)},r.prototype._migrateCallbackAt=function(t,e){var n=t._fulfillmentHandlerAt(e),r=t._rejectionHandlerAt(e),i=t._promiseAt(e),o=t._receiverAt(e);void 0===o&&(o=p),this._addCallbacks(n,r,i,o,null)},r.prototype._addCallbacks=function(t,e,n,r,i){var o=this._length();if(o>=65531&&(o=0,this._setLength(0)),0===o)this._promise0=n,this._receiver0=r,"function"==typeof t&&(this._fulfillmentHandler0=null===i?t:i.bind(t)),"function"==typeof e&&(this._rejectionHandler0=null===i?e:i.bind(e));else{var s=4*o-4;this[s+2]=n,this[s+3]=r,"function"==typeof t&&(this[s+0]=null===i?t:i.bind(t)),"function"==typeof e&&(this[s+1]=null===i?e:i.bind(e))}return this._setLength(o+1),o},r.prototype._proxy=function(t,e){this._addCallbacks(void 0,void 0,e,t,null)},r.prototype._resolveCallback=function(t,e){if(0===(117506048&this._bitField)){if(t===this)return this._rejectCallback(c(),!1);var n=C(t,this);if(!(n instanceof r))return this._fulfill(t);e&&this._propagateFrom(n,2);var i=n._target();if(i===this)return void this._reject(c());var o=i._bitField;if(0===(50397184&o)){var s=this._length();s>0&&i._migrateCallback0(this);for(var a=1;s>a;++a)i._migrateCallbackAt(this,a);this._setFollowing(),this._setLength(0),this._setFollowee(i)}else if(0!==(33554432&o))this._fulfill(i._value());else if(0!==(16777216&o))this._reject(i._reason());else{var l=new m("late cancellation observer");i._attachExtraTrace(l),this._reject(l)}}},r.prototype._rejectCallback=function(t,e,n){var r=h.ensureErrorObject(t),i=r===t;if(!i&&!n&&F.warnings()){var o="a promise was rejected with a non-error: "+h.classString(t);this._warn(o,!0)}this._attachExtraTrace(r,e?i:!1),this._reject(t)},r.prototype._resolveFromExecutor=function(t){var e=this;this._captureStackTrace(),this._pushContext();var n=!0,r=this._execute(t,function(t){e._resolveCallback(t)},function(t){e._rejectCallback(t,n)});n=!1,this._popContext(),void 0!==r&&e._rejectCallback(r,!0)},r.prototype._settlePromiseFromHandler=function(t,e,n,r){var i=r._bitField;if(0===(65536&i)){r._pushContext();var o;e===b?n&&"number"==typeof n.length?o=S(t).apply(this._boundValue(),n):(o=R,o.e=new y("cannot .spread() a non-array: "+h.classString(n))):o=S(t).call(e,n);var s=r._popContext();i=r._bitField,0===(65536&i)&&(o===w?r._reject(n):o===R?r._rejectCallback(o.e,!1):(F.checkForgottenReturns(o,s,"",r,this),r._resolveCallback(o)))}},r.prototype._target=function(){for(var t=this;t._isFollowing();)t=t._followee();return t},r.prototype._followee=function(){return this._rejectionHandler0},r.prototype._setFollowee=function(t){this._rejectionHandler0=t},r.prototype._settlePromise=function(t,n,i,o){var s=t instanceof r,a=this._bitField,c=0!==(134217728&a);0!==(65536&a)?(s&&t._invokeInternalOnCancel(),i instanceof x&&i.isFinallyHandler()?(i.cancelPromise=t,S(n).call(i,o)===R&&t._reject(R.e)):n===l?t._fulfill(l.call(i)):i instanceof e?i._promiseCancelled(t):s||t instanceof j?t._cancel():i.cancel()):"function"==typeof n?s?(c&&t._setAsyncGuaranteed(),this._settlePromiseFromHandler(n,i,o,t)):n.call(i,o,t):i instanceof e?i._isResolved()||(0!==(33554432&a)?i._promiseFulfilled(o,t):i._promiseRejected(o,t)):s&&(c&&t._setAsyncGuaranteed(),0!==(33554432&a)?t._fulfill(o):t._reject(o))},r.prototype._settlePromiseLateCancellationObserver=function(t){var e=t.handler,n=t.promise,i=t.receiver,o=t.value;"function"==typeof e?n instanceof r?this._settlePromiseFromHandler(e,i,o,n):e.call(i,o,n):n instanceof r&&n._reject(o)},r.prototype._settlePromiseCtx=function(t){this._settlePromise(t.promise,t.handler,t.receiver,t.value)},r.prototype._settlePromise0=function(t,e,n){var r=this._promise0,i=this._receiverAt(0);this._promise0=void 0,this._receiver0=void 0,this._settlePromise(r,t,i,e)},r.prototype._clearCallbackDataAtIndex=function(t){var e=4*t-4;this[e+2]=this[e+3]=this[e+0]=this[e+1]=void 0},r.prototype._fulfill=function(t){var e=this._bitField;if(!((117506048&e)>>>16)){if(t===this){var n=c();return this._attachExtraTrace(n),this._reject(n)}this._setFulfilled(),this._rejectionHandler0=t,(65535&e)>0&&(0!==(134217728&e)?this._settlePromises():d.settlePromises(this))}},r.prototype._reject=function(t){var e=this._bitField;if(!((117506048&e)>>>16))return this._setRejected(),this._fulfillmentHandler0=t,this._isFinal()?d.fatalError(t,h.isNode):void((65535&e)>0?d.settlePromises(this):this._ensurePossibleRejectionHandled())},r.prototype._fulfillPromises=function(t,e){for(var n=1;t>n;n++){var r=this._fulfillmentHandlerAt(n),i=this._promiseAt(n),o=this._receiverAt(n);this._clearCallbackDataAtIndex(n),this._settlePromise(i,r,o,e)}},r.prototype._rejectPromises=function(t,e){for(var n=1;t>n;n++){var r=this._rejectionHandlerAt(n),i=this._promiseAt(n),o=this._receiverAt(n);this._clearCallbackDataAtIndex(n),this._settlePromise(i,r,o,e)}},r.prototype._settlePromises=function(){var t=this._bitField,e=65535&t;if(e>0){if(0!==(16842752&t)){var n=this._fulfillmentHandler0;this._settlePromise0(this._rejectionHandler0,n,t),this._rejectPromises(e,n)}else{var r=this._rejectionHandler0;this._settlePromise0(this._fulfillmentHandler0,r,t),this._fulfillPromises(e,r)}this._setLength(0)}this._clearCancellationData()},r.prototype._settledValue=function(){var t=this._bitField;return 0!==(33554432&t)?this._rejectionHandler0:0!==(16777216&t)?this._fulfillmentHandler0:void 0},r.defer=r.pending=function(){F.deprecated("Promise.defer","new Promise");var t=new r(g);return{promise:t,resolve:i,reject:o}},h.notEnumerableProp(r,"_makeSelfResolutionError",c),t("./method")(r,g,C,u,F),t("./bind")(r,g,C,F),t("./cancel")(r,j,u,F),t("./direct_resolve")(r),t("./synchronous_inspection")(r),t("./join")(r,j,C,g,F),r.Promise=r,r.version="3.4.0",t("./map.js")(r,j,u,C,g,F),t("./call_get.js")(r),t("./using.js")(r,u,C,E,g,F),t("./timers.js")(r,g,F),t("./generators.js")(r,u,g,C,e,F),t("./nodeify.js")(r),t("./promisify.js")(r,g),t("./props.js")(r,j,C,u),t("./race.js")(r,g,C,u),t("./reduce.js")(r,j,u,C,g,F),t("./settle.js")(r,j,F),t("./some.js")(r,j,u),t("./filter.js")(r,g),t("./each.js")(r,g),t("./any.js")(r),h.toFastProperties(r),h.toFastProperties(r.prototype),s({a:1}),s({b:2}),s({c:3}),s(1),s(function(){}),s(void 0),s(!1),s(new r(g)),F.setBounds(_.firstLineError,h.lastLineError),r}},{"./any.js":1,"./async":2,"./bind":3,"./call_get.js":5,"./cancel":6,"./catch_filter":7,"./context":8,"./debuggability":9,"./direct_resolve":10,"./each.js":11,"./errors":12,"./es5":13,"./filter.js":14,"./finally":15,"./generators.js":16,"./join":17,"./map.js":18,"./method":19,"./nodeback":20,"./nodeify.js":21,"./promise_array":23,"./promisify.js":24,"./props.js":25,"./race.js":27,"./reduce.js":28,"./settle.js":30,"./some.js":31,"./synchronous_inspection":32,"./thenables":33,"./timers.js":34,"./using.js":35,"./util":36}],23:[function(t,e,n){e.exports=function(e,n,r,i,o){function s(t){switch(t){case-2:return[];case-3:return{}}}function a(t){var r=this._promise=new e(n);t instanceof e&&r._propagateFrom(t,3),r._setOnCancel(this),this._values=t,this._length=0,this._totalResolved=0,this._init(void 0,-2)}var c=t("./util");c.isArray;return c.inherits(a,o),a.prototype.length=function(){return this._length},a.prototype.promise=function(){return this._promise},a.prototype._init=function l(t,n){var o=r(this._values,this._promise);if(o instanceof e){o=o._target();var a=o._bitField;if(this._values=o,0===(50397184&a))return this._promise._setAsyncGuaranteed(),o._then(l,this._reject,void 0,this,n);if(0===(33554432&a))return 0!==(16777216&a)?this._reject(o._reason()):this._cancel();o=o._value()}if(o=c.asArray(o),null===o){var u=i("expecting an array or an iterable object but got "+c.classString(o)).reason();return void this._promise._rejectCallback(u,!1)}return 0===o.length?void(-5===n?this._resolveEmptyArray():this._resolve(s(n))):void this._iterate(o)},a.prototype._iterate=function(t){var n=this.getActualLength(t.length);this._length=n,this._values=this.shouldCopyValues()?new Array(n):this._values;for(var i=this._promise,o=!1,s=null,a=0;n>a;++a){var c=r(t[a],i);c instanceof e?(c=c._target(),s=c._bitField):s=null,o?null!==s&&c.suppressUnhandledRejections():null!==s?0===(50397184&s)?(c._proxy(this,a),this._values[a]=c):o=0!==(33554432&s)?this._promiseFulfilled(c._value(),a):0!==(16777216&s)?this._promiseRejected(c._reason(),a):this._promiseCancelled(a):o=this._promiseFulfilled(c,a)}o||i._setAsyncGuaranteed()},a.prototype._isResolved=function(){return null===this._values},a.prototype._resolve=function(t){this._values=null,this._promise._fulfill(t)},a.prototype._cancel=function(){!this._isResolved()&&this._promise.isCancellable()&&(this._values=null,this._promise._cancel())},a.prototype._reject=function(t){this._values=null,this._promise._rejectCallback(t,!1)},a.prototype._promiseFulfilled=function(t,e){this._values[e]=t;var n=++this._totalResolved;return n>=this._length?(this._resolve(this._values),!0):!1},a.prototype._promiseCancelled=function(){return this._cancel(),!0},a.prototype._promiseRejected=function(t){return this._totalResolved++,this._reject(t),!0},a.prototype._resultCancelled=function(){if(!this._isResolved()){var t=this._values;if(this._cancel(),t instanceof e)t.cancel();else for(var n=0;n<t.length;++n)t[n]instanceof e&&t[n].cancel()}},a.prototype.shouldCopyValues=function(){return!0},a.prototype.getActualLength=function(t){return t},a}},{"./util":36}],24:[function(t,e,n){e.exports=function(e,n){function r(t){return!C.test(t)}function i(t){try{return t.__isPromisified__===!0}catch(e){return!1}}function o(t,e,n){var r=f.getDataPropertyOrDefault(t,e+n,b);return r?i(r):!1}function s(t,e,n){for(var r=0;r<t.length;r+=2){var i=t[r];if(n.test(i))for(var o=i.replace(n,""),s=0;s<t.length;s+=2)if(t[s]===o)throw new m("Cannot promisify an API that has normal methods with '%s'-suffix\n\n    See http://goo.gl/MqrFmX\n".replace("%s",e))}}function a(t,e,n,r){for(var a=f.inheritedDataKeys(t),c=[],l=0;l<a.length;++l){var u=a[l],p=t[u],h=r===j?!0:j(u,p,t);"function"!=typeof p||i(p)||o(t,u,e)||!r(u,p,t,h)||c.push(u,p)}return s(c,e,n),c}function c(t,r,i,o,s,a){function c(){var i=r;r===h&&(i=this);var o=new e(n);o._captureStackTrace();var s="string"==typeof u&&this!==l?this[u]:t,c=_(o,a);try{s.apply(i,d(arguments,c))}catch(p){o._rejectCallback(v(p),!0,!0)}return o._isFateSealed()||o._setAsyncGuaranteed(),o}var l=function(){return this}(),u=t;return"string"==typeof u&&(t=o),f.notEnumerableProp(c,"__isPromisified__",!0),c}function l(t,e,n,r,i){for(var o=new RegExp(k(e)+"$"),s=a(t,e,o,n),c=0,l=s.length;l>c;c+=2){var u=s[c],p=s[c+1],_=u+e;if(r===E)t[_]=E(u,h,u,p,e,i);else{var d=r(p,function(){return E(u,h,u,p,e,i)});f.notEnumerableProp(d,"__isPromisified__",!0),t[_]=d}}return f.toFastProperties(t),t}function u(t,e,n){return E(t,e,void 0,t,null,n)}var p,h={},f=t("./util"),_=t("./nodeback"),d=f.withAppended,v=f.maybeWrapAsError,y=f.canEvaluate,m=t("./errors").TypeError,g="Async",b={__isPromisified__:!0},w=["arity","length","name","arguments","caller","callee","prototype","__isPromisified__"],C=new RegExp("^(?:"+w.join("|")+")$"),j=function(t){return f.isIdentifier(t)&&"_"!==t.charAt(0)&&"constructor"!==t},k=function(t){return t.replace(/([$])/,"\\$")},E=y?p:c;e.promisify=function(t,e){if("function"!=typeof t)throw new m("expecting a function but got "+f.classString(t));if(i(t))return t;e=Object(e);var n=void 0===e.context?h:e.context,o=!!e.multiArgs,s=u(t,n,o);return f.copyDescriptors(t,s,r),s},e.promisifyAll=function(t,e){if("function"!=typeof t&&"object"!=typeof t)throw new m("the target of promisifyAll must be an object or a function\n\n    See http://goo.gl/MqrFmX\n");e=Object(e);var n=!!e.multiArgs,r=e.suffix;"string"!=typeof r&&(r=g);var i=e.filter;"function"!=typeof i&&(i=j);var o=e.promisifier;if("function"!=typeof o&&(o=E),!f.isIdentifier(r))throw new RangeError("suffix must be a valid identifier\n\n    See http://goo.gl/MqrFmX\n");for(var s=f.inheritedDataKeys(t),a=0;a<s.length;++a){var c=t[s[a]];"constructor"!==s[a]&&f.isClass(c)&&(l(c.prototype,r,i,o,n),l(c,r,i,o,n))}return l(t,r,i,o,n)}}},{"./errors":12,"./nodeback":20,"./util":36}],25:[function(t,e,n){e.exports=function(e,n,r,i){function o(t){var e,n=!1;if(void 0!==a&&t instanceof a)e=p(t),n=!0;else{var r=u.keys(t),i=r.length;e=new Array(2*i);for(var o=0;i>o;++o){var s=r[o];e[o]=t[s],e[o+i]=s}}this.constructor$(e),this._isMap=n,this._init$(void 0,-3)}function s(t){var n,s=r(t);return l(s)?(n=s instanceof e?s._then(e.props,void 0,void 0,void 0,void 0):new o(s).promise(),s instanceof e&&n._propagateFrom(s,2),n):i("cannot await properties of a non-object\n\n    See http://goo.gl/MqrFmX\n")}var a,c=t("./util"),l=c.isObject,u=t("./es5");"function"==typeof Map&&(a=Map);var p=function(){function t(t,r){this[e]=t,this[e+n]=r,e++}var e=0,n=0;return function(r){n=r.size,e=0;var i=new Array(2*r.size);return r.forEach(t,i),i}}(),h=function(t){for(var e=new a,n=t.length/2|0,r=0;n>r;++r){var i=t[n+r],o=t[r];e.set(i,o)}return e};c.inherits(o,n),o.prototype._init=function(){},o.prototype._promiseFulfilled=function(t,e){this._values[e]=t;var n=++this._totalResolved;if(n>=this._length){var r;if(this._isMap)r=h(this._values);else{r={};for(var i=this.length(),o=0,s=this.length();s>o;++o)r[this._values[o+i]]=this._values[o]}return this._resolve(r),!0}return!1},o.prototype.shouldCopyValues=function(){return!1},o.prototype.getActualLength=function(t){return t>>1},e.prototype.props=function(){return s(this)},e.props=function(t){return s(t)}}},{"./es5":13,"./util":36}],26:[function(t,e,n){function r(t,e,n,r,i){for(var o=0;i>o;++o)n[o+r]=t[o+e],t[o+e]=void 0}function i(t){this._capacity=t,this._length=0,this._front=0}i.prototype._willBeOverCapacity=function(t){return this._capacity<t},i.prototype._pushOne=function(t){var e=this.length();this._checkCapacity(e+1);var n=this._front+e&this._capacity-1;this[n]=t,this._length=e+1},i.prototype._unshiftOne=function(t){var e=this._capacity;this._checkCapacity(this.length()+1);var n=this._front,r=(n-1&e-1^e)-e;this[r]=t,this._front=r,this._length=this.length()+1},i.prototype.unshift=function(t,e,n){this._unshiftOne(n),this._unshiftOne(e),this._unshiftOne(t)},i.prototype.push=function(t,e,n){var r=this.length()+3;if(this._willBeOverCapacity(r))return this._pushOne(t),this._pushOne(e),void this._pushOne(n);var i=this._front+r-3;this._checkCapacity(r);var o=this._capacity-1;this[i+0&o]=t,this[i+1&o]=e,this[i+2&o]=n,this._length=r},i.prototype.shift=function(){var t=this._front,e=this[t];return this[t]=void 0,this._front=t+1&this._capacity-1,this._length--,e},i.prototype.length=function(){return this._length},i.prototype._checkCapacity=function(t){this._capacity<t&&this._resizeTo(this._capacity<<1)},i.prototype._resizeTo=function(t){var e=this._capacity;this._capacity=t;var n=this._front,i=this._length,o=n+i&e-1;r(this,0,this,e,o)},e.exports=i},{}],27:[function(t,e,n){e.exports=function(e,n,r,i){function o(t,o){var c=r(t);if(c instanceof e)return a(c);if(t=s.asArray(t),null===t)return i("expecting an array or an iterable object but got "+s.classString(t));var l=new e(n);void 0!==o&&l._propagateFrom(o,3);for(var u=l._fulfill,p=l._reject,h=0,f=t.length;f>h;++h){var _=t[h];(void 0!==_||h in t)&&e.cast(_)._then(u,p,void 0,l,null)}return l}var s=t("./util"),a=function(t){return t.then(function(e){return o(e,t)})};e.race=function(t){return o(t,void 0)},e.prototype.race=function(){return o(this,void 0)}}},{"./util":36}],28:[function(t,e,n){e.exports=function(e,n,r,i,o,s){function a(t,n,r,i){this.constructor$(t);var s=h();this._fn=null===s?n:s.bind(n),void 0!==r&&(r=e.resolve(r),r._attachCancellationCallback(this)),this._initialValue=r,this._currentCancellable=null,this._eachValues=i===o?[]:void 0,this._promise._captureStackTrace(),this._init$(void 0,-5)}function c(t,e){this.isFulfilled()?e._resolve(t):e._reject(t)}function l(t,e,n,i){if("function"!=typeof e)return r("expecting a function but got "+f.classString(e));var o=new a(t,e,n,i);return o.promise()}function u(t){this.accum=t,this.array._gotAccum(t);var n=i(this.value,this.array._promise);return n instanceof e?(this.array._currentCancellable=n,n._then(p,void 0,void 0,this,void 0)):p.call(this,n)}function p(t){var n=this.array,r=n._promise,i=_(n._fn);r._pushContext();var o;o=void 0!==n._eachValues?i.call(r._boundValue(),t,this.index,this.length):i.call(r._boundValue(),this.accum,t,this.index,this.length),o instanceof e&&(n._currentCancellable=o);var a=r._popContext();return s.checkForgottenReturns(o,a,void 0!==n._eachValues?"Promise.each":"Promise.reduce",r),o}var h=e._getDomain,f=t("./util"),_=f.tryCatch;f.inherits(a,n),a.prototype._gotAccum=function(t){void 0!==this._eachValues&&t!==o&&this._eachValues.push(t)},a.prototype._eachComplete=function(t){return this._eachValues.push(t),this._eachValues},a.prototype._init=function(){},a.prototype._resolveEmptyArray=function(){this._resolve(void 0!==this._eachValues?this._eachValues:this._initialValue)},a.prototype.shouldCopyValues=function(){return!1},a.prototype._resolve=function(t){this._promise._resolveCallback(t),this._values=null},a.prototype._resultCancelled=function(t){return t===this._initialValue?this._cancel():void(this._isResolved()||(this._resultCancelled$(),this._currentCancellable instanceof e&&this._currentCancellable.cancel(),this._initialValue instanceof e&&this._initialValue.cancel()))},a.prototype._iterate=function(t){this._values=t;var n,r,i=t.length;if(void 0!==this._initialValue?(n=this._initialValue,r=0):(n=e.resolve(t[0]),r=1),this._currentCancellable=n,!n.isRejected())for(;i>r;++r){var o={accum:null,value:t[r],index:r,length:i,array:this};n=n._then(u,void 0,void 0,o,void 0)}void 0!==this._eachValues&&(n=n._then(this._eachComplete,void 0,void 0,this,void 0)),n._then(c,c,void 0,n,this)},e.prototype.reduce=function(t,e){return l(this,t,e,null)},e.reduce=function(t,e,n,r){return l(t,e,n,r)}}},{"./util":36}],29:[function(t,e,n){var r,i=t("./util"),o=function(){throw new Error("No async scheduler available\n\n    See http://goo.gl/MqrFmX\n")},s=i.getNativePromise();if(i.isNode&&"undefined"==typeof MutationObserver){var a=global.setImmediate,c=process.nextTick;r=i.isRecentNode?function(t){a.call(global,t)}:function(t){c.call(process,t)}}else if("function"==typeof s){var l=s.resolve();r=function(t){l.then(t)}}else r="undefined"==typeof MutationObserver||"undefined"!=typeof window&&window.navigator&&window.navigator.standalone?"undefined"!=typeof setImmediate?function(t){setImmediate(t)}:"undefined"!=typeof setTimeout?function(t){setTimeout(t,0)}:o:function(){var t=document.createElement("div"),e={attributes:!0},n=!1,r=document.createElement("div"),i=new MutationObserver(function(){t.classList.toggle("foo"),n=!1});i.observe(r,e);var o=function(){n||(n=!0,r.classList.toggle("foo"))};return function(n){var r=new MutationObserver(function(){r.disconnect(),n()});r.observe(t,e),o()}}();e.exports=r},{"./util":36}],30:[function(t,e,n){e.exports=function(e,n,r){function i(t){this.constructor$(t)}var o=e.PromiseInspection,s=t("./util");s.inherits(i,n),i.prototype._promiseResolved=function(t,e){this._values[t]=e;var n=++this._totalResolved;return n>=this._length?(this._resolve(this._values),!0):!1},i.prototype._promiseFulfilled=function(t,e){var n=new o;return n._bitField=33554432,n._settledValueField=t,this._promiseResolved(e,n)},i.prototype._promiseRejected=function(t,e){var n=new o;return n._bitField=16777216,n._settledValueField=t,this._promiseResolved(e,n)},e.settle=function(t){return r.deprecated(".settle()",".reflect()"),new i(t).promise()},e.prototype.settle=function(){return e.settle(this)}}},{"./util":36}],31:[function(t,e,n){e.exports=function(e,n,r){function i(t){this.constructor$(t),this._howMany=0,this._unwrap=!1,this._initialized=!1}function o(t,e){if((0|e)!==e||0>e)return r("expecting a positive integer\n\n    See http://goo.gl/MqrFmX\n");var n=new i(t),o=n.promise();return n.setHowMany(e),n.init(),o}var s=t("./util"),a=t("./errors").RangeError,c=t("./errors").AggregateError,l=s.isArray,u={};s.inherits(i,n),i.prototype._init=function(){if(this._initialized){if(0===this._howMany)return void this._resolve([]);this._init$(void 0,-5);var t=l(this._values);!this._isResolved()&&t&&this._howMany>this._canPossiblyFulfill()&&this._reject(this._getRangeError(this.length()))}},i.prototype.init=function(){this._initialized=!0,this._init()},i.prototype.setUnwrap=function(){this._unwrap=!0},i.prototype.howMany=function(){return this._howMany},i.prototype.setHowMany=function(t){this._howMany=t},i.prototype._promiseFulfilled=function(t){return this._addFulfilled(t),this._fulfilled()===this.howMany()?(this._values.length=this.howMany(),1===this.howMany()&&this._unwrap?this._resolve(this._values[0]):this._resolve(this._values),!0):!1},i.prototype._promiseRejected=function(t){return this._addRejected(t),this._checkOutcome()},i.prototype._promiseCancelled=function(){return this._values instanceof e||null==this._values?this._cancel():(this._addRejected(u),this._checkOutcome())},i.prototype._checkOutcome=function(){if(this.howMany()>this._canPossiblyFulfill()){for(var t=new c,e=this.length();e<this._values.length;++e)this._values[e]!==u&&t.push(this._values[e]);
+return t.length>0?this._reject(t):this._cancel(),!0}return!1},i.prototype._fulfilled=function(){return this._totalResolved},i.prototype._rejected=function(){return this._values.length-this.length()},i.prototype._addRejected=function(t){this._values.push(t)},i.prototype._addFulfilled=function(t){this._values[this._totalResolved++]=t},i.prototype._canPossiblyFulfill=function(){return this.length()-this._rejected()},i.prototype._getRangeError=function(t){var e="Input array must contain at least "+this._howMany+" items but contains only "+t+" items";return new a(e)},i.prototype._resolveEmptyArray=function(){this._reject(this._getRangeError(0))},e.some=function(t,e){return o(t,e)},e.prototype.some=function(t){return o(this,t)},e._SomePromiseArray=i}},{"./errors":12,"./util":36}],32:[function(t,e,n){e.exports=function(t){function e(t){void 0!==t?(t=t._target(),this._bitField=t._bitField,this._settledValueField=t._isFateSealed()?t._settledValue():void 0):(this._bitField=0,this._settledValueField=void 0)}e.prototype._settledValue=function(){return this._settledValueField};var n=e.prototype.value=function(){if(!this.isFulfilled())throw new TypeError("cannot get fulfillment value of a non-fulfilled promise\n\n    See http://goo.gl/MqrFmX\n");return this._settledValue()},r=e.prototype.error=e.prototype.reason=function(){if(!this.isRejected())throw new TypeError("cannot get rejection reason of a non-rejected promise\n\n    See http://goo.gl/MqrFmX\n");return this._settledValue()},i=e.prototype.isFulfilled=function(){return 0!==(33554432&this._bitField)},o=e.prototype.isRejected=function(){return 0!==(16777216&this._bitField)},s=e.prototype.isPending=function(){return 0===(50397184&this._bitField)},a=e.prototype.isResolved=function(){return 0!==(50331648&this._bitField)};e.prototype.isCancelled=t.prototype._isCancelled=function(){return 65536===(65536&this._bitField)},t.prototype.isCancelled=function(){return this._target()._isCancelled()},t.prototype.isPending=function(){return s.call(this._target())},t.prototype.isRejected=function(){return o.call(this._target())},t.prototype.isFulfilled=function(){return i.call(this._target())},t.prototype.isResolved=function(){return a.call(this._target())},t.prototype.value=function(){return n.call(this._target())},t.prototype.reason=function(){var t=this._target();return t._unsetRejectionIsUnhandled(),r.call(t)},t.prototype._value=function(){return this._settledValue()},t.prototype._reason=function(){return this._unsetRejectionIsUnhandled(),this._settledValue()},t.PromiseInspection=e}},{}],33:[function(t,e,n){e.exports=function(e,n){function r(t,r){if(u(t)){if(t instanceof e)return t;var i=o(t);if(i===l){r&&r._pushContext();var c=e.reject(i.e);return r&&r._popContext(),c}if("function"==typeof i){if(s(t)){var c=new e(n);return t._then(c._fulfill,c._reject,void 0,c,null),c}return a(t,i,r)}}return t}function i(t){return t.then}function o(t){try{return i(t)}catch(e){return l.e=e,l}}function s(t){try{return p.call(t,"_promise0")}catch(e){return!1}}function a(t,r,i){function o(t){a&&(a._resolveCallback(t),a=null)}function s(t){a&&(a._rejectCallback(t,p,!0),a=null)}var a=new e(n),u=a;i&&i._pushContext(),a._captureStackTrace(),i&&i._popContext();var p=!0,h=c.tryCatch(r).call(t,o,s);return p=!1,a&&h===l&&(a._rejectCallback(h.e,!0,!0),a=null),u}var c=t("./util"),l=c.errorObj,u=c.isObject,p={}.hasOwnProperty;return r}},{"./util":36}],34:[function(t,e,n){e.exports=function(e,n,r){function i(t){this.handle=t}function o(t){return clearTimeout(this.handle),t}function s(t){throw clearTimeout(this.handle),t}var a=t("./util"),c=e.TimeoutError;i.prototype._resultCancelled=function(){clearTimeout(this.handle)};var l=function(t){return u(+this).thenReturn(t)},u=e.delay=function(t,o){var s,a;return void 0!==o?(s=e.resolve(o)._then(l,null,null,t,void 0),r.cancellation()&&o instanceof e&&s._setOnCancel(o)):(s=new e(n),a=setTimeout(function(){s._fulfill()},+t),r.cancellation()&&s._setOnCancel(new i(a))),s._setAsyncGuaranteed(),s};e.prototype.delay=function(t){return u(t,this)};var p=function(t,e,n){var r;r="string"!=typeof e?e instanceof Error?e:new c("operation timed out"):new c(e),a.markAsOriginatingFromRejection(r),t._attachExtraTrace(r),t._reject(r),null!=n&&n.cancel()};e.prototype.timeout=function(t,e){t=+t;var n,a,c=new i(setTimeout(function(){n.isPending()&&p(n,e,a)},t));return r.cancellation()?(a=this.then(),n=a._then(o,s,void 0,c,void 0),n._setOnCancel(c)):n=this._then(o,s,void 0,c,void 0),n}}},{"./util":36}],35:[function(t,e,n){e.exports=function(e,n,r,i,o,s){function a(t){setTimeout(function(){throw t},0)}function c(t){var e=r(t);return e!==t&&"function"==typeof t._isDisposable&&"function"==typeof t._getDisposer&&t._isDisposable()&&e._setDisposable(t._getDisposer()),e}function l(t,n){function i(){if(s>=l)return u._fulfill();var o=c(t[s++]);if(o instanceof e&&o._isDisposable()){try{o=r(o._getDisposer().tryDispose(n),t.promise)}catch(p){return a(p)}if(o instanceof e)return o._then(i,a,null,null,null)}i()}var s=0,l=t.length,u=new e(o);return i(),u}function u(t,e,n){this._data=t,this._promise=e,this._context=n}function p(t,e,n){this.constructor$(t,e,n)}function h(t){return u.isDisposer(t)?(this.resources[this.index]._setDisposable(t),t.promise()):t}function f(t){this.length=t,this.promise=null,this[t-1]=null}var _=t("./util"),d=t("./errors").TypeError,v=t("./util").inherits,y=_.errorObj,m=_.tryCatch,g={};u.prototype.data=function(){return this._data},u.prototype.promise=function(){return this._promise},u.prototype.resource=function(){return this.promise().isFulfilled()?this.promise().value():g},u.prototype.tryDispose=function(t){var e=this.resource(),n=this._context;void 0!==n&&n._pushContext();var r=e!==g?this.doDispose(e,t):null;return void 0!==n&&n._popContext(),this._promise._unsetDisposable(),this._data=null,r},u.isDisposer=function(t){return null!=t&&"function"==typeof t.resource&&"function"==typeof t.tryDispose},v(p,u),p.prototype.doDispose=function(t,e){var n=this.data();return n.call(t,t,e)},f.prototype._resultCancelled=function(){for(var t=this.length,n=0;t>n;++n){var r=this[n];r instanceof e&&r.cancel()}},e.using=function(){var t=arguments.length;if(2>t)return n("you must pass at least 2 arguments to Promise.using");var i=arguments[t-1];if("function"!=typeof i)return n("expecting a function but got "+_.classString(i));var o,a=!0;2===t&&Array.isArray(arguments[0])?(o=arguments[0],t=o.length,a=!1):(o=arguments,t--);for(var c=new f(t),p=0;t>p;++p){var d=o[p];if(u.isDisposer(d)){var v=d;d=d.promise(),d._setDisposable(v)}else{var g=r(d);g instanceof e&&(d=g._then(h,null,null,{resources:c,index:p},void 0))}c[p]=d}for(var b=new Array(c.length),p=0;p<b.length;++p)b[p]=e.resolve(c[p]).reflect();var w=e.all(b).then(function(t){for(var e=0;e<t.length;++e){var n=t[e];if(n.isRejected())return y.e=n.error(),y;if(!n.isFulfilled())return void w.cancel();t[e]=n.value()}C._pushContext(),i=m(i);var r=a?i.apply(void 0,t):i(t),o=C._popContext();return s.checkForgottenReturns(r,o,"Promise.using",C),r}),C=w.lastly(function(){var t=new e.PromiseInspection(w);return l(c,t)});return c.promise=C,C._setOnCancel(c),C},e.prototype._setDisposable=function(t){this._bitField=131072|this._bitField,this._disposer=t},e.prototype._isDisposable=function(){return(131072&this._bitField)>0},e.prototype._getDisposer=function(){return this._disposer},e.prototype._unsetDisposable=function(){this._bitField=-131073&this._bitField,this._disposer=void 0},e.prototype.disposer=function(t){if("function"==typeof t)return new p(t,this,i());throw new d}}},{"./errors":12,"./util":36}],36:[function(t,e,n){function r(){try{var t=T;return T=null,t.apply(this,arguments)}catch(e){return x.e=e,x}}function i(t){return T=t,r}function o(t){return null==t||t===!0||t===!1||"string"==typeof t||"number"==typeof t}function s(t){return"function"==typeof t||"object"==typeof t&&null!==t}function a(t){return o(t)?new Error(v(t)):t}function c(t,e){var n,r=t.length,i=new Array(r+1);for(n=0;r>n;++n)i[n]=t[n];return i[n]=e,i}function l(t,e,n){if(!E.isES5)return{}.hasOwnProperty.call(t,e)?t[e]:void 0;var r=Object.getOwnPropertyDescriptor(t,e);return null!=r?null==r.get&&null==r.set?r.value:n:void 0}function u(t,e,n){if(o(t))return t;var r={value:n,configurable:!0,enumerable:!1,writable:!0};return E.defineProperty(t,e,r),t}function p(t){throw t}function h(t){try{if("function"==typeof t){var e=E.names(t.prototype),n=E.isES5&&e.length>1,r=e.length>0&&!(1===e.length&&"constructor"===e[0]),i=O.test(t+"")&&E.names(t).length>0;if(n||r||i)return!0}return!1}catch(o){return!1}}function f(t){function e(){}e.prototype=t;for(var n=8;n--;)new e;return t}function _(t){return A.test(t)}function d(t,e,n){for(var r=new Array(t),i=0;t>i;++i)r[i]=e+i+n;return r}function v(t){try{return t+""}catch(e){return"[no string representation]"}}function y(t){return null!==t&&"object"==typeof t&&"string"==typeof t.message&&"string"==typeof t.name}function m(t){try{u(t,"isOperational",!0)}catch(e){}}function g(t){return null==t?!1:t instanceof Error.__BluebirdErrorTypes__.OperationalError||t.isOperational===!0}function b(t){return y(t)&&E.propertyIsWritable(t,"stack")}function w(t){return{}.toString.call(t)}function C(t,e,n){for(var r=E.names(t),i=0;i<r.length;++i){var o=r[i];if(n(o))try{E.defineProperty(e,o,E.getDescriptor(t,o))}catch(s){}}}function j(t,e){return L?process.env[t]:e}function k(){if("function"==typeof Promise)try{var t=new Promise(function(){});if("[object Promise]"==={}.toString.call(t))return Promise}catch(e){}}var E=t("./es5"),F="undefined"==typeof navigator,x={e:{}},T,P="undefined"!=typeof self?self:"undefined"!=typeof window?window:"undefined"!=typeof global?global:void 0!==this?this:null,R=function(t,e){function n(){this.constructor=t,this.constructor$=e;for(var n in e.prototype)r.call(e.prototype,n)&&"$"!==n.charAt(n.length-1)&&(this[n+"$"]=e.prototype[n])}var r={}.hasOwnProperty;return n.prototype=e.prototype,t.prototype=new n,t.prototype},S=function(){var t=[Array.prototype,Object.prototype,Function.prototype],e=function(e){for(var n=0;n<t.length;++n)if(t[n]===e)return!0;return!1};if(E.isES5){var n=Object.getOwnPropertyNames;return function(t){for(var r=[],i=Object.create(null);null!=t&&!e(t);){var o;try{o=n(t)}catch(s){return r}for(var a=0;a<o.length;++a){var c=o[a];if(!i[c]){i[c]=!0;var l=Object.getOwnPropertyDescriptor(t,c);null!=l&&null==l.get&&null==l.set&&r.push(c)}}t=E.getPrototypeOf(t)}return r}}var r={}.hasOwnProperty;return function(n){if(e(n))return[];var i=[];t:for(var o in n)if(r.call(n,o))i.push(o);else{for(var s=0;s<t.length;++s)if(r.call(t[s],o))continue t;i.push(o)}return i}}(),O=/this\s*\.\s*\S+\s*=/,A=/^[a-z$_][a-z$_0-9]*$/i,D=function(){return"stack"in new Error?function(t){return b(t)?t:new Error(v(t))}:function(t){if(b(t))return t;try{throw new Error(v(t))}catch(e){return e}}}(),V=function(t){return E.isArray(t)?t:null};if("undefined"!=typeof Symbol&&Symbol.iterator){var I="function"==typeof Array.from?function(t){return Array.from(t)}:function(t){for(var e,n=[],r=t[Symbol.iterator]();!(e=r.next()).done;)n.push(e.value);return n};V=function(t){return E.isArray(t)?t:null!=t&&"function"==typeof t[Symbol.iterator]?I(t):null}}var L="undefined"!=typeof process&&"[object process]"===w(process).toLowerCase(),H={isClass:h,isIdentifier:_,inheritedDataKeys:S,getDataPropertyOrDefault:l,thrower:p,isArray:E.isArray,asArray:V,notEnumerableProp:u,isPrimitive:o,isObject:s,isError:y,canEvaluate:F,errorObj:x,tryCatch:i,inherits:R,withAppended:c,maybeWrapAsError:a,toFastProperties:f,filledRange:d,toString:v,canAttachTrace:b,ensureErrorObject:D,originatesFromRejection:g,markAsOriginatingFromRejection:m,classString:w,copyDescriptors:C,hasDevTools:"undefined"!=typeof chrome&&chrome&&"function"==typeof chrome.loadTimes,isNode:L,env:j,global:P,getNativePromise:k};H.isRecentNode=H.isNode&&function(){var t=process.versions.node.split(".").map(Number);return 0===t[0]&&t[1]>10||t[0]>0}(),H.isNode&&H.toFastProperties(process);try{throw new Error}catch(N){H.lastLineError=N}e.exports=H},{"./es5":13}]},{},[4])(4)}),"undefined"!=typeof window&&null!==window?window.P=window.Promise:"undefined"!=typeof self&&null!==self&&(self.P=self.Promise);
 /**
- * @license text 2.0.14 Copyright jQuery Foundation and other contributors.
+ * @license text 2.0.15 Copyright jQuery Foundation and other contributors.
  * Released under MIT license, http://github.com/requirejs/text/LICENSE
  */
 /*jslint regexp: true */
@@ -24073,8 +22070,26 @@ define('text',['module'], function (module) {
         buildMap = {},
         masterConfig = (module.config && module.config()) || {};
 
+    function useDefault(value, defaultValue) {
+        return value === undefined || value === '' ? defaultValue : value;
+    }
+
+    //Allow for default ports for http and https.
+    function isSamePort(protocol1, port1, protocol2, port2) {
+        if (port1 === port2) {
+            return true;
+        } else if (protocol1 === protocol2) {
+            if (protocol1 === 'http') {
+                return useDefault(port1, '80') === useDefault(port2, '80');
+            } else if (protocol1 === 'https') {
+                return useDefault(port1, '443') === useDefault(port2, '443');
+            }
+        }
+        return false;
+    }
+
     text = {
-        version: '2.0.14',
+        version: '2.0.15',
 
         strip: function (content) {
             //Strips <?xml ...?> declarations so that external SVG and XML
@@ -24192,7 +22207,7 @@ define('text',['module'], function (module) {
 
             return (!uProtocol || uProtocol === protocol) &&
                    (!uHostName || uHostName.toLowerCase() === hostname.toLowerCase()) &&
-                   ((!uPort && !uHostName) || uPort === port);
+                   ((!uPort && !uHostName) || isSamePort(uProtocol, uPort, protocol, port));
         },
 
         finishLoad: function (name, strip, content, onLoad) {
